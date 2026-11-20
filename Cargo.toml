@@ -1,0 +1,29 @@
+[package]
+name = "arion-pitwall-agent"
+version = "0.1.1"
+edition = "2021"
+description = "ARION Pit Wall driver app: reads Le Mans Ultimate telemetry and streams it to the team's pit wall."
+publish = false
+
+[dependencies]
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.154"
+ureq = { version = "=3.5.1", features = ["json"] }
+webrtc = "=0.21.1"
+tokio = { version = "=1.54.1", features = ["rt-multi-thread", "macros", "time", "sync"] }
+bytes = "=1.12.1"
+async-trait = "=0.1.92"
+eframe = { version = "=0.37.0", default-features = false, features = ["glow", "default_fonts", "x11"] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "=0.62.2", features = [
+  "Win32_Foundation", "Win32_System_Memory", "Win32_Security_Cryptography", "Win32_Globalization",
+  "Win32_System_Threading", "Win32_System_SystemInformation", "Win32_System_Registry",
+] }
+tray-icon = "=0.26.1"

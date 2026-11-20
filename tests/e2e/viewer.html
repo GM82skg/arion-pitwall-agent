@@ -1,0 +1,28 @@
+<!doctype html><meta charset="utf-8"><title>coach</title>
+<script>
+// Plays a coach: offer with "fast" (unordered, no retransmits) + "slow" (reliable), as the dashboard will.
+const viewer=new URLSearchParams(location.search).get('viewer');
+window.R={viewer,state:'start',fast:0,cars:0,slow:0,bye:null,first:null,lastCars:null,lastSlow:null,rtt:[],seqGaps:0,lastSeq:null,times:[]};
+(async()=>{
+  const pc=new RTCPeerConnection({iceServers:[]});
+  pc.onconnectionstatechange=()=>R.state=pc.connectionState;
+  const fast=pc.createDataChannel('fast',{ordered:false,maxRetransmits:0}),slow=pc.createDataChannel('slow');
+  fast.binaryType='arraybuffer';
+  fast.onmessage=e=>{const d=new DataView(e.data);if(d.getUint8(0)!==1)return;const k=d.getUint8(1);
+    if(k===1){R.fast++;R.times.push(performance.now());const seq=d.getUint32(4,true);if(R.lastSeq!==null&&seq!==R.lastSeq+1)R.seqGaps++;R.lastSeq=seq;
+      if(!R.first)R.first={len:e.data.byteLength,flags:d.getUint16(2,true),seq,et:d.getFloat64(8,true),lapDist:d.getFloat32(16,true),lap:d.getInt16(20,true),gear:d.getInt8(22),
+        x:d.getFloat32(24,true),y:d.getFloat32(28,true),z:d.getFloat32(32,true),speed:d.getFloat32(36,true),rpm:d.getFloat32(40,true),thr:d.getFloat32(44,true),brk:d.getFloat32(48,true),
+        steer:d.getFloat32(52,true),clutch:d.getFloat32(56,true),bp:[60,64,68,72].map(o=>d.getFloat32(o,true))}}
+    if(k===2){R.cars++;const n=d.getUint16(2,true);R.lastCars={n,len:e.data.byteLength,ids:[...Array(n)].map((_,i)=>d.getUint16(4+i*16,true))}}};
+  slow.onmessage=e=>{const t=String(e.data);if(t.startsWith('q:')){R.rtt.push(performance.now()-parseFloat(t.slice(2)));return}R.slow++;R.lastSlow=JSON.parse(t)};
+  slow.onopen=()=>setInterval(()=>slow.send('p:'+performance.now()),500);
+  await pc.setLocalDescription(await pc.createOffer());
+  await new Promise(r=>{if(pc.iceGatheringState==='complete')return r();pc.onicegatheringstatechange=()=>pc.iceGatheringState==='complete'&&r();setTimeout(r,1500)});
+  R.state='offered';
+  await fetch('/viewer/offer',{method:'POST',body:JSON.stringify({viewer,body:pc.localDescription.toJSON()})});
+  for(;;){const a=await (await fetch('/viewer/answer?viewer='+viewer)).json();
+    if(a.kind==='bye'){R.bye=a.body;R.state='refused';pc.close();return}
+    if(a.kind==='answer'){await pc.setRemoteDescription(a.body);break}
+    await new Promise(r=>setTimeout(r,300))}
+})().catch(e=>R.error=String(e));
+</script>
