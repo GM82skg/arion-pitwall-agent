@@ -202,8 +202,19 @@ impl eframe::App for AgentApp {
             if self.editing {
                 ui.label(self.t.s("Telemetry key", "Κλειδί τηλεμετρίας"));
                 ui.horizontal(|ui| {
-                    let r = ui.add(egui::TextEdit::singleline(&mut self.key_input).password(true).desired_width(260.0).hint_text("arion_tk_…"));
+                    let r = ui.add(egui::TextEdit::singleline(&mut self.key_input).password(true).desired_width(200.0).hint_text("arion_tk_…"));
                     let enter = r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                    // One click for drivers who don't use Ctrl+V: paste from the clipboard and save.
+                    if ui.button(self.t.s("Paste", "Επικόλληση")).clicked() {
+                        match arboard::Clipboard::new().and_then(|mut c| c.get_text()) {
+                            Ok(t) => {
+                                self.key_input = t.trim().to_string();
+                                self.save_key();
+                            }
+                            Err(_) => self.msg = Some((false, self.t.s("The clipboard is empty. Copy the key in the crew app first.",
+                                "Το πρόχειρο είναι άδειο. Αντέγραψε πρώτα το κλειδί από την εφαρμογή.").into())),
+                        }
+                    }
                     if ui.button(self.t.s("Save", "Αποθήκευση")).clicked() || enter {
                         self.save_key();
                     }
