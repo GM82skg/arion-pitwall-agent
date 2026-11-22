@@ -34,4 +34,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
-        run: gh release create "${{ github.ref_name }}" "ARION-Pit-Wall-${{ github.ref_name }}.exe" --title "ARION Pit Wall ${{ github.ref_name }}" --notes "Windows app for drivers. See README for how to use it."
+        # The SHA-256 fingerprint lets anyone check this exact file on virustotal.com (Search → paste it).
+        run: |
+          $f = "ARION-Pit-Wall-${{ github.ref_name }}.exe"
+          $h = (Get-FileHash $f -Algorithm SHA256).Hash.ToLower()
+          $notes = "Windows app for ARION drivers. How to install and what to do if Chrome or Windows warns: see README.`n`nSHA-256: $h`nCheck this exact file: virustotal.com > Search > paste the code above."
+          gh release create "${{ github.ref_name }}" $f --title "ARION Pit Wall ${{ github.ref_name }}" --notes $notes
