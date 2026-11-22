@@ -39,4 +39,7 @@ jobs:
           $f = "ARION-Pit-Wall-${{ github.ref_name }}.exe"
           $h = (Get-FileHash $f -Algorithm SHA256).Hash.ToLower()
           $notes = "Windows app for ARION drivers. How to install and what to do if Chrome or Windows warns: see README.`n`nSHA-256: $h`nCheck this exact file: virustotal.com > Search > paste the code above."
-          gh release create "${{ github.ref_name }}" $f --title "ARION Pit Wall ${{ github.ref_name }}" --notes $notes
+          # A copy with a fixed name, so the crew app's download link always gets the newest version:
+          # https://github.com/GM82skg/arion-pitwall-agent/releases/latest/download/ARION-Pit-Wall.exe
+          Copy-Item $f "ARION-Pit-Wall.exe"
+          gh release create "${{ github.ref_name }}" $f "ARION-Pit-Wall.exe" --title "ARION Pit Wall ${{ github.ref_name }}" --notes $notes
