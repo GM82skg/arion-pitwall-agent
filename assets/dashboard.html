@@ -6,6 +6,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <title>ARION Pit Wall</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0E0F11">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -77,6 +83,32 @@ table.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12
 .lg{display:flex;gap:12px;font-size:12px;color:var(--mu);flex-wrap:wrap}
 .ft{font-size:12px;color:var(--mu);text-align:center}
 @media (max-width:900px){.main{flex-direction:column;overflow:auto}.dcol{min-width:0;flex:none!important}.gx,.gy{display:none}.dock{flex:none!important;min-height:auto}.cv{min-height:260px}}
+/* ---------- phone (v0.1.6): one topic per screen, tab bar at the bottom ---------- */
+body.phone #app{padding:0;gap:0;height:100dvh}
+body.phone .top{border-radius:0;border-width:0 0 1px;padding:calc(6px + env(safe-area-inset-top)) 12px 8px;gap:8px}
+body.phone .top .sep,body.phone #lreset{display:none}
+body.phone .wm{height:18px}body.phone .brand b{font-size:13px}
+body.phone #sess{order:3;font-size:12px;flex:1 1 100%}body.phone #link{font-size:12px;margin-left:auto}
+body.phone #out{padding:3px 8px;font-size:12px}
+body.phone .tabs{order:4;flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}body.phone .tabs::-webkit-scrollbar{display:none}
+body.phone .tab{flex:none}
+.pview{flex:1;min-height:0;overflow:auto;padding:10px 12px;display:flex;flex-direction:column;gap:9px;scrollbar-width:none}
+.pview::-webkit-scrollbar{display:none}
+.pview .pn{border-radius:12px}
+.pnav{flex:none;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--ln);background:#141517;padding-bottom:env(safe-area-inset-bottom)}
+.pnav button{background:none;border:0;border-radius:0;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 10px;font-size:11px}
+.pnav button b{font-size:19px;font-weight:400;line-height:1.1}.pnav button.on{color:var(--y)}
+.pk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.pk .mu{font-size:12px}
+.pty{display:grid;grid-template-columns:1fr 1fr;gap:6px}.pty div{border-radius:8px;padding:7px 9px;font-family:var(--mono);font-size:13px}
+.pview .cv{min-height:0;flex:1}.pmap{flex:1;display:flex;flex-direction:column;min-height:380px}
+.pinp{flex:1;display:flex;flex-direction:column;min-height:300px}
+body.phone #battle table.t td:nth-child(3),body.phone #battle table.t th:nth-child(3),body.phone #laps table.t td:nth-child(2),body.phone #laps table.t th:nth-child(2){display:none}
+body.phone table.t{font-size:11.5px}body.phone table.t td,body.phone table.t th{padding:3px 3px}
+body.phone #battle table.t td:nth-child(5),body.phone #battle table.t th:nth-child(5),body.phone #battle table.t td:nth-child(6),body.phone #battle table.t th:nth-child(6),body.phone #battle table.t td:nth-child(7),body.phone #battle table.t th:nth-child(7){display:none}
+/* phone turned sideways on Map or Inputs: that view fills the screen */
+body.phone.land .top,body.phone.land .pnav{display:none}
+body.phone.land .pview{padding:8px calc(10px + env(safe-area-inset-right)) 8px calc(10px + env(safe-area-inset-left))}
+.lhint{text-align:center;font-size:12px;color:var(--mu)}body.land .lhint{display:none}
 </style>
 </head>
 <body>
@@ -99,7 +131,7 @@ table.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12
 <script>
 'use strict';
 // ARION Pit Wall dashboard — Phase 1. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1).
-const VERSION='0.1.5';
+const VERSION='0.1.6';
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
 const CFG={url:'https://isuiksufkyishdowejob.supabase.co',key:'sb_publishable_DMqGCrW9YEmzEN2_cP67-w_ljr1JBo9'};
@@ -315,7 +347,8 @@ const BODY={
     <div class="lg" style="margin-top:6px"><span><span class="sc pu">class best</span></span><span><span class="sc gn">personal best</span></span><span><span class="sc yl">+0.3 s</span></span><span id="theo"></span></div>`,
 };
 function dashView(){
-  const v=$('#view');if(v.dataset.k==='dash')return;v.dataset.k='dash';v.className='main';
+  if(PHONE)return phoneView();
+  const v=$('#view');if(v.dataset.k==='dash')return;v.dataset.k='dash';v.className='main';v.style.flexDirection='';
   const cols=LAYOUT.cols;
   v.innerHTML=cols.map((c,ci)=>`${ci?`<div class="gx" data-ci="${ci-1}"></div>`:''}<div class="dcol" style="flex:${c.w} 1 0">${c.p.map(([id,h],pi)=>`${pi?`<div class="gy" data-ci="${ci}" data-pi="${pi-1}"></div>`:''}<section class="pn dock" data-id="${id}" style="flex:${h} 1 0">${BODY[id]}</section>`).join('')}</div>`).join('');
   $('#mFull').onclick=()=>{S.mode='full';$('#mFull').className='on';$('#mFollow').className=''};
@@ -365,6 +398,66 @@ function movePanel(id,t){
   saveLayout();$('#view').dataset.k='';dashView();
 }
 
+// ---------- phone layout (v0.1.6): five tabs — Car · Map · Timing · Strategy · Inputs ----------
+let PHONE=false,PTAB='car';
+const PT=[['car','◉','Car'],['map','⌖','Map'],['timing','☰','Timing'],['strat','⚑','Strategy'],['inputs','∿','Inputs']];
+function checkPhone(){const was=PHONE,land=innerWidth>innerHeight;PHONE=Math.min(innerWidth,innerHeight)<600;
+  document.body.classList.toggle('phone',PHONE);document.body.classList.toggle('land',PHONE&&land&&(PTAB==='map'||PTAB==='inputs'));
+  if(was!==PHONE&&$('#view').dataset.k){ $('#view').dataset.k='';dashView()}}
+function phoneView(){
+  const v=$('#view');const k='phone-'+PTAB;if(v.dataset.k===k)return;v.dataset.k=k;v.className='main';v.style.flexDirection='column';
+  const body={
+    car:`<div id="pcar" style="display:contents"></div>`,
+    map:`<div class="pn pmap"><div class="ph"><button id="mFollow" class="on">Follow</button><button id="mFull">Full</button><span class="grow"></span><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div><div class="cv"><canvas id="map"></canvas></div></div>`,
+    timing:`<div class="pn" style="flex:1"><div class="ph"><button id="gMine" class="${S.gridTab==='mine'?'on':''}">This car</button><button id="gAll" class="${S.gridTab==='all'?'on':''}">Grid</button><span class="grow"></span><span id="theo" class="mu m" style="font-size:12px"></span></div><div id="gcls" class="tb"></div><div id="laps"></div></div>`,
+    strat:`<div class="pn" id="battle"></div><div class="pn" id="pitw"></div><div class="pn" id="wx"></div>`,
+    inputs:`<div class="pn pinp"><div class="ph"><span class="g">throttle</span><span class="r">brake</span><span>steering</span><span class="a">ABS</span><span class="c">lock</span></div><div class="cv"><canvas id="inp"></canvas></div><div class="m" id="inpft" style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap"></div></div><div class="lhint">↻ turn sideways for full screen</div>`};
+  v.innerHTML=`<div class="pview">${body[PTAB]}</div><nav class="pnav">${PT.map(([id,i,t])=>`<button data-t="${id}" class="${id===PTAB?'on':''}"><b>${i}</b>${t}</button>`).join('')}</nav>`;
+  v.querySelectorAll('.pnav button').forEach(b=>b.onclick=()=>{PTAB=b.dataset.t;checkPhone();phoneView()});
+  if(PTAB==='map'){if(S.mode!=='follow'&&!S._pmapSet){S.mode='follow';S.zoom=Math.max(S.zoom,3)}S._pmapSet=true;
+    $('#mFull').onclick=()=>{S.mode='full';$('#mFull').className='on';$('#mFollow').className=''};
+    $('#mFollow').onclick=()=>{S.mode='follow';$('#mFollow').className='on';$('#mFull').className='';if(S.zoom<2)S.zoom=3};
+    $('#mFollow').className=S.mode==='follow'?'on':'';$('#mFull').className=S.mode==='full'?'on':'';
+    $('#zIn').onclick=()=>{S.zoom=Math.min(12,S.zoom*1.5)};$('#zOut').onclick=()=>{S.zoom=Math.max(1,S.zoom/1.5)};pinchZoom($('#map'))}
+  if(PTAB==='timing'){$('#gMine').onclick=()=>{S.gridTab='mine';$('#gMine').className='on';$('#gAll').className='';paintLaps()};$('#gAll').onclick=()=>{S.gridTab='all';$('#gAll').className='on';$('#gMine').className='';paintLaps()}}
+  paintPhone();
+}
+function pinchZoom(cv){let d0=null,z0=1;const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+  cv.addEventListener('touchstart',e=>{if(e.touches.length===2){d0=dist(e.touches);z0=S.zoom}},{passive:true});
+  cv.addEventListener('touchmove',e=>{if(e.touches.length===2&&d0){e.preventDefault();S.zoom=Math.max(1,Math.min(12,z0*dist(e.touches)/d0))}},{passive:false});
+  cv.addEventListener('touchend',()=>{d0=null},{passive:true})}
+function paintPhone(){
+  const j=S.slow;
+  if(j){const se=j.session;$('#sess').innerHTML=`${esc(se.track)} · ${fmtLeft(se.left)}`+(se.yellow>0?' · <span class="a">yellow</span>':' · <span class="g">green</span>')}
+  if(PTAB==='car')return paintPhoneCar();
+  if(!j)return;const me=j.grid.find(g=>g.player)||{};
+  if(PTAB==='timing')paintLaps();
+  if(PTAB==='strat'){paintBattle(j,me);paintPit(j,me);paintWx(j,me)}
+}
+function paintPhoneCar(){
+  const el=$('#pcar');if(!el)return;const j=S.slow,sel=SESS.find(s=>s.id===SEL);
+  if(!j){el.innerHTML=`<div class="pn"><b>${esc(sel?sel.driver:'')}</b><div class="mu" style="margin-top:6px">${LINK&&LINK.state==='live'?'Waiting for the driver to be on track…':'Connecting to the driver’s app…'}</div></div>`;return}
+  const me=j.grid.find(g=>g.player)||{},c=j.car,w=c.wheels||[],R=S.rest||{},wear=R.wear||{};
+  const inCls=j.grid.filter(g=>g.class===me.class).sort((a,b)=>a.place-b.place),i=inCls.findIndex(g=>g.id===me.id);
+  const ah=inCls[i-1],bh=inCls[i+1],mp=pace(me.id),gap=g=>me.laps===g.laps?Math.abs(me.behindLeader-g.behindLeader):null;
+  const rate=g=>{const p=pace(g.id);return p&&mp?(mp-p):null};const st=S.per.get(me.id),stint=st?me.laps-st.stintStart:0;
+  const nb=(g,label)=>{if(!g)return `<div><div class="mu">${label}</div>–</div>`;const r=rate(g),gp=gap(g);return `<div><div class="mu">${label} ${esc((g.name||'').split(' ').pop())}</div>${gp!=null?gp.toFixed(1):'lap'}${r!=null?` <span class="${(label==='Ahead')===(r>0)?'g':'r'}">${r>0?'−':'+'}${Math.abs(r).toFixed(1)}</span>`:''}</div>`};
+  const ve=c.energy,su=(wear.susp||[]).map(x=>x>=0?x:0),sw=Math.max(0,...su),dz=(c.damage||[]).filter(x=>x>0).length;
+  const dmg=[];if(wear.aero>0.005)dmg.push(`Aero ${Math.round(wear.aero*100)}%`);if(sw>0.005)dmg.push(`${['FL','FR','RL','RR'][su.indexOf(sw)]} ${Math.round(sw*100)}%`);if(dz)dmg.push(`${dz} zone${dz>1?'s':''}`);if(c.detached)dmg.push('wing off');
+  el.innerHTML=`<div class="pn"><div class="ph" style="margin-bottom:6px"><b>${esc(sel?sel.driver:me.name)}</b>${pill(me.class)}<span class="mu">P${i+1} in class</span>${me.pits?'<span class="a">in pits</span>':''}</div>
+    <div class="pk m"><div><div class="mu">Last</div><span style="font-size:17px">${fmtLap(me.last)}</span></div><div><div class="mu">Best</div><span class="g" style="font-size:17px">${fmtLap(me.best)}</span></div><div><div class="mu">Δ live</div><span class="${c.delta<-0.0005?'g':c.delta>0.0005?'r':''}" style="font-size:17px">${c.delta!=null&&isFinite(c.delta)?(c.delta>0.0005?'+':c.delta<-0.0005?'−':'')+Math.abs(c.delta).toFixed(3):'–'}</span></div></div></div>
+    <div class="pn pk m">${nb(ah,'Ahead')}${nb(bh,'Behind')}<div><div class="mu">Stint</div>${stint} laps</div></div>
+    <div class="pn"><div style="display:flex"><span class="mu">Energy</span><span class="grow"></span><span class="m">${ve>=0&&ve<=1?Math.round(ve*100)+'%':'–'}${energyLeft(me)&&energyLeft(me).laps!=null?` · ${energyLeft(me).laps.toFixed(1)} laps`:''}</span></div><div class="bar"><i style="width:${ve>=0&&ve<=1?ve*100:0}%"></i></div>
+      <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} L</span></div></div>
+    <div class="pn pty">${['FL','FR','RL','RR'].map((n,k)=>{const t=w[k]||{t:[0,0,0]};const mid=KC((t.t||[])[1]+273.15);return `<div style="background:${mid==null?'#1F2024':tyreBg(mid)}">${n} <b>${mid==null?'–':Math.round(mid)+'°'}</b> <span class="mu">${t.p>0?Math.round(t.p):'–'}</span></div>`}).join('')}</div>
+    <div class="pn" style="display:flex"><span class="mu">Damage</span><span class="grow"></span><span class="m ${dmg.length?'a':'g'}">${dmg.length?dmg.join(' · '):'none'}${R.pit&&R.pit.repair>0?` · repair ${R.pit.repair.toFixed(0)} s`:''}</span></div>
+    <div class="pn mom">${S.moments.slice(0,3).map(m=>`<div><span class="mu">${m.lap!=null?'L'+m.lap:''}</span> <span class="${m.cls||''}">${m.icon}</span> ${esc(m.text)}</div>`).join('')||'<div class="mu">Nothing yet.</div>'}</div>`;
+}
+// keep the phone screen on while a car is live (where the browser allows it)
+let WAKE=null;async function wake(){try{if(PHONE&&LINK&&LINK.state==='live'&&!document.hidden&&!WAKE&&navigator.wakeLock){WAKE=await navigator.wakeLock.request('screen');WAKE.addEventListener('release',()=>{WAKE=null})}}catch{WAKE=null}}
+setInterval(wake,5000);document.addEventListener('visibilitychange',wake);
+addEventListener('resize',()=>{checkPhone();if(PHONE){$('#view').dataset.k='';phoneView()}});
+
 // ---------- what the dashboard learns from each slow message (laps, sectors, stints, events) ----------
 // LMU sector times are cumulative: s2 = S1+S2, lap = S1+S2+S3. We split them into three sectors.
 const secs=(s1,s2,lap)=>s1>0&&s2>s1&&lap>s2?[s1,s2-s1,lap-s2]:null;
@@ -413,6 +506,7 @@ const tyreBg=t=>t<60?'#16263A':t<95?'#1E2A1F':t<110?'#3A2A12':'#3A1616';
 const KC=k=>k>0?k-273.15:null;   // LMU temperatures are kelvin; 0 = no data (e.g. in the garage)
 const pc=v=>v==null||!(v>=0)?'–':Math.round(v*100)+'%';
 function paintPanels(){
+  if(PHONE)return paintPhone();
   const j=S.slow,car=$('#car');if(!car)return;
   const sel=SESS.find(s=>s.id===SEL);
   if(j){const se=j.session;$('#sess').innerHTML=`${esc(se.track)} · ${SESSN(se.type)} · ${fmtLeft(se.left)}`+(se.yellow>0?' · <span class="a">yellow</span>':'')}
@@ -591,7 +685,9 @@ function drawInputs(){
 }
 const now=()=>performance.now();
 let lastTraffic=0;
-function frame(){drawMap();drawInputs();if(now()-lastTraffic>500){lastTraffic=now();paintTraffic()}requestAnimationFrame(frame)}
+let lastDraw=0;
+function frame(t){if(!PHONE||t-lastDraw>=30){lastDraw=t;drawMap();drawInputs()}if(now()-lastTraffic>500){lastTraffic=now();if(!PHONE)paintTraffic()}requestAnimationFrame(frame)}
+checkPhone();
 requestAnimationFrame(frame);
 addEventListener('pagehide',()=>{if(LINK){const L=LINK;LINK=null;L.stop(true)}});
 boot();
