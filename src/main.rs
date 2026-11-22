@@ -31,7 +31,8 @@ fn main() {
     let fake = std::env::args().any(|a| a == "--fake");
     let seconds: Option<u64> = arg("--seconds").and_then(|s| s.parse().ok());
 
-    let src: Box<dyn source::Source> = if fake { Box::new(source::FakeSource::new()) } else { source::game() };
+    let speed: f64 = arg("--fake-speed").and_then(|s| s.parse().ok()).unwrap_or(1.0);
+    let src: Box<dyn source::Source> = if fake { Box::new(source::FakeSource::with_speed(speed)) } else { source::game() };
     let door: Arc<dyn signal::Door> = Arc::new(signal::Supabase::new(&url, &apikey, &key));
     let status = Arc::new(Mutex::new(session::Status::default()));
     let stop = Arc::new(AtomicBool::new(false));

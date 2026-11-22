@@ -30,7 +30,15 @@ input{font:inherit;color:var(--tx);background:#0E0F11;border:1px solid var(--ln)
 .tab{display:flex;gap:8px;align-items:center;padding:5px 11px;border-radius:6px;border:1px solid var(--ln);background:#1A1B1F;font-family:var(--mono);font-size:13px;cursor:pointer}
 .tab.on{background:#3A3000;border-color:var(--y)}
 .grow{flex:1}
-.main{flex:1;display:grid;grid-template-columns:420px minmax(0,1fr);gap:10px;min-height:0}
+.main{flex:1;display:grid;grid-template-columns:400px minmax(0,1fr) 440px;gap:10px;min-height:0}
+.scrl{overflow:auto;min-height:0}
+table.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}table.t td,table.t th{padding:3px 4px;text-align:left;white-space:nowrap}table.t th{font-family:Inter,sans-serif;font-weight:400;color:var(--mu)}table.t tr+tr td{border-top:1px solid #23252A}
+.sc{border-radius:3px;padding:0 4px}.sc.pu{background:#3B2760;color:#C9A8FF}.sc.gn{background:#13361F;color:#3BD16F}.sc.yl{background:#3A3000;color:#F2C200}
+.tb{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}.tb button{padding:3px 9px;font-size:12px}
+.slots{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;text-align:center;font-family:var(--mono);font-size:12px}.slot{border:1px solid var(--ln);border-radius:6px;padding:4px 2px}.slot.past{opacity:.45}.slot.now{border-color:#E6E7EA}.slot.nx{border-color:var(--a);background:#2A1F08}
+.next{border:1px solid var(--a);background:#2A1F08;border-radius:6px;padding:7px 9px;margin-top:8px;font-size:13px}
+.mom{display:grid;gap:3px;font-family:var(--mono);font-size:12px}
+@media (max-width:1300px){.main{grid-template-columns:380px minmax(0,1fr)}.col3{grid-column:1/-1}}
 .col{display:flex;flex-direction:column;gap:10px;min-height:0}
 .pn{background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:10px 12px;min-height:0}
 .ph{display:flex;align-items:center;gap:8px;color:var(--mu);margin-bottom:8px;font-size:13px}
@@ -72,7 +80,7 @@ input{font:inherit;color:var(--tx);background:#0E0F11;border:1px solid var(--ln)
 <script>
 'use strict';
 // ARION Pit Wall dashboard — Phase 1. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1).
-const VERSION='0.1.2';
+const VERSION='0.1.3';
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
 const CFG={url:'https://isuiksufkyishdowejob.supabase.co',key:'sb_publishable_DMqGCrW9YEmzEN2_cP67-w_ljr1JBo9'};
@@ -84,8 +92,9 @@ let noteT;function note(t){const n=$('#note');n.textContent=t;n.style.display='b
 
 // ---------- state ----------
 let USER=null,TOKEN=null,SESS=[],SEL=null,LINK=null;
-const S={fast:null,slow:null,cars:new Map(),hist:[],trail:[],last:[],lap:null,segs:[],cells:new Set(),segBounds:null,trackLen:0,mode:'full',zoom:1,lastPos:new Map(),heading:0};
-function resetData(){S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
+const S={fast:null,slow:null,cars:new Map(),hist:[],trail:[],last:[],lap:null,segs:[],cells:new Set(),segBounds:null,trackLen:0,mode:'full',zoom:1,lastPos:new Map(),heading:0,
+  laps:[],per:new Map(),clsBest:new Map(),moments:[],prev:null,temps:[],gridTab:'mine',gridCls:null,rest:{}};
+function resetData(){S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
 
 // ---------- login and access ----------
 async function boot(){
@@ -250,14 +259,16 @@ function onFast(buf){
 }
 function growBounds(x,z){const b=S.segBounds;if(!b){S.segBounds=[x,z,x,z];return}
   b[0]=Math.min(b[0],x);b[1]=Math.min(b[1],z);b[2]=Math.max(b[2],x);b[3]=Math.max(b[3],z)}
-function onSlow(j){if(j.t!=='slow')return;S.slow=j;paintPanels()}
+function onSlow(j){if(j.t!=='slow')return;S.slow=j;if(j.rest&&typeof j.rest==='object')S.rest={...S.rest,...j.rest};learn(j);paintPanels()}
 
 // ---------- layout ----------
 function dashView(){
   const v=$('#view');if(v.dataset.k==='dash')return;v.dataset.k='dash';v.className='main';
   v.innerHTML=`<div class="col">
       <div class="pn" id="car"></div>
-      <div class="pn fill"><div class="ph"><b>Traffic</b><span class="mu">all classes, by track position · <span class="y">●</span> your class</span></div><div id="traffic"></div></div>
+      <div class="pn fill"><div class="ph"><b>Traffic</b><span class="mu">all classes, by track position · <span class="y">●</span> your class</span></div><div id="traffic" class="scrl"></div></div>
+      <div class="pn" id="pitw"></div>
+      <div class="pn fill" style="flex:.7"><div class="ph"><b>Key moments</b><span class="mu">automatic log</span></div><div id="moments" class="mom scrl"></div></div>
     </div>
     <div class="col">
       <div class="pn fill" style="flex:3">
@@ -267,18 +278,61 @@ function dashView(){
         <div class="cv"><canvas id="map"></canvas></div>
         <div class="lg"><span class="y">● this car</span><span>trail: <span class="y">this lap</span>, <span class="mu">last lap</span></span><span>cars: <span style="color:#D9D9DE">Hypercar</span> · <span style="color:#3E7BFA">LMP2</span> · <span style="color:#F08C2E">GT3</span> · <span style="color:#3BD16F">GTE</span> · <span class="mu">other</span></span><span class="mu">The track draws itself from where cars drive.</span></div>
       </div>
-      <div class="pn fill" style="flex:1.2">
+      <div class="pn fill" style="flex:1.1">
         <div class="ph"><b>Live inputs</b><span class="g">throttle</span><span class="r">brake</span><span>steering</span><span class="a">ABS active</span><span class="c">wheel lock</span><span class="grow"></span><span class="mu">last 15 s</span></div>
         <div class="cv"><canvas id="inp"></canvas></div>
-        <div class="m" id="inpft" style="display:flex;gap:18px;margin-top:6px"></div>
+        <div class="m" id="inpft" style="display:flex;gap:18px;margin-top:6px;flex-wrap:wrap"></div>
       </div>
+      <div class="pn" id="battle"></div>
+    </div>
+    <div class="col col3">
+      <div class="pn" id="wx"></div>
+      <div class="pn fill"><div class="ph"><b>Laps and sectors</b><span class="grow"></span><button id="gMine" class="on">This car</button><button id="gAll">Full grid</button></div>
+        <div id="gcls" class="tb"></div><div id="laps" class="scrl" style="flex:1"></div>
+        <div class="lg" style="margin-top:6px"><span><span class="sc pu">0.0</span> class best</span><span><span class="sc gn">0.0</span> personal best</span><span><span class="sc yl">0.0</span> 0.3 s+ off best</span><span id="theo"></span></div></div>
     </div>`;
   $('#mFull').onclick=()=>{S.mode='full';$('#mFull').className='on';$('#mFollow').className=''};
   $('#mFollow').onclick=()=>{S.mode='follow';$('#mFollow').className='on';$('#mFull').className='';if(S.zoom<2)S.zoom=3};
   $('#zIn').onclick=()=>{S.zoom=Math.min(12,S.zoom*1.5)};$('#zOut').onclick=()=>{S.zoom=Math.max(1,S.zoom/1.5)};
+  $('#gMine').onclick=()=>{S.gridTab='mine';$('#gMine').className='on';$('#gAll').className='';paintLaps()};
+  $('#gAll').onclick=()=>{S.gridTab='all';$('#gAll').className='on';$('#gMine').className='';paintLaps()};
   paintPanels();
 }
 
+// ---------- what the dashboard learns from each slow message (laps, sectors, stints, events) ----------
+// LMU sector times are cumulative: s2 = S1+S2, lap = S1+S2+S3. We split them into three sectors.
+const secs=(s1,s2,lap)=>s1>0&&s2>s1&&lap>s2?[s1,s2-s1,lap-s2]:null;
+function clsOf(g){return CLSN(g.class)}
+function moment(icon,text,cls){const lap=(S.slow?.grid||[]).find(g=>g.player)?.laps;S.moments.unshift({lap,icon,text,cls,t:Date.now()});if(S.moments.length>80)S.moments.pop()}
+function learn(j){
+  const prev=S.prev,now=Date.now();
+  for(const g of j.grid){
+    let c=S.per.get(g.id);if(!c){c={laps:g.laps,last:g.last,times:[],stintStart:g.laps,stops:g.stops,best:[9e9,9e9,9e9],pen:g.penalties,ve:[],name:g.name};S.per.set(g.id,c)}
+    if(g.laps!==c.laps){// a lap was completed
+      const sc=secs(g.s1,g.s2,g.last),valid=g.countLap===2&&g.last>0;
+      if(valid){c.times.push({lap:g.laps,t:g.last,inPit:false});if(c.times.length>30)c.times.shift()}
+      if(sc&&valid){sc.forEach((x,i)=>{c.best[i]=Math.min(c.best[i],x);const k=clsOf(g)+i,cb=S.clsBest.get(k);if(!cb||x<cb)S.clsBest.set(k,x)})}
+      if(g.energy!=null&&g.energy>=0)c.ve.push({lap:g.laps,e:g.energy});if(c.ve.length>10)c.ve.shift();
+      if(g.player){S.laps.unshift({lap:g.laps,driver:g.name,sec:sc,time:g.last,valid,pit:c.pitLap===g.laps||c.pitLap===g.laps-1,out:c.outLap===g.laps});if(S.laps.length>60)S.laps.pop();
+        const pb=valid&&g.last>0&&g.last<=g.best+1e-6&&(!prev||g.best<(prev.grid.find(x=>x.id===g.id)?.best??9e9)-1e-6);if(pb)moment('★',`Personal best ${fmtLap(g.last)}`,'g')}
+      c.laps=g.laps}
+    if(g.stops!==c.stops){c.stops=g.stops;c.stintStart=g.laps;c.pitLap=g.laps;if(g.player)moment('⛽',`Pit stop ${g.stops}`,'')}
+    if(g.penalties>c.pen){if(g.player||clsOf(g)===clsOf(j.grid.find(x=>x.player)||{}))moment('⚖',`${g.player?'You':g.name}: penalty`,'r');}
+    c.pen=g.penalties;
+    if(prev){const pg=prev.grid.find(x=>x.id===g.id);if(pg&&g.player&&pg.name!==g.name)moment('⟳',`Driver swap to ${g.name}`,'')}
+  }
+  const se=j.session,ps=prev?.session;
+  if(ps){
+    if(se.yellow>0&&!(ps.yellow>0))moment('⚑','Full course yellow / safety car','a');
+    if(!(se.yellow>0)&&ps.yellow>0)moment('⚑','Green flag','g');
+    (se.sectorFlags||[]).forEach((f,i)=>{if(f>0&&!((ps.sectorFlags||[])[i]>0))moment('⚑',`Local yellow, sector ${i+1}`,'a')});
+    if(se.rain>0.05&&!(ps.rain>0.05))moment('☂','Rain started','a');
+    if(se.rain<=0.05&&ps.rain>0.05)moment('☀','Rain stopped','');
+    if(j.car.impactET>(prev.car.impactET||0)&&j.car.impact>1000)moment('✱','Contact','r');
+  }
+  if(!S.temps.length||now-S.temps[S.temps.length-1].t>30000){S.temps.push({t:now,v:se.track_temp});while(S.temps.length&&now-S.temps[0].t>3600000)S.temps.shift()}
+  S.prev=j;
+}
 const CLS=c=>{c=(c||'').toLowerCase();return c.includes('hyper')?'#D9D9DE':c.includes('lmp2')?'#3E7BFA':c.includes('lmp3')?'#B07CFF':c.includes('gt3')?'#F08C2E':c.includes('gte')?'#3BD16F':'#8C8F98'};
 const CLSN=c=>{c=(c||'').toLowerCase();return c.includes('hyper')?'HY':c.includes('lmp2')?'P2':c.includes('lmp3')?'P3':c.includes('gt3')?'GT3':c.includes('gte')?'GTE':(c||'?').slice(0,3).toUpperCase()};
 const fmtLap=t=>!(t>0)?'–':`${Math.floor(t/60)}:${(t%60).toFixed(3).padStart(6,'0')}`;
@@ -286,22 +340,105 @@ const SESSN=n=>n===0?'Test day':n<=4?`Practice ${n}`:n<=8?`Qualifying ${n-4}`:n=
 const fmtLeft=s=>!(s>0)?'':`${Math.floor(s/3600)}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')} left`;
 const tyreBg=t=>t<60?'#16263A':t<95?'#1E2A1F':t<110?'#3A2A12':'#3A1616';
 
+const KC=k=>k>0?k-273.15:null;   // LMU temperatures are kelvin; 0 = no data (e.g. in the garage)
+const pc=v=>v==null||!(v>=0)?'–':Math.round(v*100)+'%';
 function paintPanels(){
   const j=S.slow,car=$('#car');if(!car)return;
   const sel=SESS.find(s=>s.id===SEL);
   if(j){const se=j.session;$('#sess').innerHTML=`${esc(se.track)} · ${SESSN(se.type)} · ${fmtLeft(se.left)}`+(se.yellow>0?' · <span class="a">yellow</span>':'')}
-  if(!j){car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:'')}</b><span class="mu">${esc(sel&&sel.team?sel.team.name:'practice')}</span></div><div class="mu">${LINK&&LINK.state==='live'?(LOCAL?'Waiting for Le Mans Ultimate (on track)…':'Waiting for the driver to be on track…'):'Connecting to the driver’s app…'}</div>`;$('#traffic').innerHTML='';return}
-  const me=j.grid.find(g=>g.player)||{},c=j.car,w=c.wheels||[];
+  if(!j){car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:'')}</b><span class="mu">${esc(sel&&sel.team?sel.team.name:'practice')}</span></div><div class="mu">${LINK&&LINK.state==='live'?(LOCAL?'Waiting for Le Mans Ultimate (on track)…':'Waiting for the driver to be on track…'):'Connecting to the driver’s app…'}</div>`;['#traffic','#pitw','#moments','#battle','#wx','#laps'].forEach(k=>{const e=$(k);if(e)e.innerHTML=''});return}
+  const me=j.grid.find(g=>g.player)||{},c=j.car,w=c.wheels||[],R=S.rest||{};
   const cls=me.class,inCls=j.grid.filter(g=>g.class===cls).sort((a,b)=>a.place-b.place),pic=inCls.findIndex(g=>g.id===me.id)+1;
-  const energy=(c.energy>=0&&c.energy<=1)?`${Math.round(c.energy*100)}%`:'–';
-  const dmg=(c.damage||[]).some(x=>x>0);
-  car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:me.name)}</b><span class="chip" style="background:#1F2024">P${pic||'–'} in ${esc(CLSN(cls))}</span><span class="mu">${esc(me.car||'')}</span></div>
-    <div class="k3"><div><div class="mu">Last lap</div><div class="big">${fmtLap(me.last)}</div></div><div><div class="mu">Best lap</div><div class="big g">${fmtLap(me.best)}</div></div><div><div class="mu">Laps</div><div class="big">${me.laps??'–'}</div></div></div>
-    <div style="display:flex;margin-top:10px"><span class="mu">Virtual energy</span><span class="grow"></span><span class="m">${energy}</span></div><div class="bar"><i style="width:${c.energy>=0&&c.energy<=1?c.energy*100:0}%"></i></div>
+  const maxVE=R.wear&&R.wear.maxVE;const ve=c.energy;const energy=(ve>=0&&ve<=1)?`${Math.round(ve*100)}%`:'–';
+  const st=S.per.get(me.id),stintLap=st?me.laps-st.stintStart:0;
+  // damage: aero and suspension from LMU's repair screen, body from the 8 zones around the car
+  const wear=R.wear||{},dz=(c.damage||[]).filter(x=>x>0).length,susp=(wear.susp||[]).map(x=>x>=0?x:0),sw=Math.max(0,...susp),swi=susp.indexOf(sw);
+  const dmgParts=[];if(wear.aero>0.005)dmgParts.push(`Aero ${pc(wear.aero)}`);if(sw>0.005)dmgParts.push(`Susp ${['FL','FR','RL','RR'][swi]} ${pc(sw)}`);if(dz)dmgParts.push(`Body ${dz} zone${dz>1?'s':''}`);
+  const rep=R.pit&&R.pit.repair>0?` · repair ${R.pit.repair.toFixed(1)} s`:'';
+  const dmgCol=(wear.aero>0.25||sw>0.15||(c.damage||[]).some(x=>x>1))?'r':dmgParts.length?'a':'g';
+  car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:me.name)}</b><span class="chip" style="background:#1F2024">P${pic||'–'} in ${esc(CLSN(cls))}</span><span class="mu">${esc(me.car||'')}</span>${me.pits?'<span class="chip a" style="background:#2A1F08">in pits</span>':''}</div>
+    <div class="k3"><div><div class="mu">Last lap</div><div class="big">${fmtLap(me.last)}</div></div><div><div class="mu">Best lap</div><div class="big g">${fmtLap(me.best)}</div></div><div><div class="mu">Laps · stint</div><div class="big">${me.laps??'–'} <span class="mu" style="font-size:14px">· ${stintLap}</span></div></div></div>
+    <div style="display:flex;margin-top:10px"><span class="mu">Virtual energy</span><span class="grow"></span><span class="m">${energy}${maxVE?` <span class="mu">of ${Math.round(maxVE)}</span>`:''}</span></div><div class="bar"><i style="width:${ve>=0&&ve<=1?ve*100:0}%"></i></div>
     <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} / ${(c.fuelCap||0).toFixed(0)} L</span></div>
-    <div class="tyres">${['FL','FR','RL','RR'].map((n,i)=>{const t=w[i]||{t:[0,0,0]};const mid=t.t[1];return `<div class="tyre" style="background:${tyreBg(mid)}">${n} <span style="font-size:16px">${Math.round(mid)}°</span> <span class="mu">${t.t.map(x=>Math.round(x)).join('·')}</span><div class="mu">${Math.round(t.p||0)} kPa · tread ${Math.round((t.wear||0)*100)}% · brake ${Math.round(t.brake||0)}°</div></div>`}).join('')}</div>
-    <div class="k3 m" style="grid-template-columns:repeat(5,1fr);margin-top:10px"><div><div class="mu">TC</div>${c.tc}</div><div><div class="mu">ABS</div>${c.abs}</div><div><div class="mu">Bias</div>${(c.bias*100).toFixed(1)}%</div><div><div class="mu">Map</div>${c.map}</div><div><div class="mu">Damage</div>${dmg?'<span class="r">yes</span>':'<span class="g">none</span>'}</div></div>`;
-  paintTraffic();
+    <div class="tyres">${['FL','FR','RL','RR'].map((n,i)=>{const t=w[i]||{t:[0,0,0]};const tt=(t.t||[]).map(x=>x+273.15).map(KC);const mid=tt[1];const bm=(wear.brakeMm||[])[i];
+      return `<div class="tyre" style="background:${mid==null?'#1F2024':tyreBg(mid)}">${n} <span style="font-size:16px">${mid==null?'–':Math.round(mid)+'°'}</span> <span class="mu">${mid==null?'':tt.map(x=>Math.round(x)).join('·')}</span><div class="mu">${t.p>0?Math.round(t.p)+' kPa':'– kPa'} · tread ${pc(t.wear)}${KC((t.brake||0)+273.15)!=null&&t.brake>-270?` · brake ${Math.round(t.brake)}°`:''}${bm>0?` · disc ${bm.toFixed(1)} mm`:''}</div></div>`}).join('')}</div>
+    <div class="k3 m" style="grid-template-columns:repeat(4,1fr) 2fr;margin-top:10px"><div><div class="mu">TC</div>${c.tc}</div><div><div class="mu">ABS</div>${c.abs}</div><div><div class="mu">Bias F/R</div>${c.rearBias>0?((1-c.rearBias)*100).toFixed(1)+':'+(c.rearBias*100).toFixed(1):'–'}</div><div><div class="mu">Map</div>${c.map}</div><div><div class="mu">Damage</div><span class="${dmgCol}">${dmgParts.length?dmgParts.join(' · '):'none'}${rep}</span></div></div>`;
+  paintTraffic();paintPit(j,me);paintMoments();paintBattle(j,me);paintWx(j,me);paintLaps();
+}
+
+// pace from a car's last clean laps (no pit laps)
+function pace(id,n=5){const c=S.per.get(id);if(!c)return null;const t=c.times.slice(-n).map(x=>x.t).filter(x=>x>0);if(t.length<2)return null;t.sort((a,b)=>a-b);const k=t.slice(0,Math.max(2,t.length-1));return k.reduce((a,b)=>a+b,0)/k.length}
+// energy per lap and laps left, from the energy readings at lap ends
+function energyLeft(g){const c=S.per.get(g.id);const e=g.energy;if(!(e>=0&&e<=1))return null;
+  let per=null;if(c&&c.ve.length>=2){const a=c.ve[0],b=c.ve[c.ve.length-1];if(b.lap>a.lap&&a.e>b.e)per=(a.e-b.e)/(b.lap-a.lap)}
+  return {e,per,laps:per?e/per:null}}
+function fmtGap(x){return x==null||!isFinite(x)?'–':`${Math.abs(x).toFixed(1)} ${x>0?'ahead':'behind'}`}
+function paintBattle(j,me){
+  const el=$('#battle');if(!el)return;
+  const inCls=j.grid.filter(g=>g.class===me.class).sort((a,b)=>a.place-b.place),i=inCls.findIndex(g=>g.id===me.id);
+  const rows=[inCls[i-1],me,inCls[i+1]].filter(Boolean);
+  const gap=g=>g.player?null:(me.laps===g.laps?me.behindLeader-g.behindLeader:(g.laps-me.laps)*999);
+  const tr=g=>{const p=pace(g.id),el2=energyLeft(g),c=S.per.get(g.id),stint=c?g.laps-c.stintStart:null,nxt=el2&&el2.laps!=null?g.laps+Math.floor(el2.laps):null;
+    const gp=gap(g),mp=pace(me.id),rate=p&&mp?(mp-p):null;
+    return `<tr${g.player?' style="background:#2A2400"':''}><td><span class="mu">P${inCls.indexOf(g)+1}</span> ${g.player?'<span class="y">you</span>':esc(g.name)}</td><td>${g.player?'<span class="mu">—</span>':Math.abs(gp)>500?'lapped':fmtGap(gp)}${rate!=null&&!g.player?` <span class="${(gp>0)===(rate<0)?'g':'r'}">${rate>0?'+':''}${rate.toFixed(1)}/lap</span>`:''}</td><td>${p?fmtLap(p):'–'}</td><td>${el2?Math.round(el2.e*100)+'%'+(el2.laps!=null?`, ${el2.laps.toFixed(1)} laps`:''):(g.fuel>0?'fuel '+Math.round(g.fuel*100)+'%':'–')}</td><td>${stint??'–'}</td><td>${g.stops}</td><td>${esc((g.tyreF||'').slice(0,6))||'–'}</td><td>${nxt?'lap '+nxt:'–'}</td></tr>`};
+  const lines=[];const meE=energyLeft(me),meNext=meE&&meE.laps!=null?me.laps+Math.floor(meE.laps):null;
+  for(const g of rows){if(g.player)continue;const e=energyLeft(g),n=e&&e.laps!=null?g.laps+Math.floor(e.laps):null;const ahead=gap(g)>0;
+    if(n&&meNext){if(ahead&&n<meNext)lines.push(`<div><span class="g">↑</span> ${esc(g.name)} stops around lap ${n}, ${meNext-n} laps before you: clear air to close the ${Math.abs(gap(g)).toFixed(1)} s.</div>`);
+      if(!ahead&&n<meNext)lines.push(`<div><span class="g">✓</span> ${esc(g.name)} stops around lap ${n}, ${meNext-n} laps before you.</div>`);
+      if(!ahead&&n>meNext)lines.push(`<div><span class="a">!</span> ${esc(g.name)} can run ${n-meNext} laps longer than you: watch the undercut.</div>`)}}
+  el.innerHTML=`<div class="ph"><b>Battle in class</b><span class="mu">car ahead and behind · pace = average of recent clean laps</span></div>
+    <table class="t"><tr><th>Car</th><th>Gap</th><th>Pace</th><th>Energy</th><th>Stint</th><th>Stops</th><th>Tyres</th><th>Next stop</th></tr>${rows.map(tr).join('')}</table>
+    <div style="display:grid;gap:3px;margin-top:6px;font-size:13px">${lines.join('')||'<div class="mu">Predictions appear after a few laps (pace and energy use).</div>'}</div>`;
+}
+function paintPit(j,me){
+  const el=$('#pitw');if(!el)return;const P=(S.rest||{}).pit;
+  if(!P||!(P.total>0)){el.innerHTML=`<div class="ph"><b>Pit window</b></div><div class="mu">Waiting for LMU’s pit stop estimate…</div>`;return}
+  const lane=25,loss=P.total+lane;   // pit lane time added to LMU's own stop estimate (first version: a fixed 25 s)
+  const others=j.grid.filter(g=>g.class===me.class&&!g.player&&g.laps>=me.laps-1).map(g=>({g,t:g.behindLeader+(me.laps-g.laps)*(pace(me.id)||90)})).sort((a,b)=>a.t-b.t);
+  const myT=me.behindLeader+loss;let pos=1;for(const o of others)if(o.t<myT)pos++;
+  const ahead=others.filter(o=>o.t<myT).pop(),behind=others.find(o=>o.t>=myT);
+  el.innerHTML=`<div class="ph"><b>Pit window</b><span class="mu">if you pit this lap</span><span class="grow"></span><span class="m">loss ≈ ${loss.toFixed(0)} s</span></div>
+    <div class="m"><span class="y">Rejoin P${pos} in class</span> <span class="mu">${ahead?`${(myT-ahead.t).toFixed(1)} s behind ${esc(ahead.g.name)}`:''}${ahead&&behind?', ':''}${behind?`${(behind.t-myT).toFixed(1)} s ahead of ${esc(behind.g.name)}`:''}</span></div>
+    <div class="k3 m" style="margin-top:8px"><div><div class="mu">LMU stop estimate</div>${P.total.toFixed(1)} s</div><div><div class="mu">of which repair</div>${(P.repair||0).toFixed(1)} s</div><div><div class="mu">Pit lane (approx.)</div>${lane} s</div></div>`;
+}
+function paintMoments(){const el=$('#moments');if(!el)return;
+  el.innerHTML=S.moments.length?S.moments.slice(0,30).map(m=>`<div><span class="mu">${m.lap!=null?'L'+m.lap:''}</span> <span class="${m.cls||''}">${m.icon}</span> ${esc(m.text)}</div>`).join(''):'<div class="mu">Flags, pit stops, penalties, contact, rain and personal bests appear here.</div>'}
+const SKY=['clear','light clouds','partly cloudy','mostly cloudy','overcast','cloudy, drizzle','cloudy, light rain','overcast, light rain','overcast, rain','overcast, heavy rain','overcast, storm'];
+const SKYI=n=>n<=0?'☀':n<=3?'⛅':n<=4?'☁':'🌧';
+function paintWx(j,me){
+  const el=$('#wx');if(!el)return;const se=j.session,fc=(S.rest||{}).forecast||{};
+  const key=se.type>=10?'race':se.type>=5&&se.type<=8?'qualify':'practice',slots=fc[key];
+  const dur=se.end-se.start,frac=dur>0?(se.now-se.start)/dur:null;
+  const wet=(se.wet||[]).map(x=>(x||0).toFixed(2));
+  const t=S.temps,spark=t.length>1?(()=>{const lo=Math.min(...t.map(x=>x.v)),hi=Math.max(...t.map(x=>x.v)),r=Math.max(1,hi-lo);return `<svg viewBox="0 0 200 30" width="100%" height="26" preserveAspectRatio="none"><polyline fill="none" stroke="#FFB020" stroke-width="2" vector-effect="non-scaling-stroke" points="${t.map((x,i)=>`${(i/(t.length-1)*200).toFixed(1)},${(28-(x.v-lo)/r*26).toFixed(1)}`).join(' ')}"/></svg>`})():'';
+  const trend=t.length>3?(t[t.length-1].v-t[0].v):0;
+  let slotHtml='',nextHtml='';
+  if(slots&&frac!=null){const cur=slots.reduce((k,s,i)=>frac>=s[0]?i:k,0),nx=slots[cur+1];
+    const lapT=pace(me.id)||me.best||null;
+    if(nx){const mins=(nx[0]*dur-(se.now-se.start))/60,lap=lapT?Math.round(me.laps+mins*60/lapT):null;
+      nextHtml=`<div class="next"><span class="${nx[3]>=0.5?'a':''}">${SKYI(nx[1])} ${esc(SKY[nx[1]]||'')} · rain chance ${Math.round(nx[3]*100)}%</span> <span class="m">in ${Math.max(0,Math.round(mins))} min${lap?`, about lap ${lap}`:''}</span></div>`}
+    slotHtml=`<div class="slots" style="margin-top:8px">${slots.map((s,i)=>{const at=s[0]*dur/60,h=Math.floor(at/60),m=Math.round(at%60);return `<div class="slot ${i<cur?'past':i===cur?'now':i===cur+1?'nx':''}"><div class="mu">${h}:${String(m).padStart(2,'0')}</div><div style="font-size:18px">${SKYI(s[1])}</div><div>${Math.round(s[2])}°</div><div class="${s[3]>=0.5?'a':'mu'}">${Math.round(s[3]*100)}%</div></div>`}).join('')}</div>`}
+  el.innerHTML=`<div class="ph"><b>Weather</b><span class="mu">grip ${['green','low','medium','high','saturated'][se.grip]||'–'}</span></div>
+    <div class="m" style="display:flex;gap:12px;flex-wrap:wrap"><span>Track ${se.track_temp.toFixed(1)}° ${Math.abs(trend)>=0.5?`<span class="${trend<0?'r':'a'}">${trend<0?'falling':'rising'}</span>`:''}</span><span class="mu">Air ${se.air.toFixed(1)}°</span><span>Rain ${Math.round((se.rain||0)*100)}%</span><span class="mu">Wet ${wet.join('/')}</span></div>
+    ${spark?`${spark}<div class="mu" style="font-size:12px">Track temperature since you opened this page (up to 60 min)</div>`:''}
+    ${nextHtml}${slotHtml||'<div class="mu" style="margin-top:6px">Forecast appears when LMU’s web interface answers.</div>'}`;
+}
+// laps and sectors: this car's laps, or the whole grid's last laps
+function scCls(x,pb,cb){if(!(x>0))return '';if(cb&&x<=cb+1e-4)return 'pu';if(pb&&x<=pb+1e-4)return 'gn';if(pb&&x>pb+0.3)return 'yl';return ''}
+function paintLaps(){
+  const el=$('#laps'),j=S.slow;if(!el||!j)return;const me=j.grid.find(g=>g.player)||{},meC=S.per.get(me.id);
+  const cb=i=>S.clsBest.get(CLSN(me.class)+i);
+  if(S.gridTab==='mine'){$('#gcls').innerHTML='';
+    el.innerHTML=S.laps.length?`<table class="t"><tr><th>Lap</th><th>Driver</th><th>S1</th><th>S2</th><th>S3</th><th>Time</th><th>To best</th></tr>${S.laps.map(l=>{const s=l.sec;
+      return `<tr><td class="mu">${l.lap}</td><td class="mu">${esc((l.driver||'').split(' ').map(x=>x[0]).join(''))}</td>${[0,1,2].map(i=>`<td><span class="sc ${l.valid&&s?scCls(s[i],meC&&meC.best[i],cb(i)):''}">${s?s[i].toFixed(3):'–'}</span></td>`).join('')}<td>${fmtLap(l.time)}${l.valid?'':' <span class="r">✕</span>'}</td><td class="mu">${l.valid&&me.best>0?'+'+(l.time-me.best).toFixed(3):l.pit?'pit':''}</td></tr>`}).join('')}</table>`:'<div class="mu">Laps appear here as they are completed.</div>';
+    const b=meC&&meC.best;$('#theo').innerHTML=b&&b.every(x=>x<9e8)?`theoretical best ${fmtLap(b[0]+b[1]+b[2])}`:'';return}
+  const classes=[...new Set(j.grid.map(g=>CLSN(g.class)))];if(!S.gridCls||(S.gridCls!=='All'&&!classes.includes(S.gridCls)))S.gridCls=CLSN(me.class);
+  $('#gcls').innerHTML=['All',...classes].map(c=>`<button class="${S.gridCls===c?'on':''}" data-c="${c}">${esc(c)}</button>`).join('');
+  document.querySelectorAll('#gcls button').forEach(b=>b.onclick=()=>{S.gridCls=b.dataset.c;paintLaps()});
+  const rows=j.grid.filter(g=>S.gridCls==='All'||CLSN(g.class)===S.gridCls).sort((a,b)=>CLSN(a.class).localeCompare(CLSN(b.class))||a.place-b.place);
+  el.innerHTML=`<table class="t"><tr><th>P</th><th>Driver</th><th>S1</th><th>S2</th><th>S3</th><th>Last</th><th>Best</th></tr>${rows.map(g=>{const s=secs(g.s1,g.s2,g.last),c=S.per.get(g.id),k=CLSN(g.class);
+    return `<tr${g.player?' style="background:#2A2400"':''}><td class="mu">${g.place}</td><td${g.player?' class="y"':''}>${esc(g.name)}</td>${[0,1,2].map(i=>`<td><span class="sc ${s?scCls(s[i],c&&c.best[i],S.clsBest.get(k+i)):''}">${s?s[i].toFixed(3):'–'}</span></td>`).join('')}<td>${fmtLap(g.last)}</td><td class="${g.best>0&&rows.filter(x=>CLSN(x.class)===k&&x.best>0).every(x=>x.best>=g.best)?'r" style="color:var(--p)':''}">${fmtLap(g.best)}</td></tr>`}).join('')}</table>`;
+  $('#theo').innerHTML='';
 }
 function paintTraffic(){
   const j=S.slow,el=$('#traffic');if(!j||!el)return;

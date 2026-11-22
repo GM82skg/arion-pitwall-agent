@@ -43,6 +43,13 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
     // FAST_HZ fast frames, only when the game produced new data. Cars 10 Hz, slow data SLOW_HZ.
     let (hub_t, status_t, stop_t, report_t) = (hub.clone(), status.clone(), stop.clone(), report.clone());
     tokio::spawn(crate::local::serve(local.clone()));
+    // LMU's web data (forecast, pit stop estimate, wear and damage): only asked while someone watches
+    let live = rest::Live::default();
+    let live_on = Arc::new(AtomicBool::new(false));
+    {
+        let (l, st, on) = (live.clone(), stop.clone(), live_on.clone());
+        std::thread::spawn(move || l.run(rest::BASE.to_string(), st, on));
+    }
     let telemetry = tokio::spawn(async move {
         let mut tick = tokio::time::interval(Duration::from_millis(10));
         tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
@@ -67,6 +74,7 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
             let viewers = hub_t.connected();
             report_t.lock().unwrap().viewers(viewers);
             let mine = local.watching();
+            live_on.store(viewers + mine > 0 && on_track, Ordering::Relaxed);
             if viewers == 0 && mine == 0 {
                 continue;
             }
@@ -92,7 +100,7 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
             }
             if last_slow.elapsed() >= Duration::from_secs_f64(1.0 / config::SLOW_HZ as f64) {
                 last_slow = Instant::now();
-                if let Some(j) = protocol::slow_json(&o) {
+                if let Some(j) = protocol::slow_json_with(&o, &live.snapshot()) {
                     let t = j.to_string();
                     local.send(crate::local::Msg::Slow(t.clone()));
                     hub_t.send_slow(&t).await;

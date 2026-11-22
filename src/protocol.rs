@@ -132,25 +132,38 @@ fn wheel_json(v: &LMUVehicleTelemetry) -> Value {
 
 /// Slow message: the selected car, the session and all cars (names as shown in the game). No SteamIDs.
 pub fn slow_json(o: &LMUObjectOut) -> Option<Value> {
+    slow_json_with(o, &Value::Null)
+}
+
+/// Slow message plus LMU's web data (forecast, pit stop estimate, wear and damage) when available.
+pub fn slow_json_with(o: &LMUObjectOut, rest: &Value) -> Option<Value> {
     let (_, v) = player(o)?;
     let si = cp(o.scoring.scoringInfo);
     let n = (cp(si.mNumVehicles).max(0) as usize).min(o.scoring.vehScoringInfo.len());
+    let slots = telemetry_by_id(o);
     let grid: Vec<Value> = o.scoring.vehScoringInfo[..n].iter().map(|c| json!({
         "id": cp(c.mID), "name": cstr(&cp(c.mDriverName)), "car": cstr(&cp(c.mVehicleName)), "class": cstr(&cp(c.mVehicleClass)),
         "place": cp(c.mPlace), "laps": cp(c.mTotalLaps), "best": cp(c.mBestLapTime), "last": cp(c.mLastLapTime),
         "s1": cp(c.mLastSector1), "s2": cp(c.mLastSector2), "behindNext": cp(c.mTimeBehindNext), "behindLeader": cp(c.mTimeBehindLeader),
-        "pits": cp(c.mInPits) != 0, "stops": cp(c.mNumPitstops), "player": cp(c.mIsPlayer) != 0 })).collect();
+        "pits": cp(c.mInPits) != 0, "stops": cp(c.mNumPitstops), "player": cp(c.mIsPlayer) != 0,
+        "bestS1": cp(c.mBestSector1), "bestS2": cp(c.mBestSector2), "curS1": cp(c.mCurSector1), "curS2": cp(c.mCurSector2),
+        "est": cp(c.mEstimatedLapTime), "intoLap": cp(c.mTimeIntoLap), "fuel": cp(c.mFuelFraction) as f64 / 255.0,
+        "penalties": cp(c.mNumPenalties), "pitState": cp(c.mPitState), "countLap": cp(c.mCountLapFlag), "control": cp(c.mControl),
+        "energy": slots.get(&cp(c.mID)).map(|&i| cp(o.telemetry.telemInfo[i].mVirtualEnergy)),
+        "tyreF": slots.get(&cp(c.mID)).map(|&i| cstr(&cp(o.telemetry.telemInfo[i].mFrontTireCompoundName))),
+        "tyreR": slots.get(&cp(c.mID)).map(|&i| cstr(&cp(o.telemetry.telemInfo[i].mRearTireCompoundName))) })).collect();
     Some(json!({
         "t": "slow", "v": PROTOCOL_VERSION,
-        "session": { "track": cstr(&cp(si.mTrackName)), "type": cp(si.mSession), "now": cp(si.mCurrentET), "end": cp(si.mEndET),
+        "session": { "track": cstr(&cp(si.mTrackName)), "type": cp(si.mSession), "length": cp(si.mLapDist), "start": cp(si.mStartET), "maxLaps": cp(si.mMaxLaps), "now": cp(si.mCurrentET), "end": cp(si.mEndET),
                      "left": cp(si.mSessionTimeRemaining), "phase": cp(si.mGamePhase), "yellow": cp(si.mYellowFlagState),
                      "sectorFlags": cp(si.mSectorFlag), "air": cp(si.mAmbientTemp), "track_temp": cp(si.mTrackTemp), "rain": cp(si.mRaining),
                      "wet": [cp(si.mMinPathWetness), cp(si.mAvgPathWetness), cp(si.mMaxPathWetness)], "grip": cp(si.mTrackGripLevel),
                      "clouds": cp(si.mCloudCoverage) },
         "car": { "id": cp(v.mID), "fuel": cp(v.mFuel), "fuelCap": cp(v.mFuelCapacity), "energy": cp(v.mVirtualEnergy), "soc": cp(v.mStateOfCharge),
-                 "tc": cp(v.mTC), "abs": cp(v.mABS), "map": cp(v.mMotorMap), "bias": 1.0 - cp(v.mRearBrakeBias), "delta": cp(v.mDeltaBest),
+                 "tc": cp(v.mTC), "abs": cp(v.mABS), "map": cp(v.mMotorMap), "bias": 1.0 - cp(v.mRearBrakeBias), "rearBias": cp(v.mRearBrakeBias), "impact": cp(v.mLastImpactMagnitude), "impactET": cp(v.mLastImpactET), "delta": cp(v.mDeltaBest),
                  "damage": cp(v.mDentSeverity), "wheels": wheel_json(&v) },
         "grid": grid,
+        "rest": rest,
     }))
 }
 

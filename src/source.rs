@@ -21,10 +21,15 @@ fn put(dst: &mut [u8], s: &str) {
 /// A car lapping an oval (about 1.6 km, ~45 s), braking into both ends, with 7 other cars. No game needed.
 pub struct FakeSource {
     t0: std::time::Instant,
+    speed: f64,
 }
 impl FakeSource {
     pub fn new() -> Self {
-        FakeSource { t0: std::time::Instant::now() }
+        FakeSource { t0: std::time::Instant::now(), speed: 1.0 }
+    }
+    /// A faster clock, so tests see laps, stints and energy use within seconds.
+    pub fn with_speed(speed: f64) -> Self {
+        FakeSource { t0: std::time::Instant::now(), speed }
     }
 }
 impl Default for FakeSource {
@@ -35,7 +40,7 @@ impl Default for FakeSource {
 
 impl Source for FakeSource {
     fn read(&mut self) -> Option<Box<LMUObjectOut>> {
-        let et = self.t0.elapsed().as_secs_f64();
+        let et = self.t0.elapsed().as_secs_f64() * self.speed;
         let mut o = zeroed();
         let lap_len = 1600.0;
         let si = &mut o.scoring.scoringInfo;
@@ -73,7 +78,14 @@ impl Source for FakeSource {
             v.mIsPlayer = (i == 3) as u8;
             v.mCountLapFlag = 2;
             v.mControl = if i == 3 { 0 } else if i % 2 == 0 { 2 } else { 1 }; // you, remote players, AI
-            v.mLastLapTime = if v.mTotalLaps > 0 { lap_len / speed + 0.3 } else { 0.0 };
+            let lap_t = lap_len / speed + 0.3 + ((v.mTotalLaps as f64 * 1.7 + i as f64).sin() * 0.4);
+            v.mLastLapTime = if v.mTotalLaps > 0 { lap_t } else { 0.0 };
+            v.mLastSector1 = if v.mTotalLaps > 0 { lap_t * 0.31 } else { 0.0 };
+            v.mLastSector2 = if v.mTotalLaps > 0 { lap_t * 0.66 } else { 0.0 };
+            v.mBestSector1 = lap_len / speed * 0.31;
+            v.mBestSector2 = lap_len / speed * 0.66;
+            v.mTimeBehindLeader = i as f64 * 3.5;
+            v.mFuelFraction = (230.0 - (v.mTotalLaps as f64 * 9.0) % 200.0) as u8;
             // every car also has a telemetry slot (positions there are fresher; offset 0.5 m so tests can tell)
             let t = &mut o.telemetry.telemInfo[i];
             t.mID = i as i32 + 1;
@@ -82,6 +94,7 @@ impl Source for FakeSource {
             t.mPos.z = z;
             t.mLocalVel.z = -speed;
             t.mUnfilteredThrottle = 1.0;
+            t.mVirtualEnergy = (0.95 - ((et * speed / lap_len) * (0.035 + i as f64 * 0.002)) % 0.8) as f32;
         }
         // the player: car 4, braking hard twice a lap
         o.scoring.scoringInfo.mGameMode = 2;
@@ -110,7 +123,7 @@ impl Source for FakeSource {
         v.mABSActive = (braking && (et * 10.0) as i64 % 3 == 0) as u8;
         v.mFuel = 60.0;
         v.mFuelCapacity = 100.0;
-        v.mVirtualEnergy = 0.74;
+        v.mVirtualEnergy = (0.95 - ((et * 50.0 / lap_len) * 0.04) % 0.8) as f32;
         v.mRearBrakeBias = 0.458;
         v.mTC = 3;
         v.mABS = 4;
