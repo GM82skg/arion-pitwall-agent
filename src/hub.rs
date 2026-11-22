@@ -28,6 +28,7 @@ struct Viewer {
     slow: Option<Arc<dyn DataChannel>>,
     fast_open: bool,
     slow_open: bool,
+    disconnected: bool,
 }
 
 #[derive(Clone, Default)]
@@ -49,8 +50,22 @@ impl PeerConnectionEventHandler for Handler {
         }
     }
     async fn on_connection_state_change(&self, state: RTCPeerConnectionState) {
+        if let Some(v) = self.hub.viewers.lock().unwrap().get_mut(&self.viewer) {
+            v.disconnected = state == RTCPeerConnectionState::Disconnected;
+        }
         if matches!(state, RTCPeerConnectionState::Failed | RTCPeerConnectionState::Closed) {
             self.hub.drop_viewer(&self.viewer);
+        }
+        if state == RTCPeerConnectionState::Disconnected {
+            // a coach who vanished without saying bye (closed laptop, lost Wi-Fi): free the place after 8 s
+            let (hub, v) = (self.hub.clone(), self.viewer.clone());
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_secs(8)).await;
+                let gone = hub.viewers.lock().unwrap().get(&v).map(|x| x.disconnected).unwrap_or(false);
+                if gone {
+                    hub.remove(&v).await;
+                }
+            });
         }
     }
     async fn on_data_channel(&self, dc: Arc<dyn DataChannel>) {
@@ -72,7 +87,9 @@ impl PeerConnectionEventHandler for Handler {
                 match ev {
                     DataChannelEvent::OnOpen => hub.set_open(&viewer, fast, true),
                     DataChannelEvent::OnClose => {
+                        // the coach closed the page or left: free their place at once
                         hub.set_open(&viewer, fast, false);
+                        hub.remove(&viewer).await;
                         break;
                     }
                     DataChannelEvent::OnMessage(msg) => {
@@ -172,6 +189,19 @@ impl Hub {
         .await;
         if r.is_err() {
             self.remove(viewer).await;
+        } else {
+            // a coach whose connection never opens (network blocks it) doesn't keep a place
+            let (hub, v, pc0) = (self.clone(), viewer.to_string(), pc.clone());
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_secs(20)).await;
+                let stuck = {
+                    let m = hub.viewers.lock().unwrap();
+                    m.get(&v).map(|x| !x.fast_open && x.pc.as_ref().map(|p| Arc::ptr_eq(p, &pc0)).unwrap_or(false)).unwrap_or(false)
+                };
+                if stuck {
+                    hub.remove(&v).await;
+                }
+            });
         }
         r
     }

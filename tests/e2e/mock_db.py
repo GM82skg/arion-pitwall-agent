@@ -21,6 +21,12 @@ class H(BaseHTTPRequestHandler):
             v = q['viewer'][0]
             with L: a = [s for s in S['sig'] if s['from_agent'] and s['viewer'] == v]
             return self.send(200, a[-1] if a else {})
+        if u.path == '/sessions':
+            with L: return self.send(200, [{'id': S['session'], 'user_id': 'u-driver', 'team_id': 1, 'agent_version': '0.1.4', 'started_at': '', 'last_seen': ''}] if S['session'] else [])
+        if u.path in ('/dash', '/mock-supabase.js'):
+            import os
+            f = os.environ.get('DASH_HTML') if u.path == '/dash' else os.environ.get('DASH_MOCK')
+            return self.send(200, open(f).read(), 'text/html' if u.path == '/dash' else 'application/javascript')
         if u.path == '/times':
             with L: return self.send(200, S.get('t',[]))
         if u.path == '/calls':
@@ -33,6 +39,10 @@ class H(BaseHTTPRequestHandler):
             with L:
                 if not S['session']: return self.send(400, {'message': 'no session'})
                 S['sig'].append({'id': len(S['sig']) + 1, 'viewer': body['viewer'], 'from_agent': False, 'kind': 'offer', 'body': body['body']})
+            return self.send(200, {})
+        if u.path == '/viewer/bye':
+            with L:
+                if S['session']: S['sig'].append({'id': len(S['sig']) + 1, 'viewer': body['viewer'], 'from_agent': False, 'kind': 'bye', 'body': {}})
             return self.send(200, {})
         if u.path != '/rest/v1/rpc/pitwall_agent': return self.send(404, {})
         if self.headers.get('apikey') != PUB: return self.send(401, {'message': 'Invalid API key'})
