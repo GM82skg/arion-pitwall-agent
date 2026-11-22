@@ -33,13 +33,13 @@ struct Running {
     thread: Option<std::thread::JoinHandle<()>>,
 }
 impl Running {
-    fn start(key: String, status: Arc<Mutex<session::Status>>, report: Arc<Mutex<Report>>) -> Self {
+    fn start(key: String, status: Arc<Mutex<session::Status>>, report: Arc<Mutex<Report>>, local: crate::local::Local) -> Self {
         let stop = Arc::new(AtomicBool::new(false));
         let sp = stop.clone();
         let thread = std::thread::spawn(move || {
             let rt = tokio::runtime::Builder::new_multi_thread().enable_all().build().expect("runtime");
             let door: Arc<dyn signal::Door> = Arc::new(signal::Supabase::new(config::SUPABASE_URL, config::SUPABASE_KEY, &key));
-            rt.block_on(session::run(door, source::game(), status, report, sp));
+            rt.block_on(session::run(door, source::game(), status, report, local, sp));
             rt.shutdown_timeout(Duration::from_secs(2));
         });
         Running { stop, thread: Some(thread) }
@@ -60,6 +60,7 @@ pub struct AgentApp {
     status: Arc<Mutex<session::Status>>,
     report: Arc<Mutex<Report>>,
     running: Option<Running>,
+    local: crate::local::Local,
     quitting: bool,
     wordmark: Option<egui::TextureHandle>,
     #[cfg(windows)]
@@ -78,6 +79,7 @@ impl AgentApp {
             status: Arc::new(Mutex::new(session::Status::default())),
             report: Arc::new(Mutex::new(Report::default())),
             running: None,
+            local: crate::local::Local::new(),
             quitting: false,
             wordmark: None,
             #[cfg(windows)]
@@ -97,7 +99,7 @@ impl AgentApp {
             r.stop();
         }
         *self.status.lock().unwrap() = session::Status::default();
-        self.running = Some(Running::start(key, self.status.clone(), self.report.clone()));
+        self.running = Some(Running::start(key, self.status.clone(), self.report.clone(), self.local.clone()));
     }
     fn save_key(&mut self) {
         let k = self.key_input.trim().to_string();
@@ -256,6 +258,17 @@ impl eframe::App for AgentApp {
                 } else {
                     line(ui, GREY, self.t.s("Waiting for Le Mans Ultimate", "Αναμονή για το Le Mans Ultimate"));
                 }
+                // "My dashboard": the driver's own view on this PC (not one of the 5 coach places)
+                ui.horizontal(|ui| {
+                    let mine = self.local.watching();
+                    let txt = if mine > 0 { format!("{} {mine}", self.t.s("My dashboard open:", "Το dashboard μου ανοιχτό:")) } else { self.t.s("My dashboard: on this PC", "Το dashboard μου: σε αυτόν τον υπολογιστή").to_string() };
+                    line(ui, if mine > 0 { GREEN } else { GREY }, &txt);
+                    if let Some(u) = self.local.url() {
+                        if ui.small_button(self.t.s("Open my dashboard", "Άνοιγμα του dashboard μου")).clicked() {
+                            open_url(&u);
+                        }
+                    }
+                });
                 if st.viewers > 0 {
                     line(ui, GREEN, &format!("{} {} / {}", self.t.s("Coaches watching:", "Προπονητές που βλέπουν:"), st.viewers, config::MAX_VIEWERS));
                 } else {
@@ -285,6 +298,14 @@ impl eframe::App for AgentApp {
             r.stop(); // says bye to the database and closes the coaches' connections
         }
     }
+}
+
+/// Opens a web address in the default browser.
+pub fn open_url(u: &str) {
+    #[cfg(windows)]
+    let _ = std::process::Command::new("explorer").arg(u).spawn();
+    #[cfg(not(windows))]
+    let _ = std::process::Command::new("xdg-open").arg(u).spawn();
 }
 
 /// This app's average CPU use since it started, in % of one core (Windows).

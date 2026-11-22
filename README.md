@@ -22,6 +22,9 @@ The window shows: connected to ARION (and your car), Le Mans Ultimate on track, 
 Closing the window keeps it running in the tray; to stop it: tray icon → **Quit**.
 Tick **Start with Windows** if you want it ready every time.
 
+**Open my dashboard** shows your own car on this PC (map, inputs, tyres, traffic) in your browser — for example on a
+second monitor. It works only on this PC, needs no login, and doesn't use one of the coaches' places.
+
 **Save test report** writes a text file to your Desktop with measurements for the team (no personal data).
 
 ## Privacy
@@ -65,6 +68,10 @@ tray → **Έξοδος**. Τσέκαρε **Εκκίνηση με τα Windows**
 πρόσβαση στο pit wall (WebRTC)· όσο είναι συνδεδεμένοι, οι δύο υπολογιστές βλέπουν ο ένας τη διεύθυνση internet
 του άλλου, όπως σε κάθε απευθείας σύνδεση. Οι γύροι σου, και ο καλύτερος γύρος κάθε άλλου αυτοκινήτου της κατηγορίας σου, αποθηκεύονται στον υπολογιστή σου για
 συγκρίσεις (φάκελος `ARION Pit Wall\laps` στο AppData)· αυτή η έκδοση δεν τους ανεβάζει πουθενά. Η ARION δεν αποθηκεύει SteamID, διεύθυνση IP ή αρχεία του παιχνιδιού.
+
+**Άνοιγμα του dashboard μου**: δείχνει το δικό σου αυτοκίνητο σε αυτόν τον υπολογιστή (χάρτης, πεντάλ, ελαστικά,
+κίνηση) στον browser — π.χ. σε δεύτερη οθόνη. Λειτουργεί μόνο σε αυτόν τον υπολογιστή, χωρίς σύνδεση λογαριασμού, και
+δεν πιάνει θέση προπονητή.
 
 **Αποθήκευση αναφοράς δοκιμής**: γράφει ένα αρχείο κειμένου στην Επιφάνεια εργασίας με μετρήσεις για την
 ομάδα (χωρίς προσωπικά στοιχεία).

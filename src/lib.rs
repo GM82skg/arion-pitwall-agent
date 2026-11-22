@@ -2,6 +2,7 @@ pub mod config;
 pub mod hub;
 pub mod keystore;
 pub mod lmu;
+pub mod local;
 pub mod protocol;
 pub mod recorder;
 pub mod report;

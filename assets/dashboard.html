@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://isuiksufkyishdowejob.supabase.co wss://isuiksufkyishdowejob.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<title>ARION Pit Wall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js" integrity="sha384-BWcjm9OdFth9TbhCxZPdm+gAOUMAzQy9nmTs12ioXdCcbVnJaPMn+fMUoQCLt60R" crossorigin="anonymous"></script>
+<style>
+:root{--bg:#0E0F11;--pn:#16171A;--ln:#2B2D33;--tx:#E6E7EA;--mu:#8C8F98;--y:#F2C200;--g:#3BD16F;--r:#FF5A5A;--a:#FFB020;--c:#39C5F0;--p:#C9A8FF;
+  --mono:'JetBrains Mono',ui-monospace,Consolas,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:14px/1.4 Inter,system-ui,sans-serif}
+button{font:inherit;color:var(--tx);background:#1F2024;border:1px solid var(--ln);border-radius:6px;padding:5px 11px;cursor:pointer}
+button:hover{border-color:#4A4D56}
+button.on{border-color:var(--y);color:var(--y);background:#3A3000}
+input{font:inherit;color:var(--tx);background:#0E0F11;border:1px solid var(--ln);border-radius:6px;padding:9px 11px;width:100%}
+.m{font-family:var(--mono)}.mu{color:var(--mu)}.g{color:var(--g)}.r{color:var(--r)}.y{color:var(--y)}.a{color:var(--a)}.c{color:var(--c)}
+#app{display:flex;flex-direction:column;height:100vh;padding:10px;gap:10px}
+.top{display:flex;align-items:center;gap:14px;padding:8px 14px;background:var(--pn);border:1px solid var(--ln);border-radius:8px;flex-wrap:wrap}
+.wm{display:block;height:24px;width:auto;aspect-ratio:1202/238;color:#F5F5F7}
+.brand{display:flex;align-items:center;gap:9px}.brand b{font-weight:600;font-size:15px}
+.sep{border-left:1px solid var(--ln);height:22px}
+.chip{border-radius:5px;padding:2px 9px;font-size:13px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{display:flex;gap:8px;align-items:center;padding:5px 11px;border-radius:6px;border:1px solid var(--ln);background:#1A1B1F;font-family:var(--mono);font-size:13px;cursor:pointer}
+.tab.on{background:#3A3000;border-color:var(--y)}
+.grow{flex:1}
+.main{flex:1;display:grid;grid-template-columns:420px minmax(0,1fr);gap:10px;min-height:0}
+.col{display:flex;flex-direction:column;gap:10px;min-height:0}
+.pn{background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:10px 12px;min-height:0}
+.ph{display:flex;align-items:center;gap:8px;color:var(--mu);margin-bottom:8px;font-size:13px}
+.ph b{font-weight:500;color:#D5D7DC;font-size:14px}
+.fill{flex:1;display:flex;flex-direction:column}
+.cv{flex:1;position:relative;min-height:0}.cv canvas{position:absolute;inset:0;width:100%;height:100%}
+.big{font-family:var(--mono);font-size:20px}
+.k3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tyres{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.tyre{border-radius:6px;padding:7px 9px;background:#1E2A1F;font-family:var(--mono);font-size:13px}
+.bar{height:9px;background:#25272C;border-radius:5px;margin-top:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--y)}
+.rl{display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:5px;font-family:var(--mono);font-size:13px}
+.rl.me{border:1px solid var(--y)}
+.pill{border-radius:4px;padding:0 6px;font-size:12px;font-family:var(--mono)}
+.center{flex:1;display:grid;place-items:center}
+.card{width:min(380px,92vw);background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.note{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#2A1F08;border:1px solid var(--a);padding:8px 14px;border-radius:8px;display:none;z-index:9}
+.lg{display:flex;gap:12px;font-size:12px;color:var(--mu);flex-wrap:wrap}
+.ft{font-size:12px;color:var(--mu);text-align:center}
+@media (max-width:900px){.main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top">
+    <div class="brand"><svg class="wm" viewBox="95 1072 1202 238" role="img" aria-label="ARION"><defs><mask id="wmk" maskUnits="userSpaceOnUse" x="95" y="1072" width="1202" height="238"><rect x="95" y="1072" width="1202" height="238" fill="#000"></rect><path d="M0 0 C0 -0 0 -0 3 0 C5 0 7 0 9 0 C11 0 14 0 17 0 C19 0 21 0 23 0 C24 0 25 0 26 0 C33 0 39 1 44 7 C49 15 52 25 55 34 C67 66 79 97 93 127 C93 128 93 129 94 130 C98 139 101 148 106 156 C108 161 110 165 112 169 C114 175 117 181 120 187 C121 189 121 189 121 192 C112 194 103 195 94 195 C93 195 92 196 91 196 C74 197 74 197 69 194 C68 194 67 193 66 193 C60 189 58 182 55 175 C54 174 54 173 54 173 C51 167 51 167 51 163 C50 163 50 164 49 164 C46 164 44 165 41 165 C40 165 38 165 37 165 C36 165 34 165 33 166 C31 166 30 166 29 166 C21 167 13 167 6 168 C-21 170 -21 170 -34 172 C-40 173 -46 174 -52 174 C-53 174 -53 174 -54 174 C-58 174 -62 175 -66 175 C-67 175 -69 175 -70 175 C-71 175 -71 175 -74 176 C-77 176 -78 177 -80 179 C-81 181 -83 183 -84 185 C-85 186 -86 188 -86 189 C-87 191 -89 192 -90 194 C-91 196 -92 198 -93 200 C-94 201 -95 202 -95 203 C-96 204 -96 204 -97 205 C-98 205 -98 205 -99 205 C-99 206 -99 206 -100 207 C-101 210 -102 210 -105 211 C-105 212 -105 213 -105 213 C-117 221 -133 222 -147 224 C-150 224 -150 224 -153 225 C-155 225 -157 225 -159 225 C-160 225 -160 225 -163 225 C-158 217 -153 209 -148 201 C-142 193 -137 185 -132 177 C-130 173 -127 169 -124 165 C-122 163 -121 160 -119 157 C-117 154 -115 151 -113 148 C-111 145 -110 143 -108 140 C-105 135 -101 129 -97 124 C-97 123 -96 122 -95 121 C-93 117 -90 113 -87 109 C-83 102 -78 95 -74 88 C-71 84 -68 79 -65 74 C-60 67 -56 60 -51 53 C-51 52 -50 51 -49 50 C-46 45 -43 40 -40 35 C-39 33 -38 32 -37 30 C-35 28 -34 26 -32 24 C-22 7 -22 7 -16 4 C-15 3 -14 3 -13 2 C-9 0 -5 0 0 0 Z" fill="#fff" transform="translate(264.1,1078.8)"></path><path d="M0 0 C1 0 2 0 3 0 C4 0 6 0 7 0 C8 0 8 0 11 0 C14 0 18 0 21 0 C24 0 27 0 30 0 C37 0 43 0 50 0 C57 0 64 0 71 0 C77 0 83 0 89 0 C93 0 97 0 100 0 C129 0 154 2 179 17 C179 18 179 19 179 19 C179 20 180 20 180 20 C191 26 198 39 202 50 C206 66 206 83 198 98 C196 101 194 104 192 107 C191 108 191 109 190 110 C190 110 189 111 189 111 C188 111 187 111 187 111 C187 112 187 113 187 113 C180 119 166 128 158 128 C158 129 158 130 158 130 C158 131 159 131 160 131 C162 132 162 132 163 135 C163 136 164 136 164 136 C168 138 170 141 173 144 C174 145 175 146 176 147 C176 147 177 148 177 149 C179 150 180 152 182 154 C185 156 185 156 185 158 C185 158 186 158 187 158 C188 160 188 160 190 162 C194 167 199 172 205 177 C204 178 204 179 204 179 C196 179 188 180 181 180 C177 180 173 180 170 180 C166 180 163 180 159 180 C157 180 156 180 154 180 C146 181 141 181 135 176 C134 175 134 175 134 174 C133 174 133 174 132 173 C132 172 131 172 131 171 C130 170 130 170 129 169 C128 168 126 166 125 164 C124 164 123 163 123 162 C119 158 116 154 113 150 C112 149 111 149 110 148 C109 145 109 145 109 143 C108 143 107 143 107 143 C106 142 105 141 105 140 C102 137 102 136 98 136 C96 136 95 136 93 136 C92 136 92 136 91 136 C88 136 85 136 82 136 C80 136 79 136 77 136 C72 137 67 137 62 137 C58 137 54 137 50 138 C39 138 28 139 18 139 C18 140 18 141 18 142 C17 146 17 150 17 153 C17 155 17 157 17 158 C16 177 16 177 10 183 C5 188 -1 189 -8 189 C-9 189 -9 190 -10 190 C-18 190 -25 190 -32 190 C-33 180 -32 171 -31 161 C-30 153 -30 145 -29 138 C-29 130 -28 121 -27 113 C-26 105 -26 97 -25 89 C-25 76 -24 63 -23 51 C-22 48 -22 46 -22 43 C-22 40 -21 36 -21 32 C-21 31 -21 29 -21 28 C-20 11 -20 11 -12 4 C-8 1 -5 0 0 0 Z" fill="#fff" transform="translate(436.4,1078.7)"></path><path d="M0 0 C5 0 11 0 16 0 C18 0 19 0 21 0 C24 0 26 0 29 0 C30 0 30 0 31 0 C37 0 43 1 48 5 C48 5 49 6 49 6 C50 7 50 7 51 8 C53 12 54 17 55 22 C55 23 55 24 55 25 C55 26 55 27 55 29 C56 30 56 31 56 32 C56 36 56 39 57 42 C57 46 57 49 58 53 C59 60 59 68 60 76 C60 77 60 78 60 79 C61 86 62 93 62 100 C63 109 64 118 65 126 C67 151 67 151 68 163 C68 164 68 164 68 165 C69 166 69 167 69 168 C69 168 69 169 69 170 C69 173 69 176 69 179 C63 179 57 179 52 179 C50 179 48 179 46 179 C43 179 40 179 37 179 C37 179 37 179 34 179 C28 179 24 178 18 175 C18 174 18 174 18 173 C17 173 16 172 15 172 C11 167 11 162 10 155 C10 154 10 154 10 153 C10 150 10 148 10 145 C10 144 9 143 9 142 C8 129 8 116 7 102 C6 93 6 84 5 75 C4 67 4 60 4 52 C3 35 1 17 0 0 Z" fill="#fff" transform="translate(663,1079)"></path><path d="M0 0 C2 -0 4 0 6 0 C11 0 15 0 20 0 C25 0 31 0 37 0 C41 0 45 0 50 0 C52 0 54 0 56 0 C85 0 108 8 130 28 C133 31 135 33 137 36 C138 37 138 38 139 39 C151 55 159 72 163 91 C164 93 165 95 165 98 C170 118 174 141 163 160 C163 161 163 162 162 162 C162 163 161 164 161 164 C153 176 139 183 125 186 C120 187 114 187 109 187 C108 187 107 187 107 187 C91 187 76 186 61 184 C50 184 39 183 27 183 C-3 182 -31 176 -53 153 C-75 128 -81 96 -80 64 C-79 47 -72 29 -59 17 C-40 2 -23 0 0 0 Z" fill="#fff" transform="translate(827.8,1078.7)"></path><path d="M0 0 C1 0 1 0 4 0 C13 0 19 1 26 8 C26 8 26 9 26 10 C27 10 27 10 28 10 C30 12 32 13 34 15 C35 15 36 16 36 16 C40 19 43 22 47 25 C49 26 51 28 53 29 C54 30 55 31 56 32 C56 32 56 33 56 34 C57 34 57 34 58 34 C62 36 64 38 67 40 C73 46 80 51 87 57 C88 57 89 58 89 58 C91 59 92 61 94 62 C94 62 94 62 96 64 C96 64 96 65 96 66 C97 66 97 66 98 66 C100 68 102 69 104 70 C107 73 110 75 112 77 C113 78 114 78 114 78 C115 79 117 80 118 81 C119 82 121 83 122 84 C122 85 122 86 122 86 C123 87 123 87 124 87 C127 89 129 91 132 93 C133 93 133 94 134 94 C135 95 137 96 138 98 C138 98 138 99 138 100 C139 100 139 100 140 100 C143 102 146 104 148 106 C149 107 150 107 150 108 C156 112 161 117 167 122 C171 126 176 130 181 134 C182 135 184 136 185 137 C187 138 188 139 189 140 C190 141 191 142 192 142 C195 145 198 147 201 150 C201 149 201 149 200 146 C196 137 192 127 189 117 C186 110 184 102 181 95 C179 90 177 85 176 80 C174 75 173 70 171 66 C170 64 170 63 170 62 C167 57 165 51 163 45 C160 37 157 28 154 20 C154 19 154 19 153 16 C151 11 149 6 148 0 C152 0 156 0 160 0 C162 0 163 0 165 0 C174 0 181 0 189 7 C189 7 189 7 191 10 C191 10 192 10 192 11 C196 15 199 19 201 25 C201 25 201 25 202 27 C203 30 204 33 205 35 C205 37 206 39 207 41 C208 45 210 48 211 52 C213 57 215 62 217 67 C223 84 229 101 236 117 C242 136 249 154 257 173 C271 210 271 210 269 218 C267 222 267 222 263 224 C255 223 246 222 238 221 C237 221 236 221 236 221 C228 220 222 217 215 212 C214 211 213 210 212 209 C211 208 211 208 210 207 C207 205 205 203 203 201 C197 197 191 192 186 188 C182 184 178 181 175 179 C169 174 164 170 159 166 C155 162 151 159 147 156 C144 154 141 151 137 148 C135 146 135 146 133 145 C130 143 127 141 125 138 C123 137 122 136 120 134 C119 134 118 133 117 132 C117 132 116 131 116 131 C113 129 111 127 108 125 C106 123 104 122 102 120 C98 117 94 113 90 110 C89 109 87 108 86 107 C78 100 78 100 76 99 C75 98 73 96 72 95 C69 93 65 90 62 87 C55 81 48 76 40 70 C36 67 36 67 35 66 C36 71 37 77 38 83 C39 83 39 84 39 85 C40 88 41 91 42 94 C42 95 43 97 43 99 C46 110 49 121 53 131 C55 139 57 148 59 156 C62 164 64 173 67 181 C69 188 70 194 71 200 C70 200 69 200 68 200 C67 200 66 200 65 200 C64 200 62 200 61 199 C57 199 52 198 48 198 C39 197 31 196 24 189 C16 179 14 164 11 151 C9 147 8 142 7 137 C7 136 6 135 6 134 C4 126 2 117 0 109 C-5 93 -9 77 -12 62 C-14 54 -16 47 -18 39 C-18 39 -18 39 -19 36 C-20 33 -20 31 -21 29 C-25 13 -25 13 -22 6 C-16 -1 -9 0 0 0 Z" fill="#fff" transform="translate(1021,1078.5)"></path><path d="M0 0 C4 0 9 0 13 0 C16 0 20 0 23 0 C24 0 26 0 28 0 C30 0 32 0 34 0 C35 0 37 0 38 0 C45 0 50 4 55 9 C59 15 59 20 58 26 C57 32 54 35 49 38 C43 41 38 41 31 42 C30 42 29 42 28 42 C25 42 23 42 20 42 C18 42 16 42 14 42 C10 42 6 42 2 43 C-4 43 -9 43 -14 43 C-18 43 -22 43 -26 43 C-28 44 -30 44 -32 44 C-45 44 -59 44 -72 44 C-73 40 -73 36 -72 32 C-72 32 -72 32 -72 30 C-72 29 -72 27 -72 26 C-72 24 -72 22 -72 20 C-71 13 -71 7 -70 1 C-47 0 -23 -0 0 0 Z" fill="#000" transform="translate(528.8,1125.8)"></path><path d="M0 0 C1 0 2 0 3 0 C3 0 3 0 4 2 C10 19 16 35 22 51 C20 53 19 53 16 54 C15 54 14 54 13 54 C13 54 12 54 11 54 C10 54 9 54 8 54 C-1 55 -9 55 -18 56 C-24 56 -29 56 -35 57 C-34 53 -32 50 -30 47 C-29 46 -29 45 -28 44 C-26 41 -24 39 -23 36 C-21 33 -19 30 -17 26 C-16 26 -16 26 -15 26 C-15 25 -14 25 -14 24 C-12 19 -9 15 -7 10 C-6 9 -5 8 -5 7 C-4 6 -4 5 -3 4 C-3 4 -2 3 -2 2 C-1 1 -1 1 0 0 Z" fill="#000" transform="translate(262,1150)"></path><path d="M0 0 C1 -0 2 0 4 0 C5 -0 6 0 8 0 C9 0 10 0 12 0 C15 0 19 0 22 0 C25 0 27 0 29 0 C38 0 47 0 55 0 C58 0 60 0 62 0 C67 0 72 0 77 0 C79 0 81 1 83 1 C97 1 107 6 116 15 C123 24 126 35 128 45 C129 46 129 47 129 48 C132 60 134 72 128 82 C125 87 121 89 116 91 C113 92 113 92 109 92 C109 92 109 92 107 92 C105 92 102 92 100 92 C100 92 100 92 98 92 C80 92 62 91 45 90 C43 90 41 90 38 90 C35 90 31 89 28 89 C26 89 24 89 22 89 C8 88 -3 86 -12 76 C-18 68 -21 61 -22 51 C-22 50 -23 49 -23 48 C-27 20 -27 20 -21 10 C-15 4 -9 0 0 0 Z" fill="#000" transform="translate(818,1125.8)"></path></mask></defs><rect x="95" y="1072" width="1202" height="238" fill="currentColor" mask="url(#wmk)"></rect></svg><b>Pit Wall</b></div>
+    <span class="sep"></span>
+    <span id="sess" class="m mu"></span>
+    <span class="grow"></span>
+    <div id="tabs" class="tabs"></div>
+    <span class="sep"></span>
+    <span id="link" class="m mu"></span>
+    <button id="out" style="display:none">Sign out</button>
+  </div>
+  <div id="view" class="center"></div>
+</div>
+<div id="note" class="note"></div>
+
+<script>
+'use strict';
+// ARION Pit Wall dashboard — Phase 1. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1).
+const VERSION='0.1.2';
+// Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
+const LOCAL=!!window.PW_LOCAL;
+const CFG={url:'https://isuiksufkyishdowejob.supabase.co',key:'sb_publishable_DMqGCrW9YEmzEN2_cP67-w_ljr1JBo9'};
+const STUN=[{urls:'stun:stun.cloudflare.com:3478'}];
+const sb=LOCAL?null:supabase.createClient(CFG.url,CFG.key);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let noteT;function note(t){const n=$('#note');n.textContent=t;n.style.display='block';clearTimeout(noteT);noteT=setTimeout(()=>n.style.display='none',5000)}
+
+// ---------- state ----------
+let USER=null,TOKEN=null,SESS=[],SEL=null,LINK=null;
+const S={fast:null,slow:null,cars:new Map(),hist:[],trail:[],last:[],lap:null,segs:[],cells:new Set(),segBounds:null,trackLen:0,mode:'full',zoom:1,lastPos:new Map(),heading:0};
+function resetData(){S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
+
+// ---------- login and access ----------
+async function boot(){
+  if(LOCAL)return localBoot();
+  const {data:{session}}=await sb.auth.getSession();
+  USER=session?.user||null;TOKEN=session?.access_token||null;
+  sb.auth.onAuthStateChange((_e,s)=>{TOKEN=s?.access_token||null;const u=s?.user||null;if((u&&u.id)!==(USER&&USER.id)){USER=u;route()}});
+  route();
+}
+async function route(){
+  stopLink();
+  $('#out').style.display=USER?'':'none';
+  if(!USER)return loginView();
+  const {data:ok,error}=await sb.rpc('can_pitwall');
+  if(error)return msgView('Could not check your access: '+error.message);
+  if(!ok)return msgView('No pit wall access. Ask an admin to tick «Pit wall» for you in the crew app (Team → ⋯).');
+  dashView();loadSessions();watchSessions();
+}
+function loginView(){
+  $('#tabs').innerHTML='';$('#sess').textContent='';$('#link').textContent='';
+  $('#view').className='center';
+  $('#view').innerHTML=`<form class="card" id="lf"><div class="mu">Sign in with your ARION crew app account.</div>
+    <input id="em" type="email" autocomplete="username" placeholder="Email" required>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="Password" required>
+    <button class="on" type="submit">Sign in</button><div class="ft">ARION Pit Wall v${VERSION}</div></form>`;
+  $('#lf').onsubmit=async e=>{e.preventDefault();const {error}=await sb.auth.signInWithPassword({email:$('#em').value,password:$('#pw').value});if(error)note(error.message)};
+}
+function msgView(t){$('#view').className='center';$('#view').innerHTML=`<div class="card"><div>${esc(t)}</div><div class="ft">ARION Pit Wall v${VERSION}</div></div>`}
+$('#out').onclick=async()=>{await sb.auth.signOut();USER=null;route()};
+
+// ---------- drivers online (one session per running driver app) ----------
+let sessChan=null,sessTimer=null;
+async function loadSessions(){
+  const {data,error}=await sb.from('pitwall_sessions').select('id,user_id,team_id,agent_version,started_at,last_seen');
+  if(error){note(error.message);return}
+  const ids=[...new Set(data.map(s=>s.user_id))],tids=[...new Set(data.map(s=>s.team_id).filter(Boolean))];
+  const [p,t]=await Promise.all([ids.length?sb.from('profiles').select('id,name,nickname').in('id',ids):{data:[]},tids.length?sb.from('teams').select('id,name,class').in('id',tids):{data:[]}]);
+  const pm=new Map((p.data||[]).map(x=>[x.id,x])),tm=new Map((t.data||[]).map(x=>[x.id,x]));
+  SESS=data.map(s=>({...s,driver:(pm.get(s.user_id)?.nickname||pm.get(s.user_id)?.name||'Driver'),team:tm.get(s.team_id)||null}))
+    .sort((a,b)=>(a.team?.name||'~').localeCompare(b.team?.name||'~')||a.driver.localeCompare(b.driver));
+  if(SEL&&!SESS.some(s=>s.id===SEL)){stopLink();SEL=null}
+  if(!SEL&&SESS.length)select(SESS[0].id);
+  paintTabs();if(!SESS.length)emptyState();
+}
+function watchSessions(){
+  if(sessChan)sb.removeChannel(sessChan);
+  sessChan=sb.channel('pw-sessions').on('postgres_changes',{event:'*',schema:'public',table:'pitwall_sessions'},()=>loadSessions()).subscribe();
+  clearInterval(sessTimer);sessTimer=setInterval(loadSessions,15000);
+}
+function paintTabs(){
+  $('#tabs').innerHTML=SESS.map((s,i)=>`<span class="tab${s.id===SEL?' on':''}" data-id="${s.id}"><span class="${s.id===SEL?'y':'mu'}">Car ${i+1}</span><span>${esc(s.team?s.team.name:'Practice')}</span><span class="mu">${esc(s.driver)}</span></span>`).join('');
+  document.querySelectorAll('.tab').forEach(e=>e.onclick=()=>select(e.dataset.id));
+}
+function emptyState(){$('#sess').textContent='';$('#link').textContent='';
+  const v=$('#view');if(v.dataset.k==='empty')return;v.dataset.k='empty';v.className='center';
+  v.innerHTML=`<div class="card"><b>No driver online</b><div class="mu">Drivers appear here while their ARION Pit Wall app is running.</div><div class="ft">ARION Pit Wall v${VERSION}</div></div>`}
+function select(id){if(SEL===id&&LINK)return;stopLink();SEL=id;resetData();paintTabs();dashView();startLink(id)}
+
+// ---------- local mode: this PC only, data from the driver app as Server-Sent Events ----------
+function localBoot(){
+  $('#out').style.display='none';SEL='local';
+  $('#tabs').innerHTML=`<span class="tab on"><span class="y">My car</span><span class="mu">this PC</span></span>`;
+  dashView();LINK=new LocalLink();
+}
+class LocalLink{
+  constructor(){this.state='connecting';this.alive=true;this.es=new EventSource('/events');
+    const b64=t=>{const s=atob(t),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u.buffer};
+    this.es.onopen=()=>{this.state='live';paintLink()};
+    this.es.onerror=()=>{if(this.alive){this.state='reconnecting';paintLink()}};
+    this.es.addEventListener('fast',e=>{try{onFast(b64(e.data))}catch{}});
+    this.es.addEventListener('slow',e=>{try{onSlow(JSON.parse(e.data))}catch{}});
+    paintLink()}
+  stop(){this.alive=false;this.es.close()}
+}
+
+// ---------- the live connection (WebRTC; setup messages go through the database) ----------
+function stopLink(){if(!LINK)return;const L=LINK;LINK=null;L.stop()}
+function startLink(sid){LINK=new Link(sid)}
+class Link{
+  constructor(sid){this.sid=sid;this.alive=true;this.tries=0;this.lastId=0;this.rtt=null;this.path='';this.state='connecting';this.open()}
+  async open(){
+    if(!this.alive)return;this.state='connecting';this.answered=false;paintLink();
+    const pc=this.pc=new RTCPeerConnection({iceServers:STUN});
+    const fast=pc.createDataChannel('fast',{ordered:false,maxRetransmits:0}),slow=pc.createDataChannel('slow');
+    fast.binaryType='arraybuffer';fast.onmessage=e=>onFast(e.data);
+    slow.onmessage=e=>{const t=String(e.data);if(t.startsWith('q:')){this.rtt=performance.now()-parseFloat(t.slice(2));return}try{onSlow(JSON.parse(t))}catch{}};
+    slow.onopen=()=>{this.ping=setInterval(()=>{try{slow.send('p:'+performance.now())}catch{}},1000)};
+    pc.onconnectionstatechange=()=>{const s=pc.connectionState;if(!this.alive)return;
+      if(s==='connected'){this.state='live';this.tries=0;this.stats()}
+      if(s==='failed'||s==='disconnected'&&this.state!=='live')this.retry('failed');
+      if(s==='disconnected'&&this.state==='live'){this.state='reconnecting';setTimeout(()=>{if(this.alive&&pc.connectionState==='disconnected')this.retry('lost')},5000)}
+      paintLink()};
+    await pc.setLocalDescription(await pc.createOffer());
+    // send what we have after at most 1.5 s: some networks never report gathering "complete"
+    await new Promise(r=>{if(pc.iceGatheringState==='complete')return r();pc.onicegatheringstatechange=()=>pc.iceGatheringState==='complete'&&r();setTimeout(r,1500)});
+    if(!this.alive)return;
+    this.chan=sb.channel('pw-sig-'+this.sid+'-'+Date.now()).on('postgres_changes',{event:'INSERT',schema:'public',table:'pitwall_signals',filter:'session_id=eq.'+this.sid},p=>this.signal(p.new)).subscribe();
+    const {error}=await sb.from('pitwall_signals').insert({session_id:this.sid,kind:'offer',body:pc.localDescription.toJSON()});
+    if(error){note(error.message);return this.retry('offer')}
+    // backup to the live updates: ask every second until the answer is here
+    this.poll=setInterval(async()=>{if(this.answered)return;const {data}=await sb.from('pitwall_signals').select('id,kind,body,from_agent').eq('session_id',this.sid).eq('from_agent',true).gt('id',this.lastId).order('id');(data||[]).forEach(s=>this.signal(s))},1000);
+    this.timeout=setTimeout(()=>{if(!this.answered)this.retry('no answer')},15000);
+  }
+  async signal(s){
+    if(!s||!s.from_agent||s.id<=this.lastId)return;this.lastId=s.id;
+    if(s.kind==='answer'&&!this.answered){this.answered=true;try{await this.pc.setRemoteDescription(s.body)}catch(e){this.retry('bad answer')}}
+    if(s.kind==='bye'){this.answered=true;const why=s.body&&s.body.reason;
+      if(why==='full'){this.state='full';paintLink();this.close();setTimeout(()=>this.alive&&this.open(),20000)}else this.retry('closed')}
+  }
+  async stats(){
+    if(!this.alive||!this.pc)return;
+    try{const st=await this.pc.getStats();let pair=null;st.forEach(r=>{if(r.type==='transport'&&r.selectedCandidatePairId)pair=st.get(r.selectedCandidatePairId)});
+      if(!pair)st.forEach(r=>{if(r.type==='candidate-pair'&&r.nominated&&r.state==='succeeded')pair=r});
+      if(pair){const l=st.get(pair.localCandidateId),rm=st.get(pair.remoteCandidateId);if(pair.currentRoundTripTime!=null)this.netRtt=pair.currentRoundTripTime*1000;
+        this.path=(l&&rm)?((l.candidateType==='relay'||rm.candidateType==='relay')?'relay':'direct'):'';}}catch{}
+    paintLink();setTimeout(()=>this.stats(),3000);
+  }
+  close(){clearInterval(this.ping);clearInterval(this.poll);clearTimeout(this.timeout);if(this.chan)sb.removeChannel(this.chan);this.chan=null;try{this.pc&&this.pc.close()}catch{}}
+  retry(why){if(!this.alive)return;this.close();this.tries++;
+    if(this.tries>3){this.state='failed';paintLink();return}
+    this.state='reconnecting';paintLink();setTimeout(()=>this.open(),1000*this.tries)}
+  // Tell the driver's app this coach left, so the place is free at once.
+  // When the page is closing, a normal request may be cut off; keepalive lets it finish.
+  stop(unloading){this.alive=false;this.close();
+    if(unloading&&TOKEN){try{fetch(CFG.url+'/rest/v1/pitwall_signals',{method:'POST',keepalive:true,
+      headers:{apikey:CFG.key,Authorization:'Bearer '+TOKEN,'Content-Type':'application/json',Prefer:'return=minimal'},
+      body:JSON.stringify({session_id:this.sid,kind:'bye',body:{}})})}catch{}}
+    else sb.from('pitwall_signals').insert({session_id:this.sid,kind:'bye',body:{}}).then(()=>{})}
+}
+function paintLink(){const L=LINK,e=$('#link');if(!L){e.textContent='';return}
+  if(LOCAL){e.innerHTML=L.state==='live'?'<span class="g">● live</span> · this PC':L.state==='reconnecting'?'<span class="a">● the ARION Pit Wall app isn’t answering — is it still running?</span>':'<span class="a">● connecting…</span>';return}
+  const m={connecting:['a','connecting…'],live:['g','live'],reconnecting:['a','reconnecting…'],full:['a','5 coaches already watching this driver'],
+    failed:['r','no direct connection to this driver (network blocks it)']}[L.state]||['mu',L.state];
+  e.innerHTML=`<span class="${m[0]}">● ${m[1]}</span>${L.state==='live'?` · ${L.netRtt!=null?Math.round(L.netRtt)+' ms':L.rtt!=null?Math.round(L.rtt)+' ms':'…'}${L.path?' · '+L.path:''}`:''}`}
+
+// ---------- incoming data (PROTOCOL.md v1) ----------
+function onFast(buf){
+  const d=new DataView(buf);if(d.byteLength<4||d.getUint8(0)!==1)return;
+  const k=d.getUint8(1);
+  if(k===1&&d.byteLength>=76){
+    const f={t:performance.now(),flags:d.getUint16(2,true),seq:d.getUint32(4,true),et:d.getFloat64(8,true),dist:d.getFloat32(16,true),lap:d.getInt16(20,true),gear:d.getInt8(22),
+      x:d.getFloat32(24,true),y:d.getFloat32(28,true),z:d.getFloat32(32,true),speed:d.getFloat32(36,true),rpm:d.getFloat32(40,true),thr:d.getFloat32(44,true),brk:d.getFloat32(48,true),
+      steer:d.getFloat32(52,true),clutch:d.getFloat32(56,true),bp:[60,64,68,72].map(o=>d.getFloat32(o,true))};
+    if(S.lap!==null&&f.lap!==S.lap){S.last=S.trail;S.trail=[]}
+    S.lap=f.lap;
+    const p=S.hist.length>10?S.hist[S.hist.length-10]:S.fast;if(p){const dx=f.x-p.x,dz=f.z-p.z;if(dx*dx+dz*dz>1)S.heading=Math.atan2(-dz,dx)}
+    S.fast=f;S.trail.push([f.x,-f.z]);if(S.trail.length>20000)S.trail.shift();
+    S.hist.push(f);while(S.hist.length&&f.et-S.hist[0].et>15)S.hist.shift();
+    if(f.dist>S.trackLen)S.trackLen=f.dist;
+  }
+  if(k===2){
+    const n=d.getUint16(2,true);const seen=new Set();
+    for(let i=0;i<n&&4+i*16+16<=d.byteLength;i++){const o=4+i*16,id=d.getUint16(o,true),place=d.getUint8(o+2),b=d.getUint8(o+3),x=d.getFloat32(o+4,true),z=-d.getFloat32(o+8,true),dist=d.getFloat32(o+12,true);
+      seen.add(id);const prev=S.lastPos.get(id);
+      // the track draws itself from where cars drive (not in the pits; no jumps)
+      if(prev&&!(b&1)){const dx=x-prev[0],dz=z-prev[1],dd=dx*dx+dz*dz;const key=Math.round((x+prev[0])/6)+','+Math.round((z+prev[1])/6);
+        if(dd>0.04&&dd<3600&&!S.cells.has(key)&&S.segs.length<60000){S.cells.add(key);S.segs.push([prev[0],prev[1],x,z]);growBounds(x,z);trackPath=null}}
+      S.lastPos.set(id,[x,z]);const old=S.cars.get(id),tn=performance.now();S.cars.set(id,{id,place,pits:!!(b&1),me:!!(b&2),x,z,dist,t:tn,px:old?old.x:x,pz:old?old.z:z,pt:old?old.t:tn-100});
+      if(dist>S.trackLen)S.trackLen=dist}
+    for(const id of S.cars.keys())if(!seen.has(id))S.cars.delete(id);
+  }
+}
+function growBounds(x,z){const b=S.segBounds;if(!b){S.segBounds=[x,z,x,z];return}
+  b[0]=Math.min(b[0],x);b[1]=Math.min(b[1],z);b[2]=Math.max(b[2],x);b[3]=Math.max(b[3],z)}
+function onSlow(j){if(j.t!=='slow')return;S.slow=j;paintPanels()}
+
+// ---------- layout ----------
+function dashView(){
+  const v=$('#view');if(v.dataset.k==='dash')return;v.dataset.k='dash';v.className='main';
+  v.innerHTML=`<div class="col">
+      <div class="pn" id="car"></div>
+      <div class="pn fill"><div class="ph"><b>Traffic</b><span class="mu">all classes, by track position · <span class="y">●</span> your class</span></div><div id="traffic"></div></div>
+    </div>
+    <div class="col">
+      <div class="pn fill" style="flex:3">
+        <div class="ph"><b>Track map</b><span class="grow"></span>
+          <button id="mFull" class="on">Full track</button><button id="mFollow">Follow</button>
+          <button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div>
+        <div class="cv"><canvas id="map"></canvas></div>
+        <div class="lg"><span class="y">● this car</span><span>trail: <span class="y">this lap</span>, <span class="mu">last lap</span></span><span>cars: <span style="color:#D9D9DE">Hypercar</span> · <span style="color:#3E7BFA">LMP2</span> · <span style="color:#F08C2E">GT3</span> · <span style="color:#3BD16F">GTE</span> · <span class="mu">other</span></span><span class="mu">The track draws itself from where cars drive.</span></div>
+      </div>
+      <div class="pn fill" style="flex:1.2">
+        <div class="ph"><b>Live inputs</b><span class="g">throttle</span><span class="r">brake</span><span>steering</span><span class="a">ABS active</span><span class="c">wheel lock</span><span class="grow"></span><span class="mu">last 15 s</span></div>
+        <div class="cv"><canvas id="inp"></canvas></div>
+        <div class="m" id="inpft" style="display:flex;gap:18px;margin-top:6px"></div>
+      </div>
+    </div>`;
+  $('#mFull').onclick=()=>{S.mode='full';$('#mFull').className='on';$('#mFollow').className=''};
+  $('#mFollow').onclick=()=>{S.mode='follow';$('#mFollow').className='on';$('#mFull').className='';if(S.zoom<2)S.zoom=3};
+  $('#zIn').onclick=()=>{S.zoom=Math.min(12,S.zoom*1.5)};$('#zOut').onclick=()=>{S.zoom=Math.max(1,S.zoom/1.5)};
+  paintPanels();
+}
+
+const CLS=c=>{c=(c||'').toLowerCase();return c.includes('hyper')?'#D9D9DE':c.includes('lmp2')?'#3E7BFA':c.includes('lmp3')?'#B07CFF':c.includes('gt3')?'#F08C2E':c.includes('gte')?'#3BD16F':'#8C8F98'};
+const CLSN=c=>{c=(c||'').toLowerCase();return c.includes('hyper')?'HY':c.includes('lmp2')?'P2':c.includes('lmp3')?'P3':c.includes('gt3')?'GT3':c.includes('gte')?'GTE':(c||'?').slice(0,3).toUpperCase()};
+const fmtLap=t=>!(t>0)?'–':`${Math.floor(t/60)}:${(t%60).toFixed(3).padStart(6,'0')}`;
+const SESSN=n=>n===0?'Test day':n<=4?`Practice ${n}`:n<=8?`Qualifying ${n-4}`:n===9?'Warm-up':`Race ${n-9}`;
+const fmtLeft=s=>!(s>0)?'':`${Math.floor(s/3600)}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')} left`;
+const tyreBg=t=>t<60?'#16263A':t<95?'#1E2A1F':t<110?'#3A2A12':'#3A1616';
+
+function paintPanels(){
+  const j=S.slow,car=$('#car');if(!car)return;
+  const sel=SESS.find(s=>s.id===SEL);
+  if(j){const se=j.session;$('#sess').innerHTML=`${esc(se.track)} · ${SESSN(se.type)} · ${fmtLeft(se.left)}`+(se.yellow>0?' · <span class="a">yellow</span>':'')}
+  if(!j){car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:'')}</b><span class="mu">${esc(sel&&sel.team?sel.team.name:'practice')}</span></div><div class="mu">${LINK&&LINK.state==='live'?(LOCAL?'Waiting for Le Mans Ultimate (on track)…':'Waiting for the driver to be on track…'):'Connecting to the driver’s app…'}</div>`;$('#traffic').innerHTML='';return}
+  const me=j.grid.find(g=>g.player)||{},c=j.car,w=c.wheels||[];
+  const cls=me.class,inCls=j.grid.filter(g=>g.class===cls).sort((a,b)=>a.place-b.place),pic=inCls.findIndex(g=>g.id===me.id)+1;
+  const energy=(c.energy>=0&&c.energy<=1)?`${Math.round(c.energy*100)}%`:'–';
+  const dmg=(c.damage||[]).some(x=>x>0);
+  car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:me.name)}</b><span class="chip" style="background:#1F2024">P${pic||'–'} in ${esc(CLSN(cls))}</span><span class="mu">${esc(me.car||'')}</span></div>
+    <div class="k3"><div><div class="mu">Last lap</div><div class="big">${fmtLap(me.last)}</div></div><div><div class="mu">Best lap</div><div class="big g">${fmtLap(me.best)}</div></div><div><div class="mu">Laps</div><div class="big">${me.laps??'–'}</div></div></div>
+    <div style="display:flex;margin-top:10px"><span class="mu">Virtual energy</span><span class="grow"></span><span class="m">${energy}</span></div><div class="bar"><i style="width:${c.energy>=0&&c.energy<=1?c.energy*100:0}%"></i></div>
+    <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} / ${(c.fuelCap||0).toFixed(0)} L</span></div>
+    <div class="tyres">${['FL','FR','RL','RR'].map((n,i)=>{const t=w[i]||{t:[0,0,0]};const mid=t.t[1];return `<div class="tyre" style="background:${tyreBg(mid)}">${n} <span style="font-size:16px">${Math.round(mid)}°</span> <span class="mu">${t.t.map(x=>Math.round(x)).join('·')}</span><div class="mu">${Math.round(t.p||0)} kPa · tread ${Math.round((t.wear||0)*100)}% · brake ${Math.round(t.brake||0)}°</div></div>`}).join('')}</div>
+    <div class="k3 m" style="grid-template-columns:repeat(5,1fr);margin-top:10px"><div><div class="mu">TC</div>${c.tc}</div><div><div class="mu">ABS</div>${c.abs}</div><div><div class="mu">Bias</div>${(c.bias*100).toFixed(1)}%</div><div><div class="mu">Map</div>${c.map}</div><div><div class="mu">Damage</div>${dmg?'<span class="r">yes</span>':'<span class="g">none</span>'}</div></div>`;
+  paintTraffic();
+}
+function paintTraffic(){
+  const j=S.slow,el=$('#traffic');if(!j||!el)return;
+  const me=j.grid.find(g=>g.player);const meCar=me&&S.cars.get(me.id);const L=S.trackLen;
+  if(!me||!meCar||!(L>100)){el.innerHTML='<div class="mu">Waiting for positions…</div>';return}
+  const v=me.best>0?L/me.best:(S.fast&&S.fast.speed>10?S.fast.speed:50);
+  const rows=j.grid.filter(g=>S.cars.has(g.id)&&!S.cars.get(g.id).pits||g.player).map(g=>{let d=(S.cars.get(g.id)?.dist??0)-meCar.dist;if(d>L/2)d-=L;if(d<-L/2)d+=L;return {g,d}}).sort((a,b)=>b.d-a.d);
+  const i=rows.findIndex(r=>r.g.player);const fit=Math.max(3,Math.floor((el.parentElement.clientHeight-40)/25)),half=Math.floor((fit-1)/2);
+  const st=Math.max(0,Math.min(i-half,rows.length-fit));const view=rows.slice(st,st+fit);
+  el.innerHTML=view.map(({g,d})=>{const s=Math.abs(d)/v;const same=g.class===me.class;
+    return `<div class="rl${g.player?' me':''}"><span class="pill" style="background:${CLS(g.class)};color:#16171A">${esc(CLSN(g.class))}</span><span class="mu">P${g.place}</span><span style="${g.player?'color:var(--y)':''}">${esc(g.name)}</span><span class="grow"></span>${g.player?'<span class="y">you</span>':`<span>${s.toFixed(1)} s ${d>0?'ahead':'behind'}</span>${same?'<span class="y">●</span>':''}`}</div>`}).join('');
+}
+
+// ---------- drawing (every frame; the track is one world-space path, rebuilt only when it grows) ----------
+let trackPath=null;
+function fitCanvas(cv){const r=cv.getBoundingClientRect(),dpr=devicePixelRatio||1,w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}}
+// world (x, −z) → screen, as a matrix [a,b,c,d,e,f] for setTransform, and as a point function
+function viewTransform(cv){
+  const fx0=S.fast?S.fast.x:0,fz0=S.fast?-S.fast.z:0;
+  const b=S.segBounds||[fx0-300,fz0-300,fx0+300,fz0+300];
+  const W=cv.width,H=cv.height,pad=30*(devicePixelRatio||1),bw=Math.max(60,b[2]-b[0]),bh=Math.max(60,b[3]-b[1]);
+  const base=Math.min((W-2*pad)/bw,(H-2*pad)/bh),s=base*S.zoom;
+  let rot=0,cx=(b[0]+b[2])/2,cz=(b[1]+b[3])/2,ox=W/2,oy=H/2;
+  if(S.fast&&(S.mode==='follow'||S.zoom>1)){cx=fx0;cz=fz0}
+  if(S.mode==='follow'&&S.fast){rot=-Math.PI/2-S.heading;oy=H*0.62} // direction of travel points up
+  const c=Math.cos(rot)*s,sn=Math.sin(rot)*s;
+  const m=[c,sn,-sn,c,ox-(cx*c-cz*sn),oy-(cx*sn+cz*c)];
+  return {s,m,f:(x,z)=>[m[0]*x+m[2]*z+m[4],m[1]*x+m[3]*z+m[5]]};
+}
+function drawMap(){
+  const cv=$('#map');if(!cv)return;fitCanvas(cv);const g=cv.getContext('2d'),W=cv.width,H=cv.height,dpr=devicePixelRatio||1;
+  g.setTransform(1,0,0,1,0,0);g.fillStyle='#121316';g.fillRect(0,0,W,H);
+  const T=viewTransform(cv);
+  if(!trackPath){trackPath=new Path2D();for(const sg of S.segs){trackPath.moveTo(sg[0],sg[1]);trackPath.lineTo(sg[2],sg[3])}}
+  g.setTransform(...T.m);g.lineCap='round';g.lineJoin='round';
+  g.strokeStyle='#26282E';g.lineWidth=Math.max(6*dpr/T.s,13);g.stroke(trackPath);
+  const line=(pts,col,w)=>{if(pts.length<2)return;g.strokeStyle=col;g.lineWidth=w/T.s;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.stroke()};
+  line(S.last,'#4A4D56',2*dpr);line(S.trail,'#F2C200',2.5*dpr);
+  g.setTransform(1,0,0,1,0,0);
+  // cars glide from their previous position to the newest one over one frame interval (~100 ms behind live)
+  const now=performance.now(),cls=new Map((S.slow?.grid||[]).map(c=>[c.id,c]));
+  const list=[...S.cars.values()].sort((a,b)=>a.me-b.me);
+  for(const c of list){const k=Math.max(0,Math.min(1,(now-c.t)/Math.max(30,c.t-c.pt)));const p=T.f(c.px+(c.x-c.px)*k,c.pz+(c.z-c.pz)*k);
+    const info=cls.get(c.id),r=(c.me?7:5)*dpr;
+    g.globalAlpha=c.pits?0.4:1;g.fillStyle=c.me?'#F2C200':CLS(info&&info.class);g.strokeStyle='#121316';g.lineWidth=1.5*dpr;
+    g.beginPath();g.arc(p[0],p[1],r,0,7);g.fill();g.stroke();
+    g.font=`${11*dpr}px JetBrains Mono, monospace`;g.fillStyle=c.me?'#F2C200':'#8C8F98';g.fillText(String(c.place),p[0]+r+2*dpr,p[1]-r);g.globalAlpha=1}
+  if(!S.segs.length&&!S.fast){g.fillStyle='#8C8F98';g.font=`${13*dpr}px Inter, sans-serif`;g.fillText('The map appears once cars are moving.',20*dpr,30*dpr)}
+  const zv=$('#zv');if(zv)zv.textContent=S.zoom.toFixed(1)+'x';
+}
+function drawInputs(){
+  const cv=$('#inp');if(!cv)return;fitCanvas(cv);const g=cv.getContext('2d'),W=cv.width,H=cv.height,dpr=devicePixelRatio||1;
+  g.clearRect(0,0,W,H);const h=S.hist;if(h.length<2)return;const t1=h[h.length-1].et,t0=t1-15;
+  const X=et=>(et-t0)/15*W,Y=v=>H-4*dpr-v*(H-8*dpr);
+  g.fillStyle='rgba(255,176,32,0.16)';for(const f of h)if(f.flags&1)g.fillRect(X(f.et)-1.5*dpr,0,3*dpr,H);
+  g.strokeStyle='#25272C';g.lineWidth=1;g.beginPath();g.moveTo(0,Y(0.5));g.lineTo(W,Y(0.5));g.stroke();
+  const tr=(key,col,w,dash)=>{g.strokeStyle=col;g.lineWidth=w*dpr;g.setLineDash(dash?[5*dpr,4*dpr]:[]);g.beginPath();h.forEach((f,i)=>{const v=key==='steer'?0.5+f.steer/2:f[key];const x=X(f.et),y=Y(Math.max(0,Math.min(1,v)));i?g.lineTo(x,y):g.moveTo(x,y)});g.stroke();g.setLineDash([])};
+  tr('steer','#C9CBD1',1.2,true);tr('thr','#3BD16F',2);tr('brk','#FF5A5A',2);
+  g.fillStyle='#39C5F0';for(const f of h)if(f.flags&0xF0){g.beginPath();g.arc(X(f.et),Y(f.brk),4*dpr,0,7);g.fill()}
+  const f=h[h.length-1],ft=$('#inpft');
+  if(ft&&(!ft.dataset.t||now()-ft.dataset.t>100)){ft.dataset.t=now();const lock=['FL','FR','RL','RR'].filter((_,i)=>f.flags&(16<<i));
+    ft.innerHTML=`<span>Gear ${f.gear<0?'R':f.gear===0?'N':f.gear}</span><span>${Math.round(f.speed*3.6)} km/h</span><span class="mu">${Math.round(f.rpm)} rpm</span><span class="mu">Brake F ${f.bp[0].toFixed(2)} / R ${f.bp[2].toFixed(2)}</span>${f.flags&1?'<span class="a">ABS</span>':''}${f.flags&2?'<span class="a">TC</span>':''}${lock.length?`<span class="c">lock ${lock.join(' ')}</span>`:''}`}
+}
+const now=()=>performance.now();
+let lastTraffic=0;
+function frame(){drawMap();drawInputs();if(now()-lastTraffic>500){lastTraffic=now();paintTraffic()}requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+addEventListener('pagehide',()=>{if(LINK){const L=LINK;LINK=null;L.stop(true)}});
+boot();
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
-use arion_pitwall_agent::{config, report, session, signal, source};
+use arion_pitwall_agent::{config, local, report, session, signal, source};
 
 fn arg(name: &str) -> Option<String> {
     let a: Vec<String> = std::env::args().collect();
@@ -50,7 +50,13 @@ fn main() {
         }
     });
     let sp = stop.clone();
-    rt.block_on(session::run(door, src, status, rep.clone(), sp));
+    let lc = local::Local::new();
+    let lc2 = lc.clone();
+    rt.spawn(async move {
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+        if let Some(u) = lc2.url() { println!("My dashboard: {u}"); }
+    });
+    rt.block_on(session::run(door, src, status, rep.clone(), lc, sp));
     if let Some(p) = arg("--report") {
         let _ = std::fs::write(p, rep.lock().unwrap().text(config::VERSION, None));
     }

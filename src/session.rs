@@ -36,12 +36,13 @@ fn set(status: &Arc<Mutex<Status>>, f: impl FnOnce(&mut Status)) {
 }
 
 /// Runs until `stop` is set. Never panics on network errors: it reports them and retries.
-pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<Mutex<Status>>, report: Arc<Mutex<Report>>, stop: Arc<AtomicBool>) {
+pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<Mutex<Status>>, report: Arc<Mutex<Report>>, local: crate::local::Local, stop: Arc<AtomicBool>) {
     let hub = Hub::new();
 
     // Telemetry: read the game at 100 Hz (so the report can see LMU's own update rate), send at most
     // FAST_HZ fast frames, only when the game produced new data. Cars 10 Hz, slow data SLOW_HZ.
     let (hub_t, status_t, stop_t, report_t) = (hub.clone(), status.clone(), stop.clone(), report.clone());
+    tokio::spawn(crate::local::serve(local.clone()));
     let telemetry = tokio::spawn(async move {
         let mut tick = tokio::time::interval(Duration::from_millis(10));
         tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
@@ -65,7 +66,8 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
             }
             let viewers = hub_t.connected();
             report_t.lock().unwrap().viewers(viewers);
-            if viewers == 0 {
+            let mine = local.watching();
+            if viewers == 0 && mine == 0 {
                 continue;
             }
             if let Some((_, v)) = protocol::player(&o) {
@@ -75,6 +77,7 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
                     last_fast = Instant::now();
                     seq = seq.wrapping_add(1);
                     if let Some(f) = protocol::fast_frame(&o, seq) {
+                        local.send(crate::local::Msg::Fast(f.to_vec()));
                         hub_t.send_fast(&f).await;
                         set(&status_t, |s| s.frames += 1);
                         report_t.lock().unwrap().add_frame();
@@ -83,12 +86,16 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
             }
             if last_cars.elapsed() >= Duration::from_millis(100) {
                 last_cars = Instant::now();
-                hub_t.send_fast(&protocol::cars_frame(&o)).await;
+                let c = protocol::cars_frame(&o);
+                local.send(crate::local::Msg::Fast(c.clone()));
+                hub_t.send_fast(&c).await;
             }
             if last_slow.elapsed() >= Duration::from_secs_f64(1.0 / config::SLOW_HZ as f64) {
                 last_slow = Instant::now();
                 if let Some(j) = protocol::slow_json(&o) {
-                    hub_t.send_slow(&j.to_string()).await;
+                    let t = j.to_string();
+                    local.send(crate::local::Msg::Slow(t.clone()));
+                    hub_t.send_slow(&t).await;
                 }
             }
         }

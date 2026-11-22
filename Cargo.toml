@@ -1,6 +1,6 @@
 [package]
 name = "arion-pitwall-agent"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 description = "ARION Pit Wall driver app: reads Le Mans Ultimate telemetry and streams it to the team's pit wall."
 publish = false
@@ -10,7 +10,7 @@ serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.154"
 ureq = { version = "=3.5.1", features = ["json"] }
 webrtc = "=0.21.1"
-tokio = { version = "=1.54.1", features = ["rt-multi-thread", "macros", "time", "sync"] }
+tokio = { version = "=1.54.1", features = ["rt-multi-thread", "macros", "time", "sync", "net", "io-util"] }
 bytes = "=1.12.1"
 async-trait = "=0.1.92"
 arboard = { version = "=3.7.0", default-features = false }
