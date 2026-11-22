@@ -161,7 +161,7 @@ pub fn slow_json_with(o: &LMUObjectOut, rest: &Value) -> Option<Value> {
                      "clouds": cp(si.mCloudCoverage) },
         "car": { "id": cp(v.mID), "fuel": cp(v.mFuel), "fuelCap": cp(v.mFuelCapacity), "energy": cp(v.mVirtualEnergy), "soc": cp(v.mStateOfCharge),
                  "tc": cp(v.mTC), "abs": cp(v.mABS), "map": cp(v.mMotorMap), "bias": 1.0 - cp(v.mRearBrakeBias), "rearBias": cp(v.mRearBrakeBias), "impact": cp(v.mLastImpactMagnitude), "impactET": cp(v.mLastImpactET), "delta": cp(v.mDeltaBest),
-                 "damage": cp(v.mDentSeverity), "wheels": wheel_json(&v) },
+                 "damage": cp(v.mDentSeverity), "detached": cp(v.mDetached) != 0, "wheels": wheel_json(&v) },
         "grid": grid,
         "rest": rest,
     }))
