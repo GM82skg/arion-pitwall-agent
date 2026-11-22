@@ -3,6 +3,7 @@ pub mod hub;
 pub mod keystore;
 pub mod lmu;
 pub mod protocol;
+pub mod recorder;
 pub mod report;
 pub mod rest;
 pub mod session;

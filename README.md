@@ -28,6 +28,8 @@ Tick **Start with Windows** if you want it ready every time.
 - The key stays on your PC, encrypted with your Windows account. The ARION database keeps only a scrambled
   (hashed) copy, so nobody can read your key there.
 - The app sends telemetry only to coaches with pit wall access, directly from your PC to theirs (WebRTC).
+- Your laps, and the best lap of each other car in your class, are saved on your own PC for lap comparisons
+  (folder `ARION Pit Wall\laps` in your AppData). They are not uploaded by this version.
 - No SteamID, no IP address, no game files are stored by ARION. As with any direct connection, your PC and the
   coach's PC see each other's internet address while connected.
 
@@ -61,7 +63,8 @@ tray → **Έξοδος**. Τσέκαρε **Εκκίνηση με τα Windows**
 Το κλειδί μένει στον υπολογιστή σου, κρυπτογραφημένο με τον λογαριασμό σου στα Windows· η βάση της ARION κρατά μόνο
 μια ανακατεμένη (hash) μορφή του. Η τηλεμετρία πηγαίνει απευθείας από τον υπολογιστή σου στους προπονητές με
 πρόσβαση στο pit wall (WebRTC)· όσο είναι συνδεδεμένοι, οι δύο υπολογιστές βλέπουν ο ένας τη διεύθυνση internet
-του άλλου, όπως σε κάθε απευθείας σύνδεση. Η ARION δεν αποθηκεύει SteamID, διεύθυνση IP ή αρχεία του παιχνιδιού.
+του άλλου, όπως σε κάθε απευθείας σύνδεση. Οι γύροι σου, και ο καλύτερος γύρος κάθε άλλου αυτοκινήτου της κατηγορίας σου, αποθηκεύονται στον υπολογιστή σου για
+συγκρίσεις (φάκελος `ARION Pit Wall\laps` στο AppData)· αυτή η έκδοση δεν τους ανεβάζει πουθενά. Η ARION δεν αποθηκεύει SteamID, διεύθυνση IP ή αρχεία του παιχνιδιού.
 
 **Αποθήκευση αναφοράς δοκιμής**: γράφει ένα αρχείο κειμένου στην Επιφάνεια εργασίας με μετρήσεις για την
 ομάδα (χωρίς προσωπικά στοιχεία).

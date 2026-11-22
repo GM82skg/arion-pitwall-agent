@@ -71,8 +71,20 @@ impl Source for FakeSource {
             v.mBestLapTime = lap_len / speed;
             v.mLastLapTime = lap_len / speed + 0.3;
             v.mIsPlayer = (i == 3) as u8;
+            v.mCountLapFlag = 2;
+            v.mControl = if i == 3 { 0 } else if i % 2 == 0 { 2 } else { 1 }; // you, remote players, AI
+            v.mLastLapTime = if v.mTotalLaps > 0 { lap_len / speed + 0.3 } else { 0.0 };
+            // every car also has a telemetry slot (positions there are fresher; offset 0.5 m so tests can tell)
+            let t = &mut o.telemetry.telemInfo[i];
+            t.mID = i as i32 + 1;
+            t.mElapsedTime = et;
+            t.mPos.x = x + 0.5;
+            t.mPos.z = z;
+            t.mLocalVel.z = -speed;
+            t.mUnfilteredThrottle = 1.0;
         }
         // the player: car 4, braking hard twice a lap
+        o.scoring.scoringInfo.mGameMode = 2;
         let d = o.scoring.vehScoringInfo[3].mLapDist;
         let (x, z) = pos_at(d);
         let ph = d / lap_len;
@@ -85,6 +97,7 @@ impl Source for FakeSource {
         let v = &mut t.telemInfo[3];
         v.mID = 4;
         v.mElapsedTime = et;
+        v.mPos.x = x;
         v.mLapNumber = o.scoring.vehScoringInfo[3].mTotalLaps as i32;
         v.mPos.x = x;
         v.mPos.z = z;

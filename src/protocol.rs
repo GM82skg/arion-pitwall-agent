@@ -83,14 +83,27 @@ pub fn fast_frame(o: &LMUObjectOut, seq: u32) -> Option<[u8; FAST_LEN]> {
     Some(b)
 }
 
-/// Cars frame: every car's track position for the map (16 bytes per car).
+/// Telemetry slot of each car id (positions there update ~50 Hz; timing positions only 5–6 Hz).
+pub fn telemetry_by_id(o: &LMUObjectOut) -> std::collections::HashMap<i32, usize> {
+    let n = (o.telemetry.activeVehicles as usize).min(o.telemetry.telemInfo.len());
+    (0..n).map(|i| (o.telemetry.telemInfo[i].mID, i)).collect()
+}
+
+/// Cars frame: every car's track position for the map (16 bytes per car), from telemetry when available.
 pub fn cars_frame(o: &LMUObjectOut) -> Vec<u8> {
     let n = (o.scoring.scoringInfo.mNumVehicles.max(0) as usize).min(o.scoring.vehScoringInfo.len());
+    let slots = telemetry_by_id(o);
     let mut b = Vec::with_capacity(4 + n * 16);
     b.extend_from_slice(&[PROTOCOL_VERSION, 2]);
     b.extend_from_slice(&(n as u16).to_le_bytes());
     for v in &o.scoring.vehScoringInfo[..n] {
-        let p = v.mPos;
+        let mut p = v.mPos;
+        if let Some(&i) = slots.get(&{ v.mID }) {
+            let tp = o.telemetry.telemInfo[i].mPos;
+            if tp.x != 0.0 || tp.z != 0.0 {
+                p = tp;
+            }
+        }
         b.extend_from_slice(&(v.mID as u16).to_le_bytes());
         b.push(v.mPlace);
         b.push((v.mInPits != 0) as u8 | ((v.mIsPlayer != 0) as u8) << 1);
@@ -160,6 +173,10 @@ mod tests {
         assert_eq!(c[1], 2);
         let n = u16::from_le_bytes([c[2], c[3]]) as usize;
         assert_eq!(c.len(), 4 + 16 * n);
+        // positions come from telemetry (fake telemetry is offset by +0.5 m from timing)
+        let x0 = f32::from_le_bytes(c[8..12].try_into().unwrap()) as f64;
+        let sx = o.scoring.vehScoringInfo[0].mPos.x;
+        assert!((x0 - (sx + 0.5)).abs() < 1e-3, "cars frame should use telemetry position");
         let s = slow_json(&o).unwrap();
         assert_eq!(s["grid"].as_array().unwrap().len(), n);
         assert_eq!(s["session"]["track"], "Test Ring");

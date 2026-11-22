@@ -49,6 +49,7 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
         let (mut seq, mut last_et) = (0u32, f64::NAN);
         let (mut last_fast, mut last_cars, mut last_slow) = (Instant::now(), Instant::now(), Instant::now());
         let mut last_rest = Instant::now() - Duration::from_secs(50);
+        let mut recorder = crate::recorder::Recorder::new(crate::keystore::dir().join("laps"));
         while !stop_t.load(Ordering::Relaxed) {
             tick.tick().await;
             let snap = source.read();
@@ -56,16 +57,14 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
             set(&status_t, |s| s.lmu = on_track);
             let Some(o) = snap else { continue };
             report_t.lock().unwrap().observe(&o);
+            recorder.observe(&o);
             if on_track && last_rest.elapsed() > Duration::from_secs(60) {
                 last_rest = Instant::now();
                 let r = report_t.clone();
-                tokio::task::spawn_blocking(move || { let p = rest::probe(rest::BASE); r.lock().unwrap().rest.push(p); });
+                tokio::task::spawn_blocking(move || { let p = rest::probe(rest::BASE); r.lock().unwrap().add_rest(p); });
             }
             let viewers = hub_t.connected();
-            {
-                let mut r = report_t.lock().unwrap();
-                r.max_viewers = r.max_viewers.max(viewers);
-            }
+            report_t.lock().unwrap().viewers(viewers);
             if viewers == 0 {
                 continue;
             }
@@ -78,7 +77,7 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
                     if let Some(f) = protocol::fast_frame(&o, seq) {
                         hub_t.send_fast(&f).await;
                         set(&status_t, |s| s.frames += 1);
-                        report_t.lock().unwrap().frames_sent += 1;
+                        report_t.lock().unwrap().add_frame();
                     }
                 }
             }

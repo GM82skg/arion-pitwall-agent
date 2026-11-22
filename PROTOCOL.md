@@ -37,7 +37,9 @@ Wheel lock: speed > 5 m/s, brake pedal > 5 %, and the wheel turning under 30 % o
 
 `version, kind=2, count (u16)`, then 16 bytes per car:
 `slot id (u16), place (u8), bits (u8: bit0 in pits, bit1 the driver's car), x (f32), z (f32), lap distance (f32)`.
-The slot id matches `grid[].id` in the slow message.
+The slot id matches `grid[].id` in the slow message. Positions come from each car's telemetry slot (LMU updates
+those ~50 times a second), falling back to timing positions (5–6 a second) for a car without one. Sent 10 times a second;
+the dashboard moves cars smoothly between frames.
 
 ## Slow message (JSON, `"t": "slow"`)
 
