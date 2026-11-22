@@ -22,7 +22,10 @@ class H(BaseHTTPRequestHandler):
             with L: a = [s for s in S['sig'] if s['from_agent'] and s['viewer'] == v]
             return self.send(200, a[-1] if a else {})
         if u.path == '/sessions':
-            with L: return self.send(200, [{'id': S['session'], 'user_id': 'u-driver', 'team_id': 1, 'agent_version': '0.1.4', 'started_at': '', 'last_seen': ''}] if S['session'] else [])
+            with L:
+                rows = [{'id': S['session'], 'user_id': 'u-driver', 'team_id': 1, 'agent_version': '0.1.10', 'started_at': '', 'last_seen': '', **S.get('alert', {})}] if S['session'] else []
+                if S.get('ghost'): rows.append({'id': 'ghost', 'user_id': 'u-ghost', 'team_id': 2, 'agent_version': '0.1.10', 'started_at': '', 'last_seen': '', **S['ghost']})
+                return self.send(200, rows)
         if u.path in ('/dash', '/mock-supabase.js'):
             import os
             f = os.environ.get('DASH_HTML') if u.path == '/dash' else os.environ.get('DASH_MOCK')
@@ -39,6 +42,10 @@ class H(BaseHTTPRequestHandler):
             with L:
                 if not S['session']: return self.send(400, {'message': 'no session'})
                 S['sig'].append({'id': len(S['sig']) + 1, 'viewer': body['viewer'], 'from_agent': False, 'kind': 'offer', 'body': body['body']})
+            return self.send(200, {})
+        if u.path == '/test/alert':   # a second car (no app behind it) raises an alert, as migration 59 stores it
+            import datetime
+            with L: S['ghost'] = {'alert_level': body['level'], 'alert_text': body['text'], 'alert_at': datetime.datetime.now(datetime.timezone.utc).isoformat()}
             return self.send(200, {})
         if u.path == '/viewer/bye':
             with L:
@@ -63,6 +70,11 @@ class H(BaseHTTPRequestHandler):
                 if not any(s['viewer'] == d.get('viewer') and s['kind'] == 'offer' and not s['from_agent'] for s in S['sig']): return self.send(400, {'message': 'No such viewer.'})
                 S['sig'].append({'id': len(S['sig']) + 1, 'viewer': d['viewer'], 'from_agent': True, 'kind': d['kind'], 'body': d['body']})
                 return self.send(200, {'id': len(S['sig'])})
+            if a == 'alert':
+                import datetime
+                if d.get('text') not in ('stopped', 'puncture', 'damage', 'wing off', 'penalty', 'contact', 'track limits', 'pit stop') or d.get('level') not in (1, 2): return self.send(400, {'message': 'Unknown alert.'})
+                S['alert'] = {'alert_level': d['level'], 'alert_text': d['text'], 'alert_at': datetime.datetime.now(datetime.timezone.utc).isoformat()}
+                return self.send(200, {})
             if a == 'bye':
                 S['session'] = None; return self.send(200, {})
             return self.send(400, {'message': 'Unknown action.'})

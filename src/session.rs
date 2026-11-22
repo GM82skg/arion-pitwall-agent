@@ -41,7 +41,7 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
 
     // Telemetry: read the game at 100 Hz (so the report can see LMU's own update rate), send at most
     // FAST_HZ fast frames, only when the game produced new data. Cars 10 Hz, slow data SLOW_HZ.
-    let (hub_t, status_t, stop_t, report_t) = (hub.clone(), status.clone(), stop.clone(), report.clone());
+    let (hub_t, status_t, stop_t, report_t, door_t) = (hub.clone(), status.clone(), stop.clone(), report.clone(), door.clone());
     tokio::spawn(crate::local::serve(local.clone()));
     // LMU's web data (forecast, pit stop estimate, wear and damage): only asked while someone watches
     let live = rest::Live::default();
@@ -58,6 +58,8 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
         let (mut last_fast, mut last_cars, mut last_slow) = (Instant::now(), Instant::now(), Instant::now());
         let mut last_rest = Instant::now() - Duration::from_secs(50);
         let mut recorder = crate::recorder::Recorder::new(crate::keystore::dir().join("laps"));
+        let mut alerts = crate::alerts::Alerts::new();
+        let door_a = door_t.clone();
         while !stop_t.load(Ordering::Relaxed) {
             tick.tick().await;
             let snap = source.read();
@@ -66,6 +68,11 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
             let Some(o) = snap else { continue };
             report_t.lock().unwrap().observe(&o);
             recorder.observe(&o);
+            // car tab alerts (migration 59): one short message per event; errors are ignored (older database)
+            if let Some((level, word)) = alerts.observe(&o) {
+                let d = door_a.clone();
+                tokio::task::spawn_blocking(move || { let _ = d.call("alert", json!({ "level": level, "text": word })); });
+            }
             if on_track && last_rest.elapsed() > Duration::from_secs(60) {
                 last_rest = Instant::now();
                 let r = report_t.clone();

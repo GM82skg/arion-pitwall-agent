@@ -29,6 +29,9 @@ input{font:inherit;color:var(--tx);background:#0E0F11;border:1px solid var(--ln)
 .tabs{display:flex;gap:6px;flex-wrap:wrap}
 .tab{display:flex;gap:8px;align-items:center;padding:5px 11px;border-radius:6px;border:1px solid var(--ln);background:#1A1B1F;font-family:var(--mono);font-size:13px;cursor:pointer}
 .tab.on{background:#3A3000;border-color:var(--y)}
+.adot{width:9px;height:9px;border-radius:50%;display:inline-block}.adot.amb{background:var(--a)}.adot.red{background:var(--r);animation:adot 1.6s ease-in-out infinite}
+@keyframes adot{0%,100%{box-shadow:0 0 0 0 rgba(255,90,90,.6)}50%{box-shadow:0 0 0 5px rgba(255,90,90,0)}}
+@media (prefers-reduced-motion:reduce){.adot.red{animation:none}}
 .grow{flex:1}
 .main{flex:1;display:flex;min-height:0;position:relative}
 .dcol{display:flex;flex-direction:column;min-width:220px;min-height:0}
@@ -96,7 +99,7 @@ table.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12
 <script>
 'use strict';
 // ARION Pit Wall dashboard — Phase 1. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1).
-const VERSION='0.1.4';
+const VERSION='0.1.5';
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
 const CFG={url:'https://isuiksufkyishdowejob.supabase.co',key:'sb_publishable_DMqGCrW9YEmzEN2_cP67-w_ljr1JBo9'};
@@ -145,7 +148,7 @@ $('#out').onclick=async()=>{await sb.auth.signOut();USER=null;route()};
 // ---------- drivers online (one session per running driver app) ----------
 let sessChan=null,sessTimer=null;
 async function loadSessions(){
-  const {data,error}=await sb.from('pitwall_sessions').select('id,user_id,team_id,agent_version,started_at,last_seen');
+  const {data,error}=await sb.from('pitwall_sessions').select('*');
   if(error){note(error.message);return}
   const ids=[...new Set(data.map(s=>s.user_id))],tids=[...new Set(data.map(s=>s.team_id).filter(Boolean))];
   const [p,t]=await Promise.all([ids.length?sb.from('profiles').select('id,name,nickname').in('id',ids):{data:[]},tids.length?sb.from('teams').select('id,name,class').in('id',tids):{data:[]}]);
@@ -158,11 +161,18 @@ async function loadSessions(){
 }
 function watchSessions(){
   if(sessChan)sb.removeChannel(sessChan);
-  sessChan=sb.channel('pw-sessions').on('postgres_changes',{event:'*',schema:'public',table:'pitwall_sessions'},()=>loadSessions()).subscribe();
+  sessChan=sb.channel('pw-sessions').on('postgres_changes',{event:'*',schema:'public',table:'pitwall_sessions'},p=>{
+    if(p.eventType==='UPDATE'&&p.new){const x=SESS.find(s=>s.id===p.new.id);if(x){Object.assign(x,p.new);paintTabs();return}}
+    loadSessions()}).subscribe();
   clearInterval(sessTimer);sessTimer=setInterval(loadSessions,15000);
 }
+// Car tab alerts (migration 59): a dot on a car you're not watching, until you open its tab.
+const SEENAT={},OPENED=Date.now();
+function alertOf(s){if(!s.alert_at||!s.alert_level||s.id===SEL)return null;const t=Date.parse(s.alert_at);
+  return t>(SEENAT[s.id]??OPENED-600000)?{lvl:s.alert_level,txt:s.alert_text}:null}
 function paintTabs(){
-  $('#tabs').innerHTML=SESS.map((s,i)=>`<span class="tab${s.id===SEL?' on':''}" data-id="${s.id}"><span class="${s.id===SEL?'y':'mu'}">Car ${i+1}</span><span>${esc(s.team?s.team.name:'Practice')}</span><span class="mu">${esc(s.driver)}</span></span>`).join('');
+  if(SEL)SEENAT[SEL]=Date.now();
+  $('#tabs').innerHTML=SESS.map((s,i)=>{const a=alertOf(s);return `<span class="tab${s.id===SEL?' on':''}" data-id="${s.id}"><span class="${s.id===SEL?'y':'mu'}">Car ${i+1}</span><span>${esc(s.team?s.team.name:'Practice')}</span><span class="mu">${esc(s.driver)}</span>${a?`<span class="adot ${a.lvl>1?'red':'amb'}"></span><span class="${a.lvl>1?'r':'a'}">${esc(a.txt)}</span>`:''}</span>`}).join('');
   document.querySelectorAll('.tab').forEach(e=>e.onclick=()=>select(e.dataset.id));
 }
 function emptyState(){$('#sess').textContent='';$('#link').textContent='';
