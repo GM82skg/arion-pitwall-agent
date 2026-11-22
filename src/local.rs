@@ -55,7 +55,13 @@ impl Default for Local {
 
 /// The dashboard page in local mode: told so before its script runs, without the online login library.
 pub fn page() -> String {
-    let p = PAGE.replace("<script>\n'use strict';", "<script>window.PW_LOCAL=1;</script>\n<script>\n'use strict';");
+    page_from(PAGE)
+}
+
+fn page_from(src: &str) -> String {
+    // Git on Windows may turn the file's line endings into \r\n: work on \n either way.
+    let p = src.replace("\r\n", "\n");
+    let p = p.replace("<script>\n'use strict';", "<script>window.PW_LOCAL=1;</script>\n<script>\n'use strict';");
     match (p.find("<script src=\"https://cdn.jsdelivr.net/npm/@supabase"), p.find("</script>\n<style>")) {
         (Some(a), Some(b)) if a < b => format!("{}{}", &p[..a], &p[b + "</script>\n".len()..]),
         _ => p,
@@ -162,5 +168,12 @@ mod tests {
         assert!(p.contains("window.PW_LOCAL=1"));
         assert!(!p.contains("<script src=\"https://cdn.jsdelivr.net/npm/@supabase"), "the online login library is left out locally");
         assert!(p.contains("<style>") && p.contains("ARION Pit Wall"), "the rest of the page is intact");
+    }
+    #[test]
+    fn page_works_with_windows_line_endings() {
+        let crlf = PAGE.replace("\r\n", "\n").replace('\n', "\r\n");
+        let p = page_from(&crlf);
+        assert!(p.contains("window.PW_LOCAL=1"), "local mode is switched on");
+        assert!(!p.contains("<script src=\"https://cdn.jsdelivr.net/npm/@supabase"), "the online login library is left out");
     }
 }

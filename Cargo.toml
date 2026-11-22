@@ -1,6 +1,6 @@
 [package]
 name = "arion-pitwall-agent"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2021"
 description = "ARION Pit Wall driver app: reads Le Mans Ultimate telemetry and streams it to the team's pit wall."
 publish = false
