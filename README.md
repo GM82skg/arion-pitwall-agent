@@ -7,7 +7,16 @@ Windows only. Needs Le Mans Ultimate 1.2 or newer.
 1. In the ARION crew app: **Profile → Telemetry key → Make key → Copy.**
 2. Download `ARION-Pit-Wall-vX.Y.Z.exe` from **Releases** and run it.
    Windows may warn that the app is from an unknown publisher: **More info → Run anyway.**
-3. Paste the key and press **Save**. Done — from now on it just runs.
+3. Paste the key with **Paste** (or Ctrl+V and **Save**). Done — from now on it just runs.
+
+### If Chrome or Windows warns
+The app is new and not yet signed with a paid certificate, so Chrome and Windows don't know it yet and warn about
+*every* program like that. The warning is about reputation, not about anything found in the file.
+- **Chrome blocks the download:** open the downloads list (**Ctrl+J**) and choose to keep the file.
+- **"Windows protected your PC":** **More info → Run anyway.**
+- **To check the file yourself:** each release shows a SHA-256 code; paste it into virustotal.com → Search to see
+  the results of about 70 antivirus scanners for exactly this file. The full source code is in this repository.
+Download it only from this repository's **Releases** page.
 
 The window shows: connected to ARION (and your car), Le Mans Ultimate on track, how many coaches watch.
 Closing the window keeps it running in the tray; to stop it: tray icon → **Quit**.
@@ -33,7 +42,17 @@ Tick **Start with Windows** if you want it ready every time.
 1. Στην εφαρμογή της ARION: **Προφίλ → Κλειδί τηλεμετρίας → Δημιουργία κλειδιού → Αντιγραφή.**
 2. Κατέβασε το `ARION-Pit-Wall-vX.Y.Z.exe` από τα **Releases** και άνοιξέ το.
    Αν τα Windows προειδοποιήσουν για άγνωστο εκδότη: **Περισσότερες πληροφορίες → Εκτέλεση οπωσδήποτε.**
-3. Επικόλλησε το κλειδί και πάτα **Αποθήκευση**. Τέλος — από εκεί και πέρα τρέχει μόνη της.
+3. Πάτα **Επικόλληση** (ή Ctrl+V και **Αποθήκευση**). Τέλος — από εκεί και πέρα τρέχει μόνη της.
+
+### Αν το Chrome ή τα Windows δείξουν προειδοποίηση
+Η εφαρμογή είναι καινούργια και δεν έχει ακόμα πληρωμένη ψηφιακή υπογραφή, οπότε το Chrome και τα Windows δεν την
+«γνωρίζουν» και προειδοποιούν για *κάθε* τέτοιο πρόγραμμα. Η προειδοποίηση αφορά τη φήμη του αρχείου, όχι κάτι που
+βρέθηκε μέσα του.
+- **Το Chrome μπλοκάρει τη λήψη:** άνοιξε τις λήψεις (**Ctrl+J**) και επίλεξε να κρατήσεις το αρχείο.
+- **«Τα Windows προστάτευσαν τον υπολογιστή σας»:** **Περισσότερες πληροφορίες → Εκτέλεση οπωσδήποτε.**
+- **Για να το ελέγξεις μόνος σου:** κάθε έκδοση δείχνει έναν κωδικό SHA-256· επικόλλησέ τον στο virustotal.com →
+  Search για να δεις τα αποτελέσματα ~70 antivirus για ακριβώς αυτό το αρχείο. Ο πλήρης κώδικας είναι σε αυτό το repository.
+Κατέβαζέ την μόνο από τη σελίδα **Releases** αυτού του repository.
 
 Το παράθυρο δείχνει: σύνδεση με την ARION (και το αυτοκίνητό σου), αν το Le Mans Ultimate είναι στην πίστα,
 πόσοι προπονητές βλέπουν. Το κλείσιμο του παραθύρου την αφήνει να τρέχει στο tray· για διακοπή: εικονίδιο

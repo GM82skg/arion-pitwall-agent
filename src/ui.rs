@@ -61,6 +61,7 @@ pub struct AgentApp {
     report: Arc<Mutex<Report>>,
     running: Option<Running>,
     quitting: bool,
+    wordmark: Option<egui::TextureHandle>,
     #[cfg(windows)]
     tray: Option<win::Tray>,
     #[cfg(windows)]
@@ -78,6 +79,7 @@ impl AgentApp {
             report: Arc::new(Mutex::new(Report::default())),
             running: None,
             quitting: false,
+            wordmark: None,
             #[cfg(windows)]
             tray: None,
             #[cfg(windows)]
@@ -136,7 +138,6 @@ const GREEN: Color32 = Color32::from_rgb(59, 209, 111);
 const AMBER: Color32 = Color32::from_rgb(255, 176, 32);
 const RED: Color32 = Color32::from_rgb(255, 90, 90);
 const GREY: Color32 = Color32::from_rgb(140, 143, 152);
-const YELLOW: Color32 = Color32::from_rgb(242, 194, 0);
 
 /// A status line: a coloured dot (drawn, so it never depends on a font) and wrapped text.
 fn line(ui: &mut egui::Ui, c: Color32, text: &str) {
@@ -191,9 +192,15 @@ impl eframe::App for AgentApp {
         ui.ctx().request_repaint_after(Duration::from_millis(500));
         let st = self.status.lock().unwrap().clone();
         egui::CentralPanel::default().show(ui, |ui| {
+            let wm = self
+                .wordmark
+                .get_or_insert_with(|| {
+                    ui.ctx().load_texture("arion-wordmark", egui::ColorImage::from_rgba_unmultiplied(WORDMARK_SIZE, WORDMARK), egui::TextureOptions::LINEAR)
+                })
+                .clone();
             ui.horizontal(|ui| {
-                ui.label(RichText::new("ARION").strong().size(22.0).color(YELLOW));
-                ui.label(RichText::new("Pit Wall").size(18.0));
+                ui.add(egui::Image::new(&wm).fit_to_exact_size(egui::vec2(WORDMARK_SIZE[0] as f32 / 2.0, WORDMARK_SIZE[1] as f32 / 2.0)));
+                ui.label(RichText::new("Pit Wall").strong().size(16.0).color(Color32::from_rgb(245, 245, 247)));
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(RichText::new(format!("v{}", config::VERSION)).color(GREY));
                 });
@@ -297,21 +304,13 @@ pub fn cpu_percent() -> Option<f64> {
     None
 }
 
-/// 32×32 ARION icon: yellow ring and dot on black (drawn here, no image file needed).
+/// The ARION icon (from the team's official logo), 64×64 RGBA, for the window and the tray.
 pub fn icon_rgba() -> (Vec<u8>, u32, u32) {
-    let n = 32u32;
-    let mut v = vec![0u8; (n * n * 4) as usize];
-    for y in 0..n {
-        for x in 0..n {
-            let (dx, dy) = (x as f32 - 15.5, y as f32 - 15.5);
-            let d = (dx * dx + dy * dy).sqrt();
-            let i = ((y * n + x) * 4) as usize;
-            let px: [u8; 4] = if d > 15.5 { [0, 0, 0, 0] } else if (10.0..13.5).contains(&d) || d < 4.5 { [242, 194, 0, 255] } else { [14, 15, 17, 255] };
-            v[i..i + 4].copy_from_slice(&px);
-        }
-    }
-    (v, n, n)
+    (include_bytes!("../assets/icon64.rgba").to_vec(), 64, 64)
 }
+/// The ARION wordmark as in the crew app's navbar (white), 261×50 RGBA, shown at half size.
+const WORDMARK: &[u8] = include_bytes!("../assets/wordmark.rgba");
+const WORDMARK_SIZE: [usize; 2] = [261, 50];
 
 /// Windows only: tray icon (Show / Quit) and "Start with Windows" (HKCU Run, no admin rights needed).
 #[cfg(windows)]
