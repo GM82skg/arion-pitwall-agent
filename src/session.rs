@@ -130,7 +130,9 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
             }
             if last_slow.elapsed() >= Duration::from_secs_f64(1.0 / config::SLOW_HZ as f64) {
                 last_slow = Instant::now();
-                if let Some(j) = protocol::slow_json_with(&o, &live.snapshot()) {
+                if let Some(mut j) = protocol::slow_json_with(&o, &live.snapshot()) {
+                    // v0.1.16: this app's version and a newer one if there is one, so coaches see «update available»
+                    j["app"] = serde_json::json!({ "v": config::VERSION, "new": crate::update::available().map(|r| r.version) });
                     let t = j.to_string();
                     local.send(crate::local::Msg::Slow(t.clone()));
                     hub_t.send_slow(&t).await;

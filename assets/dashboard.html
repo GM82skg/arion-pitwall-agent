@@ -26,7 +26,9 @@ button:hover{border-color:#4A4D56}
 button.on{border-color:var(--y);color:var(--y);background:#3A3000}
 input{font:inherit;color:var(--tx);background:#0E0F11;border:1px solid var(--ln);border-radius:6px;padding:9px 11px;width:100%}
 .m{font-family:var(--mono)}.mu{color:var(--mu)}.g{color:var(--g)}.r{color:var(--r)}.y{color:var(--y)}.a{color:var(--a)}.c{color:var(--c)}
-#app{display:flex;flex-direction:column;height:100vh;padding:10px;gap:10px}
+#app{display:flex;flex-direction:column;height:calc(100vh / var(--z,1));padding:10px;gap:10px;zoom:var(--z,1)}
+.zm{display:inline-flex;align-items:center}.zm button{padding:4px 9px;border-radius:0}.zm button:first-child{border-radius:6px 0 0 6px}.zm button:last-child{border-radius:0 6px 6px 0}.zm #zmV{min-width:54px;font-family:var(--mono);font-size:12px;margin:0 -1px}
+body.phone .zm,body.obs .zm{display:none}
 .top{display:flex;align-items:center;gap:14px;padding:8px 14px;background:var(--pn);border:1px solid var(--ln);border-radius:8px;flex-wrap:wrap}
 .wm{display:block;height:24px;width:auto;aspect-ratio:1202/238;color:#F5F5F7}
 .brand{display:flex;align-items:center;gap:9px}.brand b{font-weight:600;font-size:15px}
@@ -45,8 +47,8 @@ input{font:inherit;color:var(--tx);background:#0E0F11;border:1px solid var(--ln)
 /* panels that show a fixed set of facts are never smaller than those facts (no cutting, no hiding);
    the map, inputs and the growing lists have a fixed minimum and scroll or scale inside */
 .dock.fit{overflow:visible;min-height:auto}.dock.fit>.body{overflow:visible;flex:1 0 auto}
-#car{display:flex;flex-direction:column}.dock #car .tyres{flex:1;grid-auto-rows:1fr}#car .tyre{display:flex;flex-direction:column;justify-content:center}
-.dock #wx{display:flex;flex-direction:column}.dock #wx .slots{flex:1;align-items:stretch}#wx .slot{display:flex;flex-direction:column;justify-content:center}
+#car{display:flex;flex-direction:column}.dock #car .tyres{grid-auto-rows:1fr}#car .tyre{display:flex;flex-direction:column;justify-content:center}
+.dock #wx{display:flex;flex-direction:column}#wx .slot{display:flex;flex-direction:column;justify-content:center;gap:1px;padding:3px 2px}#wx .slot>div{line-height:1.25}
 #dmg{display:flex;flex-direction:column}
 .dcol{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#3A3D45 transparent}
 .main{overflow-x:auto}
@@ -155,6 +157,11 @@ body.phone.land .pview{padding:8px calc(10px + env(safe-area-inset-right)) 8px c
 html.obs,body.obs{background:transparent!important}body.obs #app{padding:0;gap:0;height:100vh}body.obs .top{display:none}
 body.obs .pn{background:transparent;border:0}body.obs .ph button,body.obs .chain,body.obs .dsw{display:none}body.obs .dock .ph{cursor:default}
 body.obs .obsp{flex:1;min-height:0;min-width:0;padding:6px}
+body.obs .pn{background:rgba(22,23,26,var(--obsbg,0));border-radius:8px}
+.obspop{position:fixed;z-index:50;width:250px;padding:10px 12px;border-radius:8px;background:#1C1D21;border:1px solid var(--ln);box-shadow:0 8px 30px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:8px;font-size:13px}
+.obspop label{display:flex;align-items:center;gap:8px}.obspop input{flex:1;accent-color:var(--y)}.obspop .m{min-width:38px;text-align:right}
+.obsprev{height:34px;border-radius:6px;background:repeating-conic-gradient(#3A3D45 0 25%,#24262B 0 50%) 0 0/14px 14px;position:relative;overflow:hidden}
+.obsprev span{position:absolute;inset:5px;border-radius:5px;display:flex;align-items:center;padding:0 8px;font-family:var(--mono);font-size:12px;color:var(--tx)}
 /* ---------- D: strategy alert on the map (v0.1.10) ---------- */
 .strat{position:absolute;top:8px;right:8px;width:270px;max-width:calc(100% - 16px);max-height:calc(100% - 16px);overflow-y:auto;scrollbar-width:none;border-radius:8px;z-index:2}.strat::-webkit-scrollbar{display:none}
 body.phone .strat{left:8px;right:8px;width:auto}
@@ -180,7 +187,9 @@ body.phone .strat{left:8px;right:8px;width:auto}
   <div class="top">
     <div class="brand"><svg class="wm" viewBox="95 1072 1202 238" role="img" aria-label="ARION"><defs><mask id="wmk" maskUnits="userSpaceOnUse" x="95" y="1072" width="1202" height="238"><rect x="95" y="1072" width="1202" height="238" fill="#000"></rect><path d="M0 0 C0 -0 0 -0 3 0 C5 0 7 0 9 0 C11 0 14 0 17 0 C19 0 21 0 23 0 C24 0 25 0 26 0 C33 0 39 1 44 7 C49 15 52 25 55 34 C67 66 79 97 93 127 C93 128 93 129 94 130 C98 139 101 148 106 156 C108 161 110 165 112 169 C114 175 117 181 120 187 C121 189 121 189 121 192 C112 194 103 195 94 195 C93 195 92 196 91 196 C74 197 74 197 69 194 C68 194 67 193 66 193 C60 189 58 182 55 175 C54 174 54 173 54 173 C51 167 51 167 51 163 C50 163 50 164 49 164 C46 164 44 165 41 165 C40 165 38 165 37 165 C36 165 34 165 33 166 C31 166 30 166 29 166 C21 167 13 167 6 168 C-21 170 -21 170 -34 172 C-40 173 -46 174 -52 174 C-53 174 -53 174 -54 174 C-58 174 -62 175 -66 175 C-67 175 -69 175 -70 175 C-71 175 -71 175 -74 176 C-77 176 -78 177 -80 179 C-81 181 -83 183 -84 185 C-85 186 -86 188 -86 189 C-87 191 -89 192 -90 194 C-91 196 -92 198 -93 200 C-94 201 -95 202 -95 203 C-96 204 -96 204 -97 205 C-98 205 -98 205 -99 205 C-99 206 -99 206 -100 207 C-101 210 -102 210 -105 211 C-105 212 -105 213 -105 213 C-117 221 -133 222 -147 224 C-150 224 -150 224 -153 225 C-155 225 -157 225 -159 225 C-160 225 -160 225 -163 225 C-158 217 -153 209 -148 201 C-142 193 -137 185 -132 177 C-130 173 -127 169 -124 165 C-122 163 -121 160 -119 157 C-117 154 -115 151 -113 148 C-111 145 -110 143 -108 140 C-105 135 -101 129 -97 124 C-97 123 -96 122 -95 121 C-93 117 -90 113 -87 109 C-83 102 -78 95 -74 88 C-71 84 -68 79 -65 74 C-60 67 -56 60 -51 53 C-51 52 -50 51 -49 50 C-46 45 -43 40 -40 35 C-39 33 -38 32 -37 30 C-35 28 -34 26 -32 24 C-22 7 -22 7 -16 4 C-15 3 -14 3 -13 2 C-9 0 -5 0 0 0 Z" fill="#fff" transform="translate(264.1,1078.8)"></path><path d="M0 0 C1 0 2 0 3 0 C4 0 6 0 7 0 C8 0 8 0 11 0 C14 0 18 0 21 0 C24 0 27 0 30 0 C37 0 43 0 50 0 C57 0 64 0 71 0 C77 0 83 0 89 0 C93 0 97 0 100 0 C129 0 154 2 179 17 C179 18 179 19 179 19 C179 20 180 20 180 20 C191 26 198 39 202 50 C206 66 206 83 198 98 C196 101 194 104 192 107 C191 108 191 109 190 110 C190 110 189 111 189 111 C188 111 187 111 187 111 C187 112 187 113 187 113 C180 119 166 128 158 128 C158 129 158 130 158 130 C158 131 159 131 160 131 C162 132 162 132 163 135 C163 136 164 136 164 136 C168 138 170 141 173 144 C174 145 175 146 176 147 C176 147 177 148 177 149 C179 150 180 152 182 154 C185 156 185 156 185 158 C185 158 186 158 187 158 C188 160 188 160 190 162 C194 167 199 172 205 177 C204 178 204 179 204 179 C196 179 188 180 181 180 C177 180 173 180 170 180 C166 180 163 180 159 180 C157 180 156 180 154 180 C146 181 141 181 135 176 C134 175 134 175 134 174 C133 174 133 174 132 173 C132 172 131 172 131 171 C130 170 130 170 129 169 C128 168 126 166 125 164 C124 164 123 163 123 162 C119 158 116 154 113 150 C112 149 111 149 110 148 C109 145 109 145 109 143 C108 143 107 143 107 143 C106 142 105 141 105 140 C102 137 102 136 98 136 C96 136 95 136 93 136 C92 136 92 136 91 136 C88 136 85 136 82 136 C80 136 79 136 77 136 C72 137 67 137 62 137 C58 137 54 137 50 138 C39 138 28 139 18 139 C18 140 18 141 18 142 C17 146 17 150 17 153 C17 155 17 157 17 158 C16 177 16 177 10 183 C5 188 -1 189 -8 189 C-9 189 -9 190 -10 190 C-18 190 -25 190 -32 190 C-33 180 -32 171 -31 161 C-30 153 -30 145 -29 138 C-29 130 -28 121 -27 113 C-26 105 -26 97 -25 89 C-25 76 -24 63 -23 51 C-22 48 -22 46 -22 43 C-22 40 -21 36 -21 32 C-21 31 -21 29 -21 28 C-20 11 -20 11 -12 4 C-8 1 -5 0 0 0 Z" fill="#fff" transform="translate(436.4,1078.7)"></path><path d="M0 0 C5 0 11 0 16 0 C18 0 19 0 21 0 C24 0 26 0 29 0 C30 0 30 0 31 0 C37 0 43 1 48 5 C48 5 49 6 49 6 C50 7 50 7 51 8 C53 12 54 17 55 22 C55 23 55 24 55 25 C55 26 55 27 55 29 C56 30 56 31 56 32 C56 36 56 39 57 42 C57 46 57 49 58 53 C59 60 59 68 60 76 C60 77 60 78 60 79 C61 86 62 93 62 100 C63 109 64 118 65 126 C67 151 67 151 68 163 C68 164 68 164 68 165 C69 166 69 167 69 168 C69 168 69 169 69 170 C69 173 69 176 69 179 C63 179 57 179 52 179 C50 179 48 179 46 179 C43 179 40 179 37 179 C37 179 37 179 34 179 C28 179 24 178 18 175 C18 174 18 174 18 173 C17 173 16 172 15 172 C11 167 11 162 10 155 C10 154 10 154 10 153 C10 150 10 148 10 145 C10 144 9 143 9 142 C8 129 8 116 7 102 C6 93 6 84 5 75 C4 67 4 60 4 52 C3 35 1 17 0 0 Z" fill="#fff" transform="translate(663,1079)"></path><path d="M0 0 C2 -0 4 0 6 0 C11 0 15 0 20 0 C25 0 31 0 37 0 C41 0 45 0 50 0 C52 0 54 0 56 0 C85 0 108 8 130 28 C133 31 135 33 137 36 C138 37 138 38 139 39 C151 55 159 72 163 91 C164 93 165 95 165 98 C170 118 174 141 163 160 C163 161 163 162 162 162 C162 163 161 164 161 164 C153 176 139 183 125 186 C120 187 114 187 109 187 C108 187 107 187 107 187 C91 187 76 186 61 184 C50 184 39 183 27 183 C-3 182 -31 176 -53 153 C-75 128 -81 96 -80 64 C-79 47 -72 29 -59 17 C-40 2 -23 0 0 0 Z" fill="#fff" transform="translate(827.8,1078.7)"></path><path d="M0 0 C1 0 1 0 4 0 C13 0 19 1 26 8 C26 8 26 9 26 10 C27 10 27 10 28 10 C30 12 32 13 34 15 C35 15 36 16 36 16 C40 19 43 22 47 25 C49 26 51 28 53 29 C54 30 55 31 56 32 C56 32 56 33 56 34 C57 34 57 34 58 34 C62 36 64 38 67 40 C73 46 80 51 87 57 C88 57 89 58 89 58 C91 59 92 61 94 62 C94 62 94 62 96 64 C96 64 96 65 96 66 C97 66 97 66 98 66 C100 68 102 69 104 70 C107 73 110 75 112 77 C113 78 114 78 114 78 C115 79 117 80 118 81 C119 82 121 83 122 84 C122 85 122 86 122 86 C123 87 123 87 124 87 C127 89 129 91 132 93 C133 93 133 94 134 94 C135 95 137 96 138 98 C138 98 138 99 138 100 C139 100 139 100 140 100 C143 102 146 104 148 106 C149 107 150 107 150 108 C156 112 161 117 167 122 C171 126 176 130 181 134 C182 135 184 136 185 137 C187 138 188 139 189 140 C190 141 191 142 192 142 C195 145 198 147 201 150 C201 149 201 149 200 146 C196 137 192 127 189 117 C186 110 184 102 181 95 C179 90 177 85 176 80 C174 75 173 70 171 66 C170 64 170 63 170 62 C167 57 165 51 163 45 C160 37 157 28 154 20 C154 19 154 19 153 16 C151 11 149 6 148 0 C152 0 156 0 160 0 C162 0 163 0 165 0 C174 0 181 0 189 7 C189 7 189 7 191 10 C191 10 192 10 192 11 C196 15 199 19 201 25 C201 25 201 25 202 27 C203 30 204 33 205 35 C205 37 206 39 207 41 C208 45 210 48 211 52 C213 57 215 62 217 67 C223 84 229 101 236 117 C242 136 249 154 257 173 C271 210 271 210 269 218 C267 222 267 222 263 224 C255 223 246 222 238 221 C237 221 236 221 236 221 C228 220 222 217 215 212 C214 211 213 210 212 209 C211 208 211 208 210 207 C207 205 205 203 203 201 C197 197 191 192 186 188 C182 184 178 181 175 179 C169 174 164 170 159 166 C155 162 151 159 147 156 C144 154 141 151 137 148 C135 146 135 146 133 145 C130 143 127 141 125 138 C123 137 122 136 120 134 C119 134 118 133 117 132 C117 132 116 131 116 131 C113 129 111 127 108 125 C106 123 104 122 102 120 C98 117 94 113 90 110 C89 109 87 108 86 107 C78 100 78 100 76 99 C75 98 73 96 72 95 C69 93 65 90 62 87 C55 81 48 76 40 70 C36 67 36 67 35 66 C36 71 37 77 38 83 C39 83 39 84 39 85 C40 88 41 91 42 94 C42 95 43 97 43 99 C46 110 49 121 53 131 C55 139 57 148 59 156 C62 164 64 173 67 181 C69 188 70 194 71 200 C70 200 69 200 68 200 C67 200 66 200 65 200 C64 200 62 200 61 199 C57 199 52 198 48 198 C39 197 31 196 24 189 C16 179 14 164 11 151 C9 147 8 142 7 137 C7 136 6 135 6 134 C4 126 2 117 0 109 C-5 93 -9 77 -12 62 C-14 54 -16 47 -18 39 C-18 39 -18 39 -19 36 C-20 33 -20 31 -21 29 C-25 13 -25 13 -22 6 C-16 -1 -9 0 0 0 Z" fill="#fff" transform="translate(1021,1078.5)"></path><path d="M0 0 C4 0 9 0 13 0 C16 0 20 0 23 0 C24 0 26 0 28 0 C30 0 32 0 34 0 C35 0 37 0 38 0 C45 0 50 4 55 9 C59 15 59 20 58 26 C57 32 54 35 49 38 C43 41 38 41 31 42 C30 42 29 42 28 42 C25 42 23 42 20 42 C18 42 16 42 14 42 C10 42 6 42 2 43 C-4 43 -9 43 -14 43 C-18 43 -22 43 -26 43 C-28 44 -30 44 -32 44 C-45 44 -59 44 -72 44 C-73 40 -73 36 -72 32 C-72 32 -72 32 -72 30 C-72 29 -72 27 -72 26 C-72 24 -72 22 -72 20 C-71 13 -71 7 -70 1 C-47 0 -23 -0 0 0 Z" fill="#000" transform="translate(528.8,1125.8)"></path><path d="M0 0 C1 0 2 0 3 0 C3 0 3 0 4 2 C10 19 16 35 22 51 C20 53 19 53 16 54 C15 54 14 54 13 54 C13 54 12 54 11 54 C10 54 9 54 8 54 C-1 55 -9 55 -18 56 C-24 56 -29 56 -35 57 C-34 53 -32 50 -30 47 C-29 46 -29 45 -28 44 C-26 41 -24 39 -23 36 C-21 33 -19 30 -17 26 C-16 26 -16 26 -15 26 C-15 25 -14 25 -14 24 C-12 19 -9 15 -7 10 C-6 9 -5 8 -5 7 C-4 6 -4 5 -3 4 C-3 4 -2 3 -2 2 C-1 1 -1 1 0 0 Z" fill="#000" transform="translate(262,1150)"></path><path d="M0 0 C1 -0 2 0 4 0 C5 -0 6 0 8 0 C9 0 10 0 12 0 C15 0 19 0 22 0 C25 0 27 0 29 0 C38 0 47 0 55 0 C58 0 60 0 62 0 C67 0 72 0 77 0 C79 0 81 1 83 1 C97 1 107 6 116 15 C123 24 126 35 128 45 C129 46 129 47 129 48 C132 60 134 72 128 82 C125 87 121 89 116 91 C113 92 113 92 109 92 C109 92 109 92 107 92 C105 92 102 92 100 92 C100 92 100 92 98 92 C80 92 62 91 45 90 C43 90 41 90 38 90 C35 90 31 89 28 89 C26 89 24 89 22 89 C8 88 -3 86 -12 76 C-18 68 -21 61 -22 51 C-22 50 -23 49 -23 48 C-27 20 -27 20 -21 10 C-15 4 -9 0 0 0 Z" fill="#000" transform="translate(818,1125.8)"></path></mask></defs><rect x="95" y="1072" width="1202" height="238" fill="currentColor" mask="url(#wmk)"></rect></svg><b>Pit Wall</b></div>
     <span class="sep"></span>
-    <span id="sess" class="m mu"></span>
+    <span id="sess" class="m mu"></span><span id="appv" class="m a"></span>
+    <span class="grow"></span>
+    <span class="zm" role="group" aria-label="Dashboard size"><button id="zmOut" aria-label="Smaller">−</button><button id="zmV" title="Back to 100%">100%</button><button id="zmIn" aria-label="Bigger">+</button></span>
     <span class="grow"></span>
     <div id="tabs" class="tabs"></div>
     <span class="sep"></span>
@@ -195,7 +204,7 @@ body.phone .strat{left:8px;right:8px;width:auto}
 <script>
 'use strict';
 // ARION Pit Wall dashboard. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1; comparison frames since v0.1.15).
-const VERSION='0.1.10';
+const VERSION='0.1.11';
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
 const CFG={url:'https://isuiksufkyishdowejob.supabase.co',key:'sb_publishable_DMqGCrW9YEmzEN2_cP67-w_ljr1JBo9'};
@@ -204,8 +213,26 @@ const sb=LOCAL?null:supabase.createClient(CFG.url,CFG.key);
 // C (v0.1.10): one panel alone for OBS: /?panel=map&obs=1 on the driver app's local server (no login, transparent)
 const QP=new URLSearchParams(location.search),OBS=QP.get('obs')==='1'&&QP.get('panel')?QP.get('panel'):null;
 if(OBS){document.documentElement.classList.add('obs');document.body.classList.add('obs')}
+// background behind an OBS panel: &bg=0…100 (% opacity of the panel colour), the same for every panel
+const OBSBG=OBS?Math.max(0,Math.min(100,parseInt(QP.get('bg')||'0',10)||0)):0;
+if(OBS)document.documentElement.style.setProperty('--obsbg',String(OBSBG/100));
 const chain=id=>LOCAL&&!OBS?`<button class="chain" data-chain="${id}" title="Link for OBS (Browser Source)" aria-label="Copy the OBS link for this panel"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a3 3 0 0 0 4.2 0l2.1-2.1a3 3 0 0 0-4.2-4.2l-.9.9M9.4 6.6a3 3 0 0 0-4.2 0L3.1 8.7a3 3 0 0 0 4.2 4.2l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>`:'';
-function copyObs(id){const url=`${location.origin}/?panel=${encodeURIComponent(id)}&obs=1`;
+// the chain icon opens a small popup: background opacity (remembered) with a preview, then «Copy link»
+let OBSPICK=(()=>{try{const v=parseInt(localStorage.getItem('pw-obsbg'),10);return v>=0&&v<=100?v:0}catch{return 0}})();
+function obsPopup(btn){closeObsPopup();const id=btn.dataset.chain,r=btn.getBoundingClientRect(),d=document.createElement('div');d.className='obspop';d.id='obsPop';
+  d.setAttribute('role','dialog');d.setAttribute('aria-label','OBS link');
+  d.innerHTML=`<b>OBS link · ${esc(id)}</b><label>Background <input id="obsBg" type="range" min="0" max="100" step="5" value="${OBSPICK}" aria-label="Background opacity"><span class="m" id="obsBgV">${OBSPICK}%</span></label>
+    <div class="obsprev" aria-hidden="true"><span id="obsPv">P2 · 0:36.944</span></div><button id="obsCopy" class="on">Copy link</button>`;
+  document.body.appendChild(d);
+  const w=250;   // the popup sits outside the zoomed dashboard, so on-screen positions are used as they are
+  d.style.left=Math.max(8,Math.min(innerWidth-w-8,r.right-w))+'px';d.style.top=Math.min(innerHeight-d.offsetHeight-8,r.bottom+6)+'px';
+  const pv=()=>{$('#obsPv').style.background=`rgba(22,23,26,${OBSPICK/100})`;$('#obsBgV').textContent=OBSPICK+'%'};pv();
+  $('#obsBg').oninput=e=>{OBSPICK=+e.target.value;try{localStorage.setItem('pw-obsbg',String(OBSPICK))}catch{}pv()};
+  $('#obsCopy').onclick=()=>{copyObs(id,OBSPICK);closeObsPopup()};$('#obsBg').focus()}
+function closeObsPopup(){const p=$('#obsPop');if(p)p.remove()}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeObsPopup()});
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#obsPop,.chain'))closeObsPopup()});
+function copyObs(id,bg){const url=`${location.origin}/?panel=${encodeURIComponent(id)}&obs=1&bg=${bg||0}`;
   const done=()=>note(`OBS link copied: ${url}`);
   const old=()=>{const t=document.createElement('textarea');t.value=url;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();let ok=false;try{ok=document.execCommand('copy')}catch{}t.remove();ok?done():note(`OBS link: ${url}`)};
   try{navigator.clipboard.writeText(url).then(done,old)}catch{old()}}
@@ -213,7 +240,13 @@ function copyObs(id){const url=`${location.origin}/?panel=${encodeURIComponent(i
 let DMODE=(()=>{try{return localStorage.getItem('pw-delta')==='class'?'class':'own'}catch{return 'own'}})();
 const dsw=()=>`<span class="dsw" role="group" aria-label="Delta against"><button data-dm="own" class="${DMODE==='own'?'on':''}">Δ own</button><button data-dm="class" class="${DMODE==='class'?'on':''}">class</button></span>`;
 function setDMode(m){DMODE=m;try{localStorage.setItem('pw-delta',m)}catch{}S.trail.forEach(p=>p[2]=null);document.querySelectorAll('[data-dm]').forEach(b=>b.className=b.dataset.dm===m?'on':'');paintDelta()}
-document.addEventListener('click',e=>{const c=e.target.closest('.chain');if(c){copyObs(c.dataset.chain);return}const d=e.target.closest('[data-dm]');if(d){setDMode(d.dataset.dm);return}
+// F (v0.1.11): make the whole dashboard bigger or smaller, 80–150 %, remembered in this browser (phones pinch instead)
+let ZOOM=(()=>{try{const z=parseFloat(localStorage.getItem('pw-zoom'));return z>=0.8&&z<=1.5?z:1}catch{return 1}})();
+function applyZoom(){const z=PHONE||OBS?1:ZOOM;document.documentElement.style.setProperty('--z',String(z));const v=$('#zmV');if(v)v.textContent=Math.round(ZOOM*100)+'%';
+  const o=$('#zmOut'),i=$('#zmIn');if(o)o.disabled=ZOOM<=0.8+1e-9;if(i)i.disabled=ZOOM>=1.5-1e-9}
+function setZoom(z){ZOOM=Math.round(Math.max(0.8,Math.min(1.5,z))*10)/10;try{localStorage.setItem('pw-zoom',String(ZOOM))}catch{}applyZoom();dispatchEvent(new Event('resize'))}
+document.addEventListener('click',e=>{const zb=e.target.closest('#zmOut,#zmIn,#zmV');if(zb){setZoom(zb.id==='zmOut'?ZOOM-0.1:zb.id==='zmIn'?ZOOM+0.1:1);return}
+  const c=e.target.closest('.chain');if(c){obsPopup(c);return}const d=e.target.closest('[data-dm]');if(d){setDMode(d.dataset.dm);return}
   const sbt=e.target.closest('#sbtn');if(sbt){S.stOpen=!S.stOpen;paintStrat()}});
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -223,7 +256,7 @@ let noteT;function note(t){const n=$('#note');n.textContent=t;n.style.display='b
 let USER=null,TOKEN=null,SESS=[],SEL=null,LINK=null;
 const S={fast:null,slow:null,cars:new Map(),hist:[],trail:[],last:[],lap:null,segs:[],cells:new Set(),segBounds:null,trackLen:0,mode:'full',zoom:1,lastPos:new Map(),heading:0,
   laps:[],per:new Map(),clsBest:new Map(),moments:[],prev:null,temps:[],gridTab:'mine',gridCls:null,rest:{},cmp:null,ref:null,verdicts:[],st:null,stHist:[],stOpen:false};
-function resetData(){S.cmp=null;S.ref=null;S.verdicts=[];S.st=null;S.stHist=[];S.stOpen=false;S.lane=null;S.pitWatch=null;refPaths=null;S.secB=[[],[]];S.flagGreenUntil=0;S.prevFlag=null;S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
+function resetData(){S.hs=null;S.hv=0;S.me0=S.me1=null;S.cmp=null;S.ref=null;S.verdicts=[];S.st=null;S.stHist=[];S.stOpen=false;S.lane=null;S.pitWatch=null;refPaths=null;S.secB=[[],[]];S.flagGreenUntil=0;S.prevFlag=null;S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
 
 // ---------- login and access ----------
 async function boot(){
@@ -379,7 +412,7 @@ function onFast(buf){
     if(S.lap!==null&&f.lap!==S.lap){S.last=S.trail;S.trail=[]}
     S.lap=f.lap;
     const p=S.hist.length>10?S.hist[S.hist.length-10]:S.fast;if(p){const dx=f.x-p.x,dz=f.z-p.z;if(dx*dx+dz*dz>1)S.heading=Math.atan2(-dz,dx)}
-    S.fast=f;S.trail.push([f.x,-f.z,curDelta()]);if(S.trail.length>20000)S.trail.shift();
+    S.fast=f;S.trail.push([f.x,-f.z,curDelta()]);S.me0=S.me1;S.me1={x:f.x,z:-f.z,t:performance.now()};if(S.trail.length>20000)S.trail.shift();
     S.hist.push(f);while(S.hist.length&&f.et-S.hist[0].et>15)S.hist.shift();
     if(f.dist>S.trackLen)S.trackLen=f.dist;
   }
@@ -402,20 +435,21 @@ function onFast(buf){
 function curDelta(){const c=S.cmp;if(!c||performance.now()-c.t>1500)return null;const x=DMODE==='class'?c.d:c.own;return x!=null&&isFinite(x)?x:null}
 function growBounds(x,z){const b=S.segBounds;if(!b){S.segBounds=[x,z,x,z];return}
   b[0]=Math.min(b[0],x);b[1]=Math.min(b[1],z);b[2]=Math.max(b[2],x);b[3]=Math.max(b[3],z)}
+function paintAppV(j){const e=$('#appv');if(!e)return;const a=j&&j.app,t=a&&a.new?`driver app v${a.v} · v${a.new} available`:'';if(e.textContent!==t)e.textContent=t}
 function onSlow(j){
   if(j.t==='ref'){S.ref=j;refPaths=null;if(!S.verdicts.length&&Array.isArray(j.recent))S.verdicts=j.recent.slice(0,12);paintDelta();return}
   if(j.t==='corner'){S.verdicts.unshift({...j,at:Date.now()});if(S.verdicts.length>12)S.verdicts.pop();paintDelta();return}
-  if(j.t!=='slow')return;S.slow=j;if(j.rest&&typeof j.rest==='object')S.rest={...S.rest,...j.rest};learn(j);stratStep(j);paintPanels()}
+  if(j.t!=='slow')return;S.slow=j;if(j.rest&&typeof j.rest==='object')S.rest={...S.rest,...j.rest};learn(j);stratStep(j);paintAppV(j);paintPanels()}
 
 // ---------- layout ----------
 // ---------- panels: resizable and movable, always snapped together (columns of stacked panels, no gaps) ----------
 // Saved in this browser (one layout per device); «Reset layout» in the top bar restores the default.
 // default = George's layout (v0.1.9): Car, Damage, Weather, Pit window · Map, Inputs, Battle · Traffic, Laps and sectors, Key moments
-const DEF_LAYOUT={v:1,cols:[{w:25,p:[['car',38],['damage',18],['wx',27],['pit',17]]},{w:47,p:[['map',60],['inputs',21],['battle',19]]},{w:28,p:[['traffic',30],['laps',45],['moments',25]]}]};
+const DEF_LAYOUT={v:1,cols:[{w:25,p:[['car',35],['damage',15],['wx',20],['inputs',30]]},{w:47,p:[['map',75],['battle',25]]},{w:28,p:[['traffic',28],['laps',40],['pit',14],['moments',18]]}]};
 // what can't shrink below its content, and the minimum size of the others
 const FIT=new Set(['car','damage','wx','pit','battle']);
 const MINH={map:240,inputs:170,traffic:150,laps:210,moments:130},MINW={car:340,damage:320,wx:360,pit:320,map:380,inputs:380,battle:470,traffic:290,laps:390,moments:280};
-const LKEY='pw-layout-v3';   // v3: George's default layout and minimum sizes (v0.1.9)
+const LKEY='pw-layout-v4';   // v4: Live inputs under the left column, Pit window on the right; fixed-content panels at their contents' height (v0.1.11)
 let LAYOUT=(()=>{try{const l=JSON.parse(localStorage.getItem(LKEY));if(l&&l.v===1&&validLayout(l))return l}catch{}return JSON.parse(JSON.stringify(DEF_LAYOUT))})();
 function validLayout(l){const ids=l.cols.flatMap(c=>c.p.map(x=>x[0])).sort().join();return ids===DEF_LAYOUT.cols.flatMap(c=>c.p.map(x=>x[0])).sort().join()&&l.cols.every(c=>c.w>0&&c.p.length&&c.p.every(x=>x[1]>0))}
 function saveLayout(){try{localStorage.setItem(LKEY,JSON.stringify(LAYOUT))}catch{}}
@@ -443,7 +477,7 @@ function dashView(){
   if(PHONE)return phoneView();
   const v=$('#view');if(v.dataset.k==='dash')return;v.dataset.k='dash';v.className='main';v.style.flexDirection='';
   const cols=LAYOUT.cols;
-  v.innerHTML=cols.map((c,ci)=>`${ci?`<div class="gx" data-ci="${ci-1}"></div>`:''}<div class="dcol" style="flex:${c.w} 1 0;min-width:${Math.max(...c.p.map(x=>MINW[x[0]]||240))}px">${c.p.map(([id,h],pi)=>`${pi?`<div class="gy" data-ci="${ci}" data-pi="${pi-1}"></div>`:''}<section class="pn dock${FIT.has(id)?' fit':''}" data-id="${id}" style="flex:${h} 1 0${MINH[id]?`;min-height:${MINH[id]}px`:''}">${BODY[id]}</section>`).join('')}</div>`).join('');
+  v.innerHTML=cols.map((c,ci)=>`${ci?`<div class="gx" data-ci="${ci-1}"></div>`:''}<div class="dcol" style="flex:${c.w} 1 0;min-width:${Math.max(...c.p.map(x=>MINW[x[0]]||240))}px">${c.p.map(([id,h],pi)=>`${pi?`<div class="gy" data-ci="${ci}" data-pi="${pi-1}"></div>`:''}<section class="pn dock${FIT.has(id)?' fit':''}" data-id="${id}" style="flex:${dflex(c,id,h)}${MINH[id]?`;min-height:${MINH[id]}px`:''}">${BODY[id]}</section>`).join('')}</div>`).join('');
   $('#mFull').onclick=()=>{S.mode='full';$('#mFull').className='on';$('#mFollow').className=''};
   $('#mFollow').onclick=()=>{S.mode='follow';$('#mFollow').className='on';$('#mFull').className='';if(S.zoom<2)S.zoom=3};
   if(S.mode==='follow'){$('#mFollow').className='on';$('#mFull').className=''}
@@ -459,6 +493,8 @@ function dashView(){
 function obsView(){const v=$('#view');if(v.dataset.k==='obs')return;v.dataset.k='obs';
   if(!BODY[OBS]){v.className='center';v.innerHTML=`<div class="card">Unknown panel «${esc(OBS)}».</div>`;return}
   v.className='main';v.innerHTML=`<section class="pn dock obsp${FIT.has(OBS)?' fit':''}" data-id="${esc(OBS)}">${BODY[OBS]}</section>`;paintPanels()}
+// a fixed-content panel is exactly as tall as its contents, unless every panel in its column is one: then the last takes the rest
+function dflex(col,id,h){if(!FIT.has(id))return `${h} 1 0`;const allFit=col.p.every(x=>FIT.has(x[0]));return allFit&&col.p[col.p.length-1][0]===id?`${h} 1 0`:'0 0 auto'}
 // drag a gutter: the two neighbours share the space; nothing else moves
 function resizeStart(e,g,axis){
   if(innerWidth<=900)return;e.preventDefault();g.setPointerCapture(e.pointerId);g.classList.add('on');document.body.classList.add('resizing');document.body.style.cursor=axis==='x'?'col-resize':'row-resize';
@@ -471,7 +507,7 @@ function resizeStart(e,g,axis){
   const minA=minOf(a),minB=minOf(b);
   const move=ev=>{let d=(axis==='x'?ev.clientX:ev.clientY)-start;d=Math.max(Math.min(0,minA-sizeA),Math.min(Math.max(0,sizeB-minB),d));
     const fa=(sizeA+d)/(sizeA+sizeB)*sum,fb=sum-fa;
-    if(axis==='x'){list[ia].w=fa;list[ia+1].w=fb;a.style.flex=`${fa} 1 0`;b.style.flex=`${fb} 1 0`}else{list[ia][1]=fa;list[ia+1][1]=fb;a.style.flex=`${fa} 1 0`;b.style.flex=`${fb} 1 0`}};
+    if(axis==='x'){list[ia].w=fa;list[ia+1].w=fb;a.style.flex=`${fa} 1 0`;b.style.flex=`${fb} 1 0`}else{list[ia][1]=fa;list[ia+1][1]=fb;const col=LAYOUT.cols[+g.dataset.ci];a.style.flex=dflex(col,list[ia][0],fa);b.style.flex=dflex(col,list[ia+1][0],fb)}};
   const up=()=>{g.classList.remove('on');document.body.classList.remove('resizing');document.body.style.cursor='';g.removeEventListener('pointermove',move);g.removeEventListener('pointerup',up);saveLayout()};
   g.addEventListener('pointermove',move);g.addEventListener('pointerup',up);
 }
@@ -501,7 +537,7 @@ function movePanel(id,t){
 // ---------- phone layout (v0.1.6): five tabs — Car · Map · Timing · Strategy · Inputs ----------
 let PHONE=false,PTAB='car';
 const PT=[['car','◉','Car'],['map','⌖','Map'],['timing','☰','Timing'],['strat','⚑','Strategy']];
-function checkPhone(){const was=PHONE,land=innerWidth>innerHeight;PHONE=!OBS&&Math.min(innerWidth,innerHeight)<600;
+function checkPhone(){const was=PHONE,land=innerWidth>innerHeight;PHONE=!OBS&&Math.min(innerWidth,innerHeight)<600;applyZoom();
   document.body.classList.toggle('phone',PHONE);document.body.classList.toggle('land',PHONE&&land&&PTAB==='map');
   if(was!==PHONE&&$('#view').dataset.k){ $('#view').dataset.k='';dashView()}}
 function phoneView(){
@@ -649,17 +685,17 @@ function paintDamage(c,R){
   const sp=(i,x,y,a)=>`<text x="${x}" y="${y}" text-anchor="${a}" font-family="JetBrains Mono,monospace" font-size="12" fill="${su[i]>0.15?'#FF5A5A':su[i]>0.02?'#FFB020':'#8C8F98'}">${su[i]!=null?Math.round(su[i]*100)+'%':'–'}</text>`;
   const any=d.some(x=>x>0)||c.detached||aero>0.005||su.some(x=>x>0.005);
   el.innerHTML=`<div class="ph"><b>Damage</b><span class="grow"></span>${rep>0?`<span class="m a">repair ${rep.toFixed(1)} s</span>`:any?'':'<span class="g">none</span>'}${chain('damage')}</div>
-  <div style="display:flex;gap:12px;align-items:center;flex:1;min-height:0">
-    <svg class="carsvg" viewBox="0 0 160 200" style="height:100%;max-height:150px;min-height:110px;flex:none" role="img" aria-label="Body damage">
+  <div style="display:flex;gap:14px;align-items:center;min-height:0">
+    <svg class="carsvg" viewBox="0 0 160 200" style="height:104px;flex:none" role="img" aria-label="Body damage">
       <rect x="40" y="6" width="80" height="34" rx="10" fill="${ZC(d[0])}"/><rect x="10" y="10" width="28" height="44" rx="8" fill="${ZC(d[1])}"/><rect x="122" y="10" width="28" height="44" rx="8" fill="${ZC(d[7])}"/>
       <rect x="10" y="60" width="28" height="80" rx="6" fill="${ZC(d[2])}"/><rect x="40" y="44" width="80" height="112" rx="14" fill="#1C1D21" stroke="#3A3D45"/><rect x="122" y="60" width="28" height="80" rx="6" fill="${ZC(d[6])}"/>
       <rect x="10" y="146" width="28" height="44" rx="8" fill="${ZC(d[3])}"/><rect x="40" y="160" width="80" height="34" rx="10" fill="${ZC(rear)}"/><rect x="122" y="146" width="28" height="44" rx="8" fill="${ZC(d[5])}"/>
       ${sp(0,74,36,'end')}${sp(1,86,36,'start')}${sp(2,74,182,'end')}${sp(3,86,182,'start')}
       <text x="80" y="104" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#8C8F98">${c.detached?'wing off':'body'}</text></svg>
-    <div class="m" style="display:grid;gap:6px;font-size:13px">
+    <div class="m" style="display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-size:13px;flex:1;min-width:0">
       <div><div class="mu">Aero</div><span class="${aero>0.25?'r':aero>0.005?'a':''}">${aero!=null?Math.round(aero*100)+'%':'–'}</span></div>
-      <div><div class="mu">Suspension</div>${['FL','FR','RL','RR'].map((n,i)=>`<span class="${su[i]>0.15?'r':su[i]>0.02?'a':'mu'}">${n} ${su[i]!=null?Math.round(su[i]*100)+'%':'–'}</span>`).join(' ')}</div>
-      <div><div class="mu">Body</div>${d.filter(x=>x>0).length?`<span class="${d.some(x=>x>1)?'r':'a'}">${d.filter(x=>x>0).length} of 8 zones</span>`:'<span class="mu">clean</span>'}</div></div></div>`;
+      <div><div class="mu">Body</div>${d.filter(x=>x>0).length?`<span class="${d.some(x=>x>1)?'r':'a'}">${d.filter(x=>x>0).length} of 8 zones</span>`:'<span class="mu">clean</span>'}</div>
+      <div style="grid-column:1/-1"><div class="mu">Suspension</div>${['FL','FR','RL','RR'].map((n,i)=>`<span class="${su[i]>0.15?'r':su[i]>0.02?'a':'mu'}">${n} ${su[i]!=null?Math.round(su[i]*100)+'%':'–'}</span>`).join(' ')}</div></div></div>`;
 }
 // pace from a car's last clean laps (no pit laps)
 function pace(id,n=5){const c=S.per.get(id);if(!c)return null;const t=c.times.slice(-n).map(x=>x.t).filter(x=>x>0);if(t.length<2)return null;t.sort((a,b)=>a-b);const k=t.slice(0,Math.max(2,t.length-1));return k.reduce((a,b)=>a+b,0)/k.length}
@@ -678,8 +714,8 @@ function paintBattle(j,me){
     return `<tr${g.player?' style="background:#2A2400"':''}><td><span class="mu">P${inCls.indexOf(g)+1}</span> ${g.player?'<span class="y">you</span>':esc(g.name)}</td><td>${g.player?'<span class="mu">—</span>':Math.abs(gp)>500?'lap':Math.abs(gp).toFixed(1)}${rate!=null&&!g.player?` <span class="${(gp>0)===(rate<0)?'g':'r'}">${rate>0?'+':''}${rate.toFixed(1)}<span class="lw">/lap</span></span>`:''}</td><td>${p?fmtLap(p):'–'}</td><td>${el2?Math.round(el2.e*100)+'%'+(el2.laps!=null?` · ${el2.laps.toFixed(1)}<span class="lw"> laps</span>`:''):(g.fuel>0?'fuel '+Math.round(g.fuel*100)+'%':'–')}</td><td>${stint??'–'}</td><td>${g.stops}</td><td>${esc((g.tyreF||'').slice(0,6))||'–'}</td><td>${nxt?'<span class="lw">lap </span>'+nxt:'–'}</td></tr>`};
   const lines=[];const meE=energyLeft(me),meNext=meE&&meE.laps!=null?me.laps+Math.floor(meE.laps):null;
   for(const g of rows){if(g.player)continue;const e=energyLeft(g),n=e&&e.laps!=null?g.laps+Math.floor(e.laps):null;const ahead=gap(g)>0;
-    if(n&&meNext){if(ahead&&n<meNext)lines.push(`<div><span class="g">↑</span> ${esc(g.name)} stops around lap ${n}, ${meNext-n} laps before you: clear air to close the ${Math.abs(gap(g)).toFixed(1)} s.</div>`);
-      if(!ahead&&n<meNext)lines.push(`<div><span class="g">✓</span> ${esc(g.name)} stops around lap ${n}, ${meNext-n} laps before you.</div>`);
+    if(n&&meNext){if(ahead&&n<meNext)lines.push(`<div><span class="g">↑</span> ${esc(g.name)} stops around lap ${n}, ${meNext-n} lap${meNext-n>1?'s':''} before you: clear air${Math.abs(gap(g))<900?` to close the ${Math.abs(gap(g)).toFixed(1)} s`:''}.</div>`);
+      if(!ahead&&n<meNext)lines.push(`<div><span class="g">✓</span> ${esc(g.name)} stops around lap ${n}, ${meNext-n} lap${meNext-n>1?'s':''} before you.</div>`);
       if(!ahead&&n>meNext)lines.push(`<div><span class="a">!</span> ${esc(g.name)} can run ${n-meNext} laps longer than you: watch the undercut.</div>`)}}
   el.innerHTML=`<div class="ph"><b>Battle in class</b>${chain('battle')}</div>
     <table class="t"><tr><th>Car</th><th>Gap</th><th>Pace</th><th>Energy</th><th>Stint</th><th>Stops</th><th>Tyres</th><th>Next<span class="lw"> stop</span></th></tr>${rows.map(tr).join('')}</table>
@@ -694,7 +730,8 @@ function paintPit(j,me){
   const ahead=others.filter(o=>o.t<myT).pop(),behind=others.find(o=>o.t>=myT);
   el.innerHTML=`<div class="ph"><b>Pit window</b><span class="mu">pit now</span><span class="grow"></span><span class="m">≈ ${loss.toFixed(0)} s</span>${chain('pit')}</div>
     <div class="m"><span class="y">Rejoin P${pos} in class</span> <span class="mu">${ahead?`${(myT-ahead.t).toFixed(1)} s behind ${esc(ahead.g.name)}`:''}${ahead&&behind?', ':''}${behind?`${(behind.t-myT).toFixed(1)} s ahead of ${esc(behind.g.name)}`:''}</span></div>
-    <div class="k3 m" style="margin-top:8px"><div><div class="mu">Stop</div>${P.total.toFixed(1)} s</div><div><div class="mu">Repair</div>${(P.repair||0).toFixed(1)} s</div><div><div class="mu">Lane${S.lane?'':' ≈'}</div>${lane.toFixed(0)} s</div></div>`;
+    <div class="k3 m" style="margin-top:8px"><div><div class="mu">Stop</div>${P.total.toFixed(1)} s</div><div><div class="mu">Repair</div>${(P.repair||0).toFixed(1)} s</div><div><div class="mu">Lane${S.lane?'':' ≈'}</div>${lane.toFixed(0)} s</div></div>
+    ${(sp=>sp?`<div class="m" style="margin-top:8px"><span class="mu">Must stop</span> lap ${sp.forced}${sp.ve!=null?` <span class="mu">· fill</span> VE ${Math.round(sp.ve*100)}%`:''} <span class="mu">· tyres</span> ${sp.ty}</div>`:`<div class="m mu" style="margin-top:8px">Stop plan after 2 laps of energy use</div>`)(stopPlan(j,me,0))}`;
 }
 function paintMoments(){const el=$('#moments');if(!el)return;
   el.innerHTML=S.moments.length?S.moments.slice(0,30).map(m=>`<div><span class="mu">${m.rt!=null?raceT(m.rt):''}${m.lap!=null?' · L'+m.lap:''}</span> <span class="${m.cls||''}">${m.icon}</span> ${esc(m.text)}</div>`).join(''):'<div class="mu">Nothing yet.</div>'}
@@ -791,6 +828,14 @@ function runCar(c,T){let t=T,laps=c.laps,frac=c.frac,age=c.age,stopped=c.stopAt=
     t-=rem;laps++;frac=0;age++;
     if(!stopped&&laps>=c.stopAt){stopped=true;if(t<=c.loss)return laps;t-=c.loss;age=0}}
   return laps+frac}
+// what to do at a stop after k more laps: the lap you must stop by (energy), VE to fill to the flag (+3 %), tyres under 70 % life
+function tyrePlan(j){const w=((j.car||{}).wheels||[]).map(x=>x&&x.wear),chg=['FL','FR','RL','RR'].filter((_,i)=>w[i]!=null&&w[i]>=0&&w[i]<0.7);
+  return chg.length===4?'all':chg.join()==='FL,RL'?'L':chg.join()==='FR,RR'?'R':chg.join()==='FL,FR'?'front':chg.join()==='RL,RR'?'rear':chg.length?chg.join(' '):'keep'}
+function stopPlan(j,me,k){const e=energyLeft(me);if(!e||e.per==null)return null;
+  const L=S.trackLen>100?S.trackLen:null,c=S.cars.get(me.id),fr=L&&c?Math.max(0,Math.min(0.999,c.dist/L)):0.5;
+  const forced=me.laps+Math.max(1,Math.floor(e.laps+fr)),p=pace(me.id),se=j.session,P=(S.rest||{}).pit||{};
+  let ve=null;if(p){const after=Math.max(0,(se.left>0?se.left:45*p)-(k+1-fr)*p-(P.total||0)-laneTime());ve=Math.min(1,Math.ceil(after/p)*e.per+0.03)}
+  return {forced,ve,ty:tyrePlan(j)}}
 function stratModel(j){
   const se=j.session,me=j.grid.find(g=>g.player);
   if(!me||!(se.type>=10)||se.phase!==5||se.yellow>0||me.pits||me.pitState>0)return null;
@@ -828,10 +873,7 @@ function stratModel(j){
   const near=[order[mi-1],order[mi+1]].filter(Boolean),nowT=Date.now();
   const cov=best.k<=1?near.find(g=>{const c=S.per.get(g.id);return c&&c.stopAt&&nowT-c.stopAt<90000}):null;
   // what to do at the stop
-  const after=Math.max(0,(se.left>0?se.left:45*myP)-(best.k+1-frac(me))*myP-loss);
-  const ve=Math.min(1,Math.ceil(after/myP)*myE.per+0.03);
-  const w=(j.car.wheels||[]).map(x=>x&&x.wear),chg=['FL','FR','RL','RR'].filter((_,i)=>w[i]!=null&&w[i]>=0&&w[i]<0.7);
-  const ty=chg.length===4?'all':chg.join()==='FL,RL'?'L':chg.join()==='FR,RR'?'R':chg.join()==='FL,FR'?'front':chg.join()==='RL,RR'?'rear':chg.length?chg.join(' '):'keep';
+  const plan=stopPlan(j,me,best.k),ve=plan.ve??1,ty=plan.ty;
   return {k:best.k,gain,cover:cov?{id:cov.id,no:carNo(cov)}:null,flipped:flipped.map(r=>({no:carNo(r.g),stop:r.stopAt})),
     rows:[...opts.map(o=>({k:o.k,pos:o.pos,d:stay.pos-o.pos,best:o===best})),{k:null,pos:stay.pos,d:null,best:false}],
     ve,ty,repair:P.repair>0?P.repair:0,loss,est:!S.lane,forced}}
@@ -877,22 +919,38 @@ function paintFlags(){const el=$('#flags');if(!el)return;const se=S.slow&&S.slow
 let trackPath=null,secPaths=null,refPaths=null;
 function fitCanvas(cv){const r=cv.getBoundingClientRect(),dpr=devicePixelRatio||1,w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}}
 // world (x, −z) → screen, as a matrix [a,b,c,d,e,f] for setTransform, and as a point function
+// H (v0.1.11): trail colour per point from the delta's change over the last ~1 s (30 frames), with hysteresis:
+// red once you've lost more than 0.02 s, green once you've gained 0.02 s, yellow again only when it's back under 0.006 s
+function trailColours(pts){let st='#F2C200';const out=new Array(pts.length);
+  for(let i=0;i<pts.length;i++){const a=pts[i][2],b=pts[Math.max(0,i-30)][2];
+    if(a==null||b==null)st='#F2C200';else{const x=a-b;st=x>0.02?'#FF5A5A':x<-0.02?'#3BD16F':Math.abs(x)<0.006?'#F2C200':st}out[i]=st}
+  return out}
+// H (v0.1.11): your car glides between telemetry frames like the others, and the map follows that glided position and a
+// smoothed heading, so the arrow sits still on screen instead of jumping as frames arrive unevenly
+function mePos(){const a=S.me0,b=S.me1;if(!b)return null;if(!a)return b;const k=Math.max(0,Math.min(1,(performance.now()-b.t)/Math.max(16,b.t-a.t)));return {x:a.x+(b.x-a.x)*k,z:a.z+(b.z-a.z)*k}}
+// critically damped spring ("smooth damp", ~0.3 s): both the angle and the turn rate stay continuous
+let lastHs=0;
+function smoothHeading(){const t=performance.now(),dt=Math.min(0.1,Math.max(0.001,(t-lastHs)/1000));lastHs=t;const h=S.heading;if(h==null)return null;
+  if(S.hs==null){S.hs=h;S.hv=0;return h}
+  let c=S.hs-h;while(c>Math.PI)c-=2*Math.PI;while(c<-Math.PI)c+=2*Math.PI;
+  const w=2/0.3,x=w*dt,e=1/(1+x+0.48*x*x+0.235*x*x*x),tmp=(S.hv+w*c)*dt;
+  S.hv=(S.hv-w*tmp)*e;S.hs=h+(c+tmp)*e;return S.hs}
 function viewTransform(cv){
-  const fx0=S.fast?S.fast.x:0,fz0=S.fast?-S.fast.z:0;
+  const mp=mePos(),fx0=mp?mp.x:S.fast?S.fast.x:0,fz0=mp?mp.z:S.fast?-S.fast.z:0;
   const b=S.segBounds||[fx0-300,fz0-300,fx0+300,fz0+300];
   const W=cv.width,H=cv.height,pad=30*(devicePixelRatio||1),bw=Math.max(60,b[2]-b[0]),bh=Math.max(60,b[3]-b[1]);
   const base=Math.min((W-2*pad)/bw,(H-2*pad)/bh),s=base*S.zoom;
   let rot=0,cx=(b[0]+b[2])/2,cz=(b[1]+b[3])/2,ox=W/2,oy=H/2;
   if(S.fast&&(S.mode==='follow'||S.zoom>1)){cx=fx0;cz=fz0}
-  if(S.mode==='follow'&&S.fast){rot=-Math.PI/2-S.heading;oy=H*0.62} // direction of travel points up
+  if(S.mode==='follow'&&S.fast&&S.hs!=null){rot=-Math.PI/2-S.hs;oy=H*0.62} // direction of travel points up
   const c=Math.cos(rot)*s,sn=Math.sin(rot)*s;
   const m=[c,sn,-sn,c,ox-(cx*c-cz*sn),oy-(cx*sn+cz*c)];
   return {s,m,f:(x,z)=>[m[0]*x+m[2]*z+m[4],m[1]*x+m[3]*z+m[5]]};
 }
 function drawMap(){
   const cv=$('#map');if(!cv)return;fitCanvas(cv);const g=cv.getContext('2d'),W=cv.width,H=cv.height,dpr=devicePixelRatio||1;
-  g.setTransform(1,0,0,1,0,0);if(OBS)g.clearRect(0,0,W,H);else{g.fillStyle='#121316';g.fillRect(0,0,W,H)}
-  const T=viewTransform(cv);
+  g.setTransform(1,0,0,1,0,0);if(OBS){g.clearRect(0,0,W,H);if(OBSBG){g.fillStyle=`rgba(18,19,22,${OBSBG/100})`;g.fillRect(0,0,W,H)}}else{g.fillStyle='#121316';g.fillRect(0,0,W,H)}
+  smoothHeading();const T=viewTransform(cv);
   if(!trackPath){trackPath=new Path2D();for(const sg of S.segs){trackPath.moveTo(sg[0],sg[1]);trackPath.lineTo(sg[2],sg[3])}}
   g.setTransform(...T.m);g.lineCap='round';g.lineJoin='round';
   g.strokeStyle='#26282E';g.lineWidth=Math.max(6*dpr/T.s,13);g.stroke(trackPath);
@@ -907,9 +965,8 @@ function drawMap(){
   line(S.last,'#4A4D56',2*dpr);
   // this lap's trail: green where you gain on the chosen best, red where you lose (yellow without a delta)
   (pts=>{if(pts.length<2)return;g.lineWidth=2.5*dpr/T.s;
-    const colAt=i=>{const a=pts[i][2],b=pts[Math.max(0,i-8)][2];if(a==null||b==null)return '#F2C200';const x=a-b;return x>0.004?'#FF5A5A':x<-0.004?'#3BD16F':'#F2C200'};
-    let col=colAt(1);g.beginPath();g.moveTo(pts[0][0],pts[0][1]);
-    for(let i=1;i<pts.length;i++){const c=colAt(i);if(c!==col){g.lineTo(pts[i][0],pts[i][1]);g.strokeStyle=col;g.stroke();g.beginPath();g.moveTo(pts[i][0],pts[i][1]);col=c}else g.lineTo(pts[i][0],pts[i][1])}
+    const cols=trailColours(pts);let col=cols[1];g.beginPath();g.moveTo(pts[0][0],pts[0][1]);
+    for(let i=1;i<pts.length;i++){const c=cols[i];if(c!==col){g.lineTo(pts[i][0],pts[i][1]);g.strokeStyle=col;g.stroke();g.beginPath();g.moveTo(pts[i][0],pts[i][1]);col=c}else g.lineTo(pts[i][0],pts[i][1])}
     g.strokeStyle=col;g.stroke()})(S.trail);
   g.setTransform(1,0,0,1,0,0);
   // cars glide from their previous position to the newest one over one frame interval (~100 ms behind live)
@@ -920,12 +977,13 @@ function drawMap(){
     for(const c of R0.corners){const a=c.at_brake;if(!a)continue;const p=T.f(a[0],-a[1]);g.fillStyle='#C9A8FF';g.strokeStyle='#121316';g.lineWidth=1.5*dpr;
       g.beginPath();g.moveTo(p[0],p[1]-6*dpr);g.lineTo(p[0]+5*dpr,p[1]);g.lineTo(p[0],p[1]+6*dpr);g.lineTo(p[0]-5*dpr,p[1]);g.closePath();g.fill();g.stroke();g.fillText('T'+c.n,p[0]+7*dpr,p[1]+4*dpr)}}
   const cm=S.cmp;if(cm&&now-cm.t<1500&&R0&&cm.rev===R0.rev){const p=T.f(cm.gx,cm.gz);g.strokeStyle='#C9A8FF';g.lineWidth=2.5*dpr;g.beginPath();g.arc(p[0],p[1],7*dpr,0,7);g.stroke()}
-  for(const c of list){const k=Math.max(0,Math.min(1,(now-c.t)/Math.max(30,c.t-c.pt)));const p=T.f(c.px+(c.x-c.px)*k,c.pz+(c.z-c.pz)*k);
+  const mp=mePos(),hs=S.hs;
+  for(const c of list){const k=Math.max(0,Math.min(1,(now-c.t)/Math.max(30,c.t-c.pt)));const p=c.me&&mp?T.f(mp.x,mp.z):T.f(c.px+(c.x-c.px)*k,c.pz+(c.z-c.pz)*k);
     const info=cls.get(c.id),r=(c.me?7:5)*dpr;
     g.globalAlpha=c.pits?0.4:1;g.fillStyle=c.me?'#F2C200':CLS(info&&info.class);g.strokeStyle='#121316';g.lineWidth=1.5*dpr;
-    if(c.me&&S.hist.length>3){const a=S.hist[Math.max(0,S.hist.length-8)],b=S.hist[S.hist.length-1],pa=T.f(a.x,-a.z),pb=T.f(b.x,-b.z);
-      const ang=Math.atan2(pb[1]-pa[1],pb[0]-pa[0]),R=13*dpr;
-      if(Math.hypot(pb[0]-pa[0],pb[1]-pa[1])>0.5){g.save();g.translate(p[0],p[1]);g.rotate(ang);g.beginPath();g.moveTo(R,0);g.lineTo(-R*0.75,R*0.7);g.lineTo(-R*0.35,0);g.lineTo(-R*0.75,-R*0.7);g.closePath();g.fill();g.lineWidth=2*dpr;g.stroke();g.restore()}
+    if(c.me&&S.hist.length>3&&hs!=null&&mp){const a=S.hist[Math.max(0,S.hist.length-8)],b=S.hist[S.hist.length-1],pb=T.f(mp.x+Math.cos(hs),mp.z+Math.sin(hs));
+      const ang=Math.atan2(pb[1]-p[1],pb[0]-p[0]),R=13*dpr;
+      if(Math.hypot(b.x-a.x,b.z-a.z)>1){g.save();g.translate(p[0],p[1]);g.rotate(ang);g.beginPath();g.moveTo(R,0);g.lineTo(-R*0.75,R*0.7);g.lineTo(-R*0.35,0);g.lineTo(-R*0.75,-R*0.7);g.closePath();g.fill();g.lineWidth=2*dpr;g.stroke();g.restore()}
       else{g.beginPath();g.arc(p[0],p[1],r,0,7);g.fill();g.stroke()}}
     else{g.beginPath();g.arc(p[0],p[1],r,0,7);g.fill();g.stroke()}
     g.font=`${11*dpr}px JetBrains Mono, monospace`;g.fillStyle=c.me?'#F2C200':'#8C8F98';g.fillText(String(c.place),p[0]+r+(c.me?8:2)*dpr,p[1]-r);g.globalAlpha=1}

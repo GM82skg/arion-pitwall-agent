@@ -16,14 +16,14 @@ AUDIT = r'''(()=>{const BOX='.pn,.tab,.chip,button,.slot,.tyre,.next,.pill,.sc,.
   const r=document.createRange();r.selectNodeContents(n);const tr=r.getBoundingClientRect();if(!tr.width)continue;
   const box=el.closest(BOX)||el.closest('.pn');if(!box)continue;const dock=el.closest('.pn');
   let clip=el;let allowed=false;while(clip&&clip!==box.parentElement){const c=getComputedStyle(clip);if(c.textOverflow==='ellipsis'||clip.classList.contains('tabs')){allowed=true;break}clip=clip.parentElement}
-  if(allowed)continue;const bb=box.getBoundingClientRect(),bc=getComputedStyle(box),pl=parseFloat(bc.paddingLeft)+parseFloat(bc.borderLeftWidth),pr=parseFloat(bc.paddingRight)+parseFloat(bc.borderRightWidth),pb=parseFloat(bc.borderBottomWidth);const b={left:bb.left+pl,right:bb.right-pr,bottom:bb.bottom-pb};
+  if(allowed)continue;const bb=box.getBoundingClientRect(),bc=getComputedStyle(box),zz=box.currentCSSZoom||1,pl=(parseFloat(bc.paddingLeft)+parseFloat(bc.borderLeftWidth))*zz,pr=(parseFloat(bc.paddingRight)+parseFloat(bc.borderRightWidth))*zz,pb=parseFloat(bc.borderBottomWidth)*zz;const b={left:bb.left+pl,right:bb.right-pr,bottom:bb.bottom-pb};
   const db=dock?dock.getBoundingClientRect():null;const vl=!!el.closest('.vlist');if(db&&((!vl&&tr.bottom>db.bottom+1)||tr.right>db.right+1))out.push({text:t.slice(0,40),box:'cut off by panel',over:Math.round(Math.max(tr.bottom-db.bottom,tr.right-db.right))});
   else if(tr.right>b.right+1||tr.left<b.left-1||tr.bottom>b.bottom+1)out.push({text:t.slice(0,40),box:(box.className||box.tagName).toString().slice(0,30),over:Math.round(Math.max(tr.right-b.right,b.left-tr.left,tr.bottom-b.bottom))})}
  // and every small box (cell, chip, tile, button) must itself stay inside its panel's content area
  for(const el of document.querySelectorAll('#app td,#app th,#app .chip,#app .tab,#app .slot,#app .tyre,#app .next,#app button,#app .pill,#app .rl,#app .pty>div,#app .pk>div,#app table')){
   if(!el.getClientRects().length)continue;const pn=el.parentElement&&el.parentElement.closest('.pn');if(!pn)continue;
   let p=el.parentElement,scroll=false;while(p&&p!==pn){if(p.classList.contains('tabs')){scroll=true;break}p=p.parentElement}if(scroll)continue;
-  const r=el.getBoundingClientRect(),bb=pn.getBoundingClientRect(),bc=getComputedStyle(pn),L=bb.left+parseFloat(bc.paddingLeft)+parseFloat(bc.borderLeftWidth),R=bb.right-parseFloat(bc.paddingRight)-parseFloat(bc.borderRightWidth);
+  const r=el.getBoundingClientRect(),bb=pn.getBoundingClientRect(),bc=getComputedStyle(pn),zz=pn.currentCSSZoom||1,L=bb.left+(parseFloat(bc.paddingLeft)+parseFloat(bc.borderLeftWidth))*zz,R=bb.right-(parseFloat(bc.paddingRight)+parseFloat(bc.borderRightWidth))*zz;
   if(r.right>R+1||r.left<L-1)out.push({box:(el.className||el.tagName).toString().slice(0,30),text:el.innerText.trim().slice(0,30),over:Math.round(Math.max(r.right-R,L-r.left))})}
  for(const el of document.querySelectorAll('#app .body,#app .dock,#app .pview,#app .pn'))if(el.getClientRects().length&&el.scrollWidth>el.clientWidth+1)out.push({box:'sideways overflow in '+(el.id||el.className).toString().slice(0,30),over:el.scrollWidth-el.clientWidth});
  const sw=document.documentElement.scrollWidth>innerWidth;return {out,sw}})()'''
@@ -70,6 +70,14 @@ async def main():
                 pw = await pg.evaluate('(()=>{const st=document.createElement("style");st.textContent="#zv{display:inline!important}";document.head.appendChild(st);const r='+HDR+';st.remove();return r})()')
                 chk('the title-bar check catches a real wrap', 'map' in pw, pw)
             await pg.screenshot(path=f'/tmp/fit_d{size[0]}.png')
+        # v0.1.11: the dashboard zoom (− / +): the same audit at the smallest and biggest size on a 1920x1080 screen
+        await pg.set_viewport_size({'width': 1920, 'height': 1080})
+        for z in ['0.8', '1.5']:
+            await pg.evaluate(f'setZoom({z})'); await asyncio.sleep(1.5)
+            a = await pg.evaluate(AUDIT); chk(f'desktop 1920x1080 at {int(float(z)*100)} %: no text outside its box', not a['out'], a)
+            w = await pg.evaluate(HDR); chk(f'desktop 1920x1080 at {int(float(z)*100)} %: every panel title bar on one line', not w, w)
+            await pg.screenshot(path=f'/tmp/fit_z{z}.png')
+        await pg.evaluate('setZoom(1)')
         await br.close()
 asyncio.run(main())
 ag.terminate(); rest.terminate()

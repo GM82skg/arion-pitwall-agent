@@ -3,6 +3,7 @@
 //!   arion-pitwall-agent --key arion_tk_…            stream from Le Mans Ultimate (Windows)
 //!   arion-pitwall-agent --key … --fake               stream a fake car (tests, demos)
 //! Test options: --url, --apikey (another database), --seconds N (stop after N seconds).
+//!   arion-pitwall-agent --update                     the window's «Update now» from the command line
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -15,6 +16,19 @@ fn arg(name: &str) -> Option<String> {
 }
 
 fn main() {
+    arion_pitwall_agent::update::at_start();
+    if std::env::args().any(|a| a == "--update") {
+        use arion_pitwall_agent::update;
+        match update::check(config::VERSION) {
+            Ok(None) => println!("Up to date (v{}).", config::VERSION),
+            Ok(Some(r)) => match update::install(&r) {
+                Ok(exe) => { println!("Updated to v{} ({}).", r.version, exe.display()); }
+                Err(e) => { eprintln!("Update failed: {e}"); std::process::exit(1) }
+            },
+            Err(e) => { eprintln!("Couldn't check for updates: {e}"); std::process::exit(1) }
+        }
+        return;
+    }
     if !std::env::args().any(|a| a == "--key") {
         // --demo: the normal window, streaming a fake car instead of Le Mans Ultimate (for trying everything out)
         if let Err(e) = arion_pitwall_agent::ui::run(std::env::args().any(|a| a == "--demo")) {

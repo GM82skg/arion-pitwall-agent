@@ -70,7 +70,7 @@ async def main():
         order2 = await pg.evaluate('[...document.querySelectorAll(".dcol")].map(c=>[...c.querySelectorAll(".dock")].map(p=>p.dataset.id))')
         chk('layout: kept after reloading the page', order2 == order, order2)
         await pg.click('#lreset'); await asyncio.sleep(0.5)
-        chk('layout: reset restores the default (George’s layout)', await pg.evaluate('[...document.querySelectorAll(".dcol")].map(c=>[...c.querySelectorAll(".dock")].map(d=>d.dataset.id).join("+")).join(" | ")') == 'car+damage+wx+pit | map+inputs+battle | traffic+laps+moments')
+        chk('layout: reset restores the default (George’s layout)', await pg.evaluate('[...document.querySelectorAll(".dcol")].map(c=>[...c.querySelectorAll(".dock")].map(d=>d.dataset.id).join("+")).join(" | ")') == 'car+damage+wx+inputs | map+battle | traffic+laps+pit+moments')   # v0.1.11 default
         chk('no page errors', not errs, errs)
         await br.close()
 asyncio.run(main())

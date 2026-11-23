@@ -9,7 +9,9 @@ Windows only. Needs Le Mans Ultimate 1.2 or newer.
    Windows may warn that the app is from an unknown publisher: **More info → Run anyway.**
 3. Paste the key with **Paste** (or Ctrl+V and **Save**). Done — from now on it just runs.
 
-**Streaming with OBS:** open **My dashboard**, click the chain icon at the top right of a panel, and add the copied link in OBS as a **Browser Source**. It shows that one panel on a transparent background.
+**Streaming with OBS:** open **My dashboard**, click the chain icon at the top right of a panel, choose the background (0 % = see-through) and **Copy link**, then add it in OBS as a **Browser Source**. It shows that one panel.
+
+**Updates:** the app checks for a newer version every 6 hours and shows **Update available**. **Update now** is only offered between sessions (Le Mans Ultimate closed, no coach watching): it downloads the new version, checks it against its SHA-256 and restarts. It never updates on its own.
 
 ### If Chrome or Windows warns
 The app is new and not yet signed with a paid certificate, so Chrome and Windows don't know it yet and warn about
@@ -51,7 +53,9 @@ second monitor. It works only on this PC, needs no login, and doesn't use one of
    Αν τα Windows προειδοποιήσουν για άγνωστο εκδότη: **Περισσότερες πληροφορίες → Εκτέλεση οπωσδήποτε.**
 3. Πάτα **Επικόλληση** (ή Ctrl+V και **Αποθήκευση**). Τέλος — από εκεί και πέρα τρέχει μόνη της.
 
-**Για streaming με OBS:** άνοιξε το **My dashboard**, πάτα το εικονίδιο αλυσίδας πάνω δεξιά σε ένα πάνελ και πρόσθεσε τον σύνδεσμο που αντιγράφηκε στο OBS ως **Browser Source**. Δείχνει μόνο εκείνο το πάνελ, με διάφανο φόντο.
+**Για streaming με OBS:** άνοιξε το **My dashboard**, πάτα το εικονίδιο αλυσίδας πάνω δεξιά σε ένα πάνελ, διάλεξε το φόντο (0 % = διάφανο) και **Copy link**, και πρόσθεσέ το στο OBS ως **Browser Source**. Δείχνει μόνο εκείνο το πάνελ.
+
+**Ενημερώσεις:** η εφαρμογή ελέγχει για νέα έκδοση κάθε 6 ώρες και δείχνει **Διαθέσιμη ενημέρωση**. Το **Ενημέρωση τώρα** εμφανίζεται μόνο ανάμεσα σε συνεδρίες (κλειστό Le Mans Ultimate, κανένας προπονητής): κατεβάζει τη νέα έκδοση, την ελέγχει με το SHA-256 της και επανεκκινεί. Δεν ενημερώνεται ποτέ μόνη της.
 
 ### Αν το Chrome ή τα Windows δείξουν προειδοποίηση
 Η εφαρμογή είναι καινούργια και δεν έχει ακόμα πληρωμένη ψηφιακή υπογραφή, οπότε το Chrome και τα Windows δεν την

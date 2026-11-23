@@ -42,4 +42,6 @@ jobs:
           # A copy with a fixed name, so the crew app's download link always gets the newest version:
           # https://github.com/GM82skg/arion-pitwall-agent/releases/latest/download/ARION-Pit-Wall.exe
           Copy-Item $f "ARION-Pit-Wall.exe"
-          gh release create "${{ github.ref_name }}" $f "ARION-Pit-Wall.exe" --title "ARION Pit Wall ${{ github.ref_name }}" --notes $notes
+          # The app's «Update now» checks the download against this file before using it (since v0.1.16)
+          Set-Content -Path "ARION-Pit-Wall.exe.sha256" -Value "$h  ARION-Pit-Wall.exe" -Encoding ascii
+          gh release create "${{ github.ref_name }}" $f "ARION-Pit-Wall.exe" "ARION-Pit-Wall.exe.sha256" --title "ARION Pit Wall ${{ github.ref_name }}" --notes $notes

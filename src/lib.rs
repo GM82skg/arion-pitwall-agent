@@ -13,3 +13,4 @@ pub mod session;
 pub mod signal;
 pub mod ui;
 pub mod source;
+pub mod update;

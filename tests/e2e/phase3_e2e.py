@@ -31,7 +31,7 @@ async def main():
         pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)[:200]))
         await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(1)
-        chk('version 0.1.10', await pg.evaluate('VERSION') == '0.1.10')
+        chk('dashboard version 0.1.11', await pg.evaluate('VERSION') == '0.1.11')
         # ---------- B ----------
         st = None
         for _ in range(60):
@@ -66,9 +66,18 @@ async def main():
         # ---------- C ----------
         n = await pg.evaluate('document.querySelectorAll(".chain").length')
         chk('C: every panel has a chain icon (10)', n == 10, n)
-        await pg.click('.dock[data-id=map] .chain'); await asyncio.sleep(0.4)
+        await pg.click('.dock[data-id=map] .chain'); await asyncio.sleep(0.3)
+        chk('C: chain opens the OBS popup (background slider, preview, copy)', await pg.evaluate('!!document.querySelector("#obsPop #obsBg")&&!!document.querySelector("#obsPv")&&!!document.querySelector("#obsCopy")'))
+        await pg.evaluate('(()=>{const r=document.querySelector("#obsBg");r.value=60;r.dispatchEvent(new Event("input"))})()')
+        pv = await pg.evaluate('getComputedStyle(document.querySelector("#obsPv")).backgroundColor')
+        chk('C: the preview shows the chosen opacity', pv == 'rgba(22, 23, 26, 0.6)', pv)
+        await pg.click('#obsCopy'); await asyncio.sleep(0.4)
         clip = await pg.evaluate('navigator.clipboard.readText()')
-        chk('C: chain copies the OBS link', clip == 'http://127.0.0.1:6420/?panel=map&obs=1', clip)
+        chk('C: copies the OBS link with the background (&bg=60) and closes', clip == 'http://127.0.0.1:6420/?panel=map&obs=1&bg=60' and not await pg.evaluate('!!document.querySelector("#obsPop")'), clip)
+        await pg.click('.dock[data-id=car] .chain'); await asyncio.sleep(0.3)
+        chk('C: the choice is remembered for the next panel', await pg.evaluate('document.querySelector("#obsBg").value') == '60' and await pg.evaluate('localStorage.getItem("pw-obsbg")') == '60')
+        await pg.keyboard.press('Escape'); await asyncio.sleep(0.2)
+        chk('C: Escape closes the popup', not await pg.evaluate('!!document.querySelector("#obsPop")'))
         note = await pg.evaluate('document.querySelector("#note").innerText')
         chk('C: and says so', 'OBS link copied' in note, note)
         o = await ctx.new_page(); o.on('pageerror', lambda e: errs.append('obs: ' + str(e)[:200]))
@@ -81,10 +90,16 @@ async def main():
               const vb=[...document.querySelectorAll("section.dock button")].filter(b=>b.getClientRects().length).length;
               return {n:s.length,id:s[0]&&s[0].dataset.id,top,bg,vb,txt:(s[0]||{}).innerText||""}})()''')
             chk(f'C: OBS {pid}: only that panel, no top bar, transparent, no frame, no buttons, has content',
-                r['n'] == 1 and r['id'] == pid and r['top'] == 'none' and r['bg'][:3] == ['rgba(0, 0, 0, 0)'] * 3 and r['bg'][3] == '0px' and r['vb'] == 0 and (len(r['txt'].strip()) > 3 or pid in ('map', 'inputs')), r)
+                r['n'] == 1 and r['id'] == pid and r['top'] == 'none' and r['bg'][:2] == ['rgba(0, 0, 0, 0)'] * 2 and r['bg'][2] in ('rgba(0, 0, 0, 0)', 'rgba(22, 23, 26, 0)') and r['bg'][3] == '0px' and r['vb'] == 0 and (len(r['txt'].strip()) > 3 or pid in ('map', 'inputs')), r)
         await o.goto('http://127.0.0.1:6420/?panel=map&obs=1'); await asyncio.sleep(3)
         corner = await o.evaluate('(()=>{const c=document.querySelector("#map");return [...c.getContext("2d").getImageData(1,1,1,1).data]})()')
         chk('C: OBS map canvas is transparent (no dark fill)', corner[3] == 0, corner)
+        await o.goto('http://127.0.0.1:6420/?panel=battle&obs=1&bg=60'); await asyncio.sleep(1.5)
+        b60 = await o.evaluate('getComputedStyle(document.querySelector("section.dock")).backgroundColor')
+        chk('C: &bg=60 gives the panel its colour at 60 %', b60 == 'rgba(22, 23, 26, 0.6)', b60)
+        await o.goto('http://127.0.0.1:6420/?panel=map&obs=1&bg=60'); await asyncio.sleep(3)
+        c60 = await o.evaluate('(()=>{const c=document.querySelector("#map");return [...c.getContext("2d").getImageData(1,1,1,1).data]})()')
+        chk('C: …and the map behind the track too (alpha ≈ 60 %)', abs(c60[3] - 153) <= 2, c60)
         live = await o.evaluate('S.cars.size>0&&S.hist.length>10')
         chk('C: OBS page gets live data with no login', live)
         await o.close()

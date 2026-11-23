@@ -53,6 +53,9 @@ impl Running {
     }
 }
 
+#[derive(Default)]
+struct UpState { busy: bool, err: Option<String>, restart: bool }
+
 pub struct AgentApp {
     t: T,
     key_input: String,
@@ -65,6 +68,10 @@ pub struct AgentApp {
     /// demo mode: fake car instead of LMU; its speed (100 = 1×)
     demo: Option<Arc<std::sync::atomic::AtomicU32>>,
     quitting: bool,
+    /// v0.1.16: «Update now» in progress / its error / done (restart and close)
+    up: Arc<Mutex<UpState>>,
+    #[cfg(windows)]
+    tip_set: bool,
     wordmark: Option<egui::TextureHandle>,
     #[cfg(windows)]
     tray: Option<win::Tray>,
@@ -75,6 +82,17 @@ pub struct AgentApp {
 impl AgentApp {
     pub fn new() -> Self {
         Self::with_demo(false)
+    }
+    /// download, check, swap, start the new version; the window closes this one once it has started
+    fn start_update(&mut self, rel: crate::update::Release) {
+        let up = self.up.clone();
+        *up.lock().unwrap() = UpState { busy: true, ..Default::default() };
+        std::thread::spawn(move || {
+            let r = crate::update::install(&rel).and_then(|exe| crate::update::restart(&exe));
+            let mut u = up.lock().unwrap();
+            u.busy = false;
+            match r { Ok(()) => u.restart = true, Err(e) => u.err = Some(e) }
+        });
     }
     pub fn with_demo(demo: bool) -> Self {
         let mut a = AgentApp {
@@ -88,12 +106,20 @@ impl AgentApp {
             local: crate::local::Local::new(),
             demo: demo.then(|| Arc::new(std::sync::atomic::AtomicU32::new(100))),
             quitting: false,
+            up: Arc::new(Mutex::new(UpState::default())),
+            #[cfg(windows)]
+            tip_set: false,
             wordmark: None,
             #[cfg(windows)]
             tray: None,
             #[cfg(windows)]
             autostart: win::autostart(),
         };
+        // look for a newer version now and every 6 hours (only tells; updating is the driver's click)
+        std::thread::spawn(|| loop {
+            let _ = crate::update::check(config::VERSION);
+            std::thread::sleep(crate::update::EVERY);
+        });
         if let Some(k) = keystore::load() {
             a.start(k);
         } else {
@@ -170,8 +196,19 @@ fn says(t: &T, e: &str) -> String {
 
 impl eframe::App for AgentApp {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // the new version is in place and started: close this one (it waits for us to free the dashboard port)
+        if self.up.lock().unwrap().restart && !self.quitting {
+            self.quitting = true;
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+        }
         #[cfg(windows)]
         {
+            if !self.tip_set {
+                if let (Some(t), Some(r)) = (self.tray.as_ref(), crate::update::available()) {
+                    let _ = t.icon.set_tooltip(Some(format!("ARION Pit Wall · {} v{}", self.t.s("update available:", "διαθέσιμη ενημέρωση:"), r.version)));
+                    self.tip_set = true;
+                }
+            }
             if self.tray.is_none() {
                 self.tray = win::tray(ctx.clone(), self.t.el);
             }
@@ -200,6 +237,7 @@ impl eframe::App for AgentApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         ui.ctx().request_repaint_after(Duration::from_millis(500));
         let st = self.status.lock().unwrap().clone();
+        let mut used_bottom = 0.0f32;
         egui::CentralPanel::default().show(ui, |ui| {
             let wm = self
                 .wordmark
@@ -297,6 +335,27 @@ impl eframe::App for AgentApp {
                     line(ui, GREY, self.t.s("No coach watching", "Κανένας προπονητής δεν βλέπει"));
                 }
             }
+            // v0.1.16: a newer version: «Update now» only between sessions (LMU not running, no coach watching)
+            if let Some(rel) = crate::update::available() {
+                let live = (st.lmu && self.demo.is_none()) || st.viewers > 0;
+                let (busy, err) = { let u = self.up.lock().unwrap(); (u.busy, u.err.clone()) };
+                ui.horizontal(|ui| {
+                    line(ui, AMBER, &format!("{} v{}", self.t.s("Update available:", "Διαθέσιμη ενημέρωση:"), rel.version));
+                    if busy {
+                        ui.label(RichText::new(self.t.s("updating…", "ενημέρωση…")).color(GREY));
+                    } else if live {
+                        ui.label(RichText::new(self.t.s("after the session", "μετά τη συνεδρία")).color(GREY));
+                    } else if ui.small_button(self.t.s("Update now", "Ενημέρωση τώρα")).clicked() {
+                        self.start_update(rel.clone());
+                    }
+                    if ui.small_button(self.t.s("What's new", "Τι νέο")).clicked() {
+                        open_url(&rel.page);
+                    }
+                });
+                if let Some(e) = err {
+                    line(ui, RED, &e);
+                }
+            }
             ui.add_space(6.0);
             #[cfg(windows)]
             {
@@ -313,7 +372,18 @@ impl eframe::App for AgentApp {
             if let Some((ok, m)) = &self.msg {
                 ui.label(RichText::new(m).color(if *ok { GREEN } else { RED }));
             }
+            // where the next widget would go = the end of the contents (the panel's own rect always fills the window)
+            used_bottom = ui.cursor().top() - ui.spacing().item_spacing.y;
         });
+        // v0.1.16: the window is as tall as its contents (demo bar, error lines, the longer Greek), so no text is ever cut off.
+        // Only the height follows; the width stays where the user put it, and the wrapped text decides the height.
+        let ctx = ui.ctx().clone();
+        if let Some(r) = ctx.input(|i| i.viewport().inner_rect) {
+            let want = (used_bottom + 8.0).ceil();   // + the panel's bottom margin
+            if want > 60.0 && (want - r.height()).abs() > 1.5 {
+                ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(r.width(), want)));
+            }
+        }
     }
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
         if let Some(mut r) = self.running.take() {
@@ -366,7 +436,7 @@ pub mod win {
 
     pub enum Ev { Show, Quit }
     pub struct Tray {
-        _icon: TrayIcon,
+        pub icon: TrayIcon,
         pub rx: Receiver<Ev>,
     }
 
@@ -395,7 +465,7 @@ pub mod win {
             };
             if show { let _ = tx2.send(Ev::Show); ctx2.request_repaint(); }
         }));
-        Some(Tray { _icon: tray, rx })
+        Some(Tray { icon: tray, rx })
     }
 
     const RUN: PCWSTR = w!("Software\\Microsoft\\Windows\\CurrentVersion\\Run");
@@ -424,7 +494,7 @@ pub fn run(demo: bool) -> eframe::Result {
             let (rgba, width, height) = icon_rgba();
             egui::ViewportBuilder::default()
                 .with_inner_size([480.0, 250.0])
-                .with_min_inner_size([440.0, 220.0])
+                .with_min_inner_size([440.0, 120.0])
                 .with_title(if demo { "ARION Pit Wall – DEMO" } else { "ARION Pit Wall" })
                 .with_icon(std::sync::Arc::new(egui::IconData { rgba, width, height }))
                 .with_visible(!std::env::args().any(|a| a == "--tray"))
