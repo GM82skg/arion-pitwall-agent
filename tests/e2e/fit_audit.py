@@ -78,6 +78,12 @@ async def main():
             w = await pg.evaluate(HDR); chk(f'desktop 1920x1080 at {int(float(z)*100)} %: every panel title bar on one line', not w, w)
             await pg.screenshot(path=f'/tmp/fit_z{z}.png')
         await pg.evaluate('setZoom(1)')
+        # v0.1.12: the standings (Full grid · All) at the widest and narrowest desktop sizes
+        await pg.click('#gAll'); await pg.click('#gcls button[data-c="All"]')
+        for size in [(1920, 1080), (1024, 768)]:
+            await pg.set_viewport_size({'width': size[0], 'height': size[1]}); await asyncio.sleep(1.5)
+            chk(f'standings {size[0]}: class headers shown', await pg.evaluate('document.querySelectorAll("#laps tr.ch").length') >= 2)
+            a = await pg.evaluate(AUDIT); chk(f'standings {size[0]}x{size[1]}: no text outside its box', not a['out'], a)
         await br.close()
 asyncio.run(main())
 ag.terminate(); rest.terminate()

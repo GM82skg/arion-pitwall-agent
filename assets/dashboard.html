@@ -179,6 +179,9 @@ body.phone .strat{left:8px;right:8px;width:auto}
 .sbt .best{background:#3A3008;color:var(--y);font-weight:700}.sb.soon .sbt .best{background:#3A2A08;color:var(--a)}.sbt .best .ow{color:inherit}
 .sbn{font-size:11px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.est{padding:0 5px;border-radius:4px;background:#2A1F08;color:var(--a)}
 .cv:has(.strat:not(:empty)) .flags{top:auto;bottom:8px}
+/* v0.1.12: standings */
+.st tr.ch td{background:#1F2024;padding:4px 7px;font-size:12px}.st tr.me td{background:#2A2400}.st td.nm{max-width:0;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st .gp{text-align:right;white-space:nowrap}.st .pb{color:var(--p);font-weight:600}.st .chip{padding:0 5px;font-size:10px}
 .pnav button.dot b{position:relative}.pnav button.dot b::after{content:'';position:absolute;top:0;right:-7px;width:8px;height:8px;border-radius:50%;background:var(--y)}
 </style>
 </head>
@@ -204,7 +207,7 @@ body.phone .strat{left:8px;right:8px;width:auto}
 <script>
 'use strict';
 // ARION Pit Wall dashboard. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1; comparison frames since v0.1.15).
-const VERSION='0.1.11';
+const VERSION='0.1.12';
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
 const CFG={url:'https://isuiksufkyishdowejob.supabase.co',key:'sb_publishable_DMqGCrW9YEmzEN2_cP67-w_ljr1JBo9'};
@@ -470,7 +473,7 @@ const BODY={
   wx:`<div id="wx" class="body"></div>`,
   laps:`<div class="ph"><b>Laps and sectors</b><span class="grow"></span><button id="gMine" class="${S.gridTab==='mine'?'on':''}">This car</button><button id="gAll" class="${S.gridTab==='all'?'on':''}">Full grid</button>${chain('laps')}</div>
     <div id="gcls" class="tb"></div><div id="laps" class="body vlist"></div>
-    <div class="lg" style="margin-top:6px"><span><span class="sc pu">class best</span></span><span><span class="sc gn">personal best</span></span><span><span class="sc yl">+0.3 s</span></span><span id="theo"></span></div>`,
+    <div class="lg" style="margin-top:6px"><span><span class="sc pu">class best</span></span><span class="lsec"><span class="sc gn">personal best</span></span><span class="lsec"><span class="sc yl">+0.3 s</span></span><span id="theo"></span></div>`,
 };
 function dashView(){
   if(OBS)return obsView();
@@ -760,16 +763,28 @@ function scCls(x,pb,cb){if(!(x>0))return '';if(cb&&x<=cb+1e-4)return 'pu';if(pb&
 function paintLaps(){
   const el=$('#laps'),j=S.slow;if(!el||!j)return;const me=j.grid.find(g=>g.player)||{},meC=S.per.get(me.id);
   const cb=i=>S.clsBest.get(CLSN(me.class)+i);
-  if(S.gridTab==='mine'){$('#gcls').innerHTML='';
+  if(S.gridTab==='mine'){$('#gcls').innerHTML='';document.querySelectorAll('.lsec').forEach(e=>e.style.display='');
     el.innerHTML=S.laps.length?`<table class="t"><tr><th>Lap</th><th>Driver</th><th>S1</th><th>S2</th><th>S3</th><th>Time</th><th>Δ best</th></tr>${S.laps.map(l=>{const s=l.sec;
       return `<tr><td class="mu">${l.lap}</td><td class="mu">${esc((l.driver||'').split(' ').map(x=>x[0]).join(''))}</td>${[0,1,2].map(i=>`<td><span class="sc ${l.valid&&s?scCls(s[i],meC&&meC.best[i],cb(i)):''}">${s?s[i].toFixed(3):'–'}</span></td>`).join('')}<td>${fmtLap(l.time)}${l.valid?'':' <span class="r">✕</span>'}</td><td class="mu">${l.valid&&me.best>0?((l.time-me.best)>=0?'+':'−')+Math.abs(l.time-me.best).toFixed(3):l.pit?'pit':''}</td></tr>`}).join('')}</table>`:'<div class="mu">No laps yet.</div>';
     const b=meC&&meC.best;$('#theo').innerHTML=b&&b.every(x=>x<9e8)?`ideal ${fmtLap(b[0]+b[1]+b[2])}`:'';return}
-  const classes=[...new Set(j.grid.map(g=>CLSN(g.class)))];if(!S.gridCls||(S.gridCls!=='All'&&!classes.includes(S.gridCls)))S.gridCls=CLSN(me.class);
+  document.querySelectorAll('.lsec').forEach(e=>e.style.display='none');   // sector colours don't apply here
+  // v0.1.12: standings, like a broadcast: classes fastest first (by the class's best lap), a header per class,
+  // position in class, car number and driver, gap to the class leader (or laps down), fastest and last lap, PIT
+  const L=S.trackLen>100?S.trackLen:null,prog=g=>{const c=S.cars.get(g.id);return L&&c?g.laps+c.dist/L:null};
+  const by=new Map();for(const g of j.grid){const k=CLSN(g.class);if(!by.has(k))by.set(k,[]);by.get(k).push(g)}
+  const FIX=['HY','P2','P3','GTE','GT3'],cbest=k=>Math.min(...by.get(k).map(g=>g.best>0?g.best:9e9));
+  const classes=[...by.keys()].sort((a,b)=>cbest(a)-cbest(b)||FIX.indexOf(a)-FIX.indexOf(b));
+  if(!S.gridCls||(S.gridCls!=='All'&&!classes.includes(S.gridCls)))S.gridCls=CLSN(me.class);
   $('#gcls').innerHTML=['All',...classes].map(c=>`<button class="${S.gridCls===c?'on':''}" data-c="${c}">${esc(c)}</button>`).join('');
   document.querySelectorAll('#gcls button').forEach(b=>b.onclick=()=>{S.gridCls=b.dataset.c;paintLaps()});
-  const rows=j.grid.filter(g=>S.gridCls==='All'||CLSN(g.class)===S.gridCls).sort((a,b)=>CLSN(a.class).localeCompare(CLSN(b.class))||a.place-b.place);
-  el.innerHTML=`<table class="t"><tr><th>P</th><th>Driver</th><th>S1</th><th>S2</th><th>S3</th><th>Last</th><th>Best</th></tr>${rows.map(g=>{const s=secs(g.s1,g.s2,g.last),c=S.per.get(g.id),k=CLSN(g.class);
-    return `<tr${g.player?' style="background:#2A2400"':''}><td class="mu">${g.place}</td><td${g.player?' class="y"':''}>${esc(g.name)}</td>${[0,1,2].map(i=>`<td><span class="sc ${s?scCls(s[i],c&&c.best[i],S.clsBest.get(k+i)):''}">${s?s[i].toFixed(3):'–'}</span></td>`).join('')}<td>${fmtLap(g.last)}</td><td class="${g.best>0&&rows.filter(x=>CLSN(x.class)===k&&x.best>0).every(x=>x.best>=g.best)?'r" style="color:var(--p)':''}">${fmtLap(g.best)}</td></tr>`}).join('')}</table>`;
+  const FULL={HY:'Hypercar',P2:'LMP2',P3:'LMP3',GTE:'GTE',GT3:'GT3'};
+  const body=classes.filter(k=>S.gridCls==='All'||k===S.gridCls).map(k=>{const cars=by.get(k).sort((a,b)=>a.place-b.place),ld=cars[0],col=CLS(ld.class),fb=cbest(k);
+    const head=`<tr class="ch"><td colspan="5" style="box-shadow:inset 3px 0 0 ${col};padding-left:10px"><b>${esc(FULL[k]||ld.class||k)}</b> <span class="mu">${cars.length} car${cars.length>1?'s':''}</span></td></tr>`;
+    return head+cars.map((g,i)=>{let gap='–';
+      if(i){const pl=prog(ld),pg=prog(g),down=pl!=null&&pg!=null?Math.floor(pl-pg):Math.max(0,ld.laps-g.laps-1);
+        if(down>=1)gap=down+'L';else{const t=g.behindLeader-ld.behindLeader;gap=isFinite(t)&&t>=0?t.toFixed(1):'–'}}
+      return `<tr${g.player?' class="me"':''}><td class="mu" style="box-shadow:inset 3px 0 0 ${col};padding-left:8px">${i+1}</td><td class="nm"><span class="mu">${carNo(g)}</span> <span${g.player?' class="y"':''}>${esc(g.name)}</span>${g.pits?' <span class="chip a">PIT</span>':''}</td><td class="gp">${gap}</td><td class="gp"><span class="${g.best>0&&g.best<=fb?'pb':''}">${fmtLap(g.best)}</span></td><td class="gp">${fmtLap(g.last)}</td></tr>`}).join('')}).join('');
+  el.innerHTML=`<table class="t st"><tr><th>P</th><th>Driver</th><th class="gp">Gap</th><th class="gp">Fastest</th><th class="gp">Last</th></tr>${body}</table>`;
   $('#theo').innerHTML='';
 }
 function paintTraffic(){

@@ -1,12 +1,15 @@
 """v0.1.16 updates, end to end against a stand-in for GitHub: check, download, checksum, swap, cleanup, port wait."""
 import hashlib, http.server, json, os, shutil, socket, subprocess, sys, tempfile, threading, time
 BIN = os.path.abspath(sys.argv[1]); ok = fail = 0
+import re
+CUR = re.search(r'^version = "([^"]+)"', open(os.path.join(os.path.dirname(__file__), '..', '..', 'Cargo.toml')).read(), re.M).group(1)   # this app's version
+a, b, c = map(int, CUR.split('.')); OLDER = f'v{a}.{b}.{c - 1}' if c else f'v{a}.{b - 1}.99'
 def chk(n, c, info=''):
     global ok, fail
     if c: ok += 1; print('PASS', n)
     else: fail += 1; print('FAIL', n, str(info)[:400])
 NEW = b'#!/bin/sh\necho "new version $@"\n'
-STATE = {'tag': 'v0.1.16', 'sum': hashlib.sha256(NEW).hexdigest(), 'with_sum': True, 'hits': 0}
+STATE = {'tag': 'v' + CUR, 'sum': hashlib.sha256(NEW).hexdigest(), 'with_sum': True, 'hits': 0}
 class H(http.server.BaseHTTPRequestHandler):
     def log_message(self, *a): pass
     def do_GET(self):
@@ -24,15 +27,15 @@ class H(http.server.BaseHTTPRequestHandler):
         self.send_response(200); self.send_header('Content-Length', str(len(body))); self.end_headers(); self.wfile.write(body)
 srv = http.server.ThreadingHTTPServer(('127.0.0.1', 0), H); threading.Thread(target=srv.serve_forever, daemon=True).start()
 env = {**os.environ, 'ARION_UPDATE_API': f'http://127.0.0.1:{srv.server_port}/latest'}
-d = tempfile.mkdtemp(); exe = os.path.join(d, 'ARION-Pit-Wall-v0.1.16.exe')
+d = tempfile.mkdtemp(); exe = os.path.join(d, f'ARION-Pit-Wall-v{CUR}.exe')
 def fresh(): shutil.copy(BIN, exe); [os.remove(os.path.join(d, f)) for f in os.listdir(d) if f.endswith(('.old', '.new'))]
 def run(*a): return subprocess.run([exe, *a], env=env, capture_output=True, text=True, timeout=60)
 orig = open(BIN, 'rb').read()
 
 fresh(); r = run('--update')
-chk('same version on GitHub → «Up to date», nothing changed', 'Up to date (v0.1.16)' in r.stdout and open(exe, 'rb').read() == orig, (r.stdout, r.stderr))
-chk('asks GitHub as «ARION-Pit-Wall/<version>»', STATE.get('ua') == 'ARION-Pit-Wall/0.1.16', STATE.get('ua'))
-STATE['tag'] = 'v0.1.15'; r = run('--update')
+chk('same version on GitHub → «Up to date», nothing changed', f'Up to date (v{CUR})' in r.stdout and open(exe, 'rb').read() == orig, (r.stdout, r.stderr))
+chk('asks GitHub as «ARION-Pit-Wall/<version>»', STATE.get('ua') == f'ARION-Pit-Wall/{CUR}', STATE.get('ua'))
+STATE['tag'] = OLDER; r = run('--update')
 chk('an older release is never offered', 'Up to date' in r.stdout, r.stdout)
 STATE['tag'] = 'v0.1.99'; STATE['with_sum'] = False; r = run('--update')
 chk('a release without a checksum file is never offered', 'Up to date' in r.stdout and open(exe, 'rb').read() == orig, r.stdout)
@@ -44,7 +47,7 @@ chk('the old version is kept as .old until the next start', open(exe[:-4] + '.ol
 out = subprocess.run([exe, '--x'], capture_output=True, text=True).stdout
 chk('the new file is the one that runs', out.strip() == 'new version --x', out)
 # next start removes the .old file
-fresh(); open(exe[:-4] + '.old', 'wb').write(b'leftover'); STATE['tag'] = 'v0.1.16'; run('--update')
+fresh(); open(exe[:-4] + '.old', 'wb').write(b'leftover'); STATE['tag'] = 'v' + CUR; run('--update')
 chk('the next start removes the leftover .old', not os.path.exists(exe[:-4] + '.old'))
 # after an update the new app waits for the old one to free 127.0.0.1:6420 (My dashboard and OBS links keep their address)
 s = socket.socket(); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(('127.0.0.1', 6420)); s.listen(1)
