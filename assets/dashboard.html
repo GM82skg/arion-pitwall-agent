@@ -131,7 +131,7 @@ body.phone .tab{flex:none}
 .pview .pn{border-radius:12px}
 .pnav{flex:none;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ln);background:#141517;padding-bottom:env(safe-area-inset-bottom)}
 .pnav button{background:none;border:0;border-radius:0;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 10px;font-size:11px}
-.pnav button b{font-size:19px;font-weight:400;line-height:1.1}.pnav button.on{color:var(--y)}
+.pnav button b{display:block;width:22px;height:22px;line-height:0}.pnav button b svg{width:22px;height:22px;display:block}.pnav button.on{color:var(--y)}
 .pk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.pk .mu{font-size:12px}
 .pty{display:grid;grid-template-columns:1fr 1fr;gap:6px}.pty div{border-radius:8px;padding:7px 9px;font-family:var(--mono);font-size:13px}
 .pview .cv{min-height:0;flex:1}
@@ -210,7 +210,7 @@ body.phone .strat{left:8px;right:8px;width:auto}
 <script>
 'use strict';
 // ARION Pit Wall dashboard. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1; comparison frames since v0.1.15).
-const VERSION='0.1.13';
+const VERSION='0.1.14';
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
 const CFG={url:'https://isuiksufkyishdowejob.supabase.co',key:'sb_publishable_DMqGCrW9YEmzEN2_cP67-w_ljr1JBo9'};
@@ -566,7 +566,12 @@ function movePanel(id,t){
 
 // ---------- phone layout (v0.1.6): five tabs — Car · Map · Timing · Strategy · Inputs ----------
 let PHONE=false,PTAB='car';
-const PT=[['car','◉','Car'],['map','⌖','Map'],['timing','☰','Timing'],['strat','⚑','Strategy']];
+// v0.1.14: the tab icons are drawn here (line icons, same size and weight) instead of text characters, which every phone drew differently
+const PI=d=>`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const PT=[['car',PI('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M10 12l-6.8-1.4M14 12l6.8-1.4M12 14v7"/>'),'Car'],
+  ['map',PI('<path d="M3 6.5l6-3 6 3 6-3v14l-6 3-6-3-6 3z"/><path d="M9 3.5v14M15 6.5v14"/>'),'Map'],
+  ['timing',PI('<path d="M9.5 6h11M9.5 12h11M9.5 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.8"/>'),'Timing'],
+  ['strat',PI('<path d="M5.5 21V4"/><path d="M5.5 4h12l-2.5 4.5 2.5 4.5h-12"/>'),'Strategy']];
 function checkPhone(){const was=PHONE,land=innerWidth>innerHeight;PHONE=!OBS&&Math.min(innerWidth,innerHeight)<600;applyZoom();
   document.body.classList.toggle('phone',PHONE);document.body.classList.toggle('land',PHONE&&land&&PTAB==='map');
   if(was!==PHONE&&$('#view').dataset.k){ $('#view').dataset.k='';dashView()}}

@@ -19,6 +19,23 @@ async def main():
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(16)
         E = pg.evaluate
         chk('phone layout on, four tabs at the bottom', await E('PHONE') and await E('document.querySelectorAll(".pnav button").length') == 4)
+        # v0.1.14: tab icons are drawn line icons, all the same size and weight, centred over their label; selected = yellow
+        NAV = """(()=>{const bs=[...document.querySelectorAll('.pnav button')];const y=getComputedStyle(document.documentElement).getPropertyValue('--y').trim();
+          const t=document.createElement('i');t.style.color=y;document.body.appendChild(t);const yc=getComputedStyle(t).color;t.remove();
+          return {bar:Math.round(document.querySelector('.pnav').getBoundingClientRect().height),yc,items:bs.map(b=>{const i=b.querySelector('b'),sv=i&&i.querySelector('svg'),r=sv?sv.getBoundingClientRect():null,br=b.getBoundingClientRect(),lb=[...b.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('');
+            return {t:b.dataset.t,svg:!!sv,glyph:i?i.textContent.trim():'',w:r?Math.round(r.width):0,h:r?Math.round(r.height):0,sw:sv?sv.getAttribute('stroke-width'):null,
+              cx:r?Math.abs((r.left+r.right)/2-(br.left+br.right)/2):99,col:getComputedStyle(b).color,ic:sv?getComputedStyle(sv).color:'',on:b.classList.contains('on'),label:lb}})}})()"""
+        def navok(n):
+            its = n['items']
+            return (len(its) == 4 and all(i['svg'] and i['glyph'] == '' and i['w'] == 22 and i['h'] == 22 and i['sw'] == '1.8' and i['cx'] <= 1 for i in its))
+        n = await E(NAV)
+        chk('tab bar: four drawn icons, 22 px, same line weight, centred, no text characters', navok(n), n)
+        chk('tab bar: labels Car · Map · Timing · Strategy', [i['label'] for i in n['items']] == ['Car', 'Map', 'Timing', 'Strategy'], [i['label'] for i in n['items']])
+        chk('tab bar: only the selected tab is yellow (icon and label)', [i['col'] == n['yc'] and i['ic'] == n['yc'] for i in n['items']] == [i['on'] for i in n['items']] == [True, False, False, False], n['items'])
+        chk('tab bar: no taller than before (≤ 60 px)', n['bar'] <= 60, n['bar'])
+        planted = dict(n); planted['items'] = [dict(n['items'][0], svg=False, glyph='◉')] + n['items'][1:]
+        chk('tab bar check catches a planted text icon', not navok(planted))
+        print('    tab bar height', n['bar'])
         t = await E('document.querySelector("#pcar").innerText')
         chk('Car tab: delta row, lap times, ahead/behind, energy, tyres, damage, moments', all(x in t for x in ['proj', 'pot', 'Last', 'Best', 'Laps', 'Behind', 'Energy', 'FL', 'Damage', 'Aero 14%']), t[:300])
         sw = lambda: E('[document.documentElement.scrollWidth, innerWidth]')
@@ -30,6 +47,7 @@ async def main():
             await pg.click(f'.pnav button[data-t="{tab}"]'); await asyncio.sleep(1.2)
             chk(f'{tab} tab shows its content', await E(test), await E('[S.laps.length, document.querySelectorAll("#laps tr").length, S.gridTab, document.querySelector("#laps")?.innerText.slice(0,80)]'))
             r = await sw(); chk(f'{tab} tab: no sideways scrolling', r[0] <= r[1], r)
+            n = await E(NAV); chk(f'{tab} tab: yellow moves to {tab}', [i['col'] == n['yc'] for i in n['items']] == [i['t'] == tab for i in n['items']], [(i['t'], i['col']) for i in n['items']])
             await pg.screenshot(path=f'/tmp/ph_{tab}.png')
         await pg.click('.pnav button[data-t="timing"]'); await asyncio.sleep(0.6)
         fits = await E('(()=>{const t=document.querySelector("#laps table"),p=document.querySelector("#laps");return t?Math.round(t.getBoundingClientRect().right)<=Math.round(p.getBoundingClientRect().right)+1:false})()')

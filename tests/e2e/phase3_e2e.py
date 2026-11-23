@@ -32,7 +32,7 @@ async def main():
         pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)[:200]))
         await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(1)
-        chk('dashboard version 0.1.13', await pg.evaluate('VERSION') == '0.1.13')
+        chk('dashboard version 0.1.14', await pg.evaluate('VERSION') == '0.1.14')
         # ---------- B ----------
         st = None
         for _ in range(60):
@@ -60,7 +60,7 @@ async def main():
         # the map draws the ghost (purple ring) and the braking markers: count purple pixels on the canvas
         purple = await pg.evaluate('''(()=>{const c=document.querySelector("#map"),g=c.getContext("2d"),d=g.getImageData(0,0,c.width,c.height).data;let n=0;
             for(let i=0;i<d.length;i+=4)if(Math.abs(d[i]-0xC9)<8&&Math.abs(d[i+1]-0xA8)<8&&Math.abs(d[i+2]-0xFF)<8)n++;return n})()''')
-        chk('B: ghost and braking markers drawn on the map (purple)', purple > 60, purple)
+        chk('B: ghost and braking markers drawn on the map (purple)', purple > 60, purple); print('    purple pixels', purple)
         await asyncio.sleep(1)   # switching the delta clears the trail's old colours on purpose
         cols = await pg.evaluate('(()=>{const t=S.trail.slice(-25);return [t.length,t.filter(p=>p[2]!=null).length]})()')
         chk('B: the trail carries the delta (for green/red)', cols[0] >= 20 and cols[1] >= cols[0] - 2, cols)
