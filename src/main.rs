@@ -16,7 +16,8 @@ fn arg(name: &str) -> Option<String> {
 
 fn main() {
     if !std::env::args().any(|a| a == "--key") {
-        if let Err(e) = arion_pitwall_agent::ui::run() {
+        // --demo: the normal window, streaming a fake car instead of Le Mans Ultimate (for trying everything out)
+        if let Err(e) = arion_pitwall_agent::ui::run(std::env::args().any(|a| a == "--demo")) {
             eprintln!("{e}");
         }
         return;
@@ -57,7 +58,7 @@ fn main() {
         tokio::time::sleep(std::time::Duration::from_millis(500)).await;
         if let Some(u) = lc2.url() { println!("My dashboard: {u}"); }
     });
-    rt.block_on(session::run(door, src, status, rep.clone(), lc, sp));
+    rt.block_on(session::run(door, src, status, rep.clone(), lc, sp, false));
     if let Some(p) = arg("--report") {
         let _ = std::fs::write(p, rep.lock().unwrap().text(config::VERSION, None));
     }

@@ -36,7 +36,7 @@ fn set(status: &Arc<Mutex<Status>>, f: impl FnOnce(&mut Status)) {
 }
 
 /// Runs until `stop` is set. Never panics on network errors: it reports them and retries.
-pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<Mutex<Status>>, report: Arc<Mutex<Report>>, local: crate::local::Local, stop: Arc<AtomicBool>) {
+pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<Mutex<Status>>, report: Arc<Mutex<Report>>, local: crate::local::Local, stop: Arc<AtomicBool>, demo: bool) {
     let hub = Hub::new();
 
     // Telemetry: read the game at 100 Hz (so the report can see LMU's own update rate), send at most
@@ -48,7 +48,7 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
     let live_on = Arc::new(AtomicBool::new(false));
     {
         let (l, st, on) = (live.clone(), stop.clone(), live_on.clone());
-        std::thread::spawn(move || l.run(rest::BASE.to_string(), st, on));
+        if demo { l.demo() } else { std::thread::spawn(move || l.run(rest::BASE.to_string(), st, on)); }
     }
     let telemetry = tokio::spawn(async move {
         let mut tick = tokio::time::interval(Duration::from_millis(10));
@@ -119,7 +119,8 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
     // Connection setup with coaches, through the database.
     'outer: while !stop.load(Ordering::Relaxed) {
         set(&status, |s| { s.state = "connecting".into(); s.error = None; });
-        let hello = match call(&door, "hello", json!({ "version": config::VERSION })).await.and_then(|v| signal::parse_hello(&v)) {
+        let version = if demo { format!("{}-demo", config::VERSION) } else { config::VERSION.to_string() };
+        let hello = match call(&door, "hello", json!({ "version": version })).await.and_then(|v| signal::parse_hello(&v)) {
             Ok(h) => h,
             Err(e) => {
                 set(&status, |s| { s.state = "error".into(); s.error = Some(e); });

@@ -158,7 +158,7 @@ body.phone.land .pview{padding:8px calc(10px + env(safe-area-inset-right)) 8px c
 <script>
 'use strict';
 // ARION Pit Wall dashboard — Phase 1. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1).
-const VERSION='0.1.7';
+const VERSION='0.1.8';
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
 const CFG={url:'https://isuiksufkyishdowejob.supabase.co',key:'sb_publishable_DMqGCrW9YEmzEN2_cP67-w_ljr1JBo9'};
@@ -231,7 +231,7 @@ function alertOf(s){if(!s.alert_at||!s.alert_level||s.id===SEL)return null;const
   return t>(SEENAT[s.id]??OPENED-600000)?{lvl:s.alert_level,txt:s.alert_text}:null}
 function paintTabs(){
   if(SEL)SEENAT[SEL]=Date.now();
-  $('#tabs').innerHTML=SESS.map((s,i)=>{const a=alertOf(s);return `<span class="tab${s.id===SEL?' on':''}" data-id="${s.id}"><span class="${s.id===SEL?'y':'mu'}">Car ${i+1}</span><span>${esc(s.team?s.team.name:'Practice')}</span><span class="mu">${esc(s.driver)}</span>${a?`<span class="adot ${a.lvl>1?'red':'amb'}"></span><span class="${a.lvl>1?'r':'a'}">${esc(a.txt)}</span>`:''}</span>`}).join('');
+  $('#tabs').innerHTML=SESS.map((s,i)=>{const a=alertOf(s);return `<span class="tab${s.id===SEL?' on':''}" data-id="${s.id}"><span class="${s.id===SEL?'y':'mu'}">Car ${i+1}</span><span>${esc(s.team?s.team.name:'Practice')}</span><span class="mu">${esc(s.driver)}</span>${/-demo$/.test(s.agent_version||'')?'<span class="chip a" style="background:#2A1F08;font-size:11px;padding:0 6px">DEMO</span>':''}${a?`<span class="adot ${a.lvl>1?'red':'amb'}"></span><span class="${a.lvl>1?'r':'a'}">${esc(a.txt)}</span>`:''}</span>`}).join('');
   document.querySelectorAll('.tab').forEach(e=>e.onclick=()=>select(e.dataset.id));
 }
 function emptyState(){$('#sess').textContent='';$('#link').textContent='';
@@ -456,7 +456,7 @@ function pinchZoom(cv){let d0=null,z0=1;const dist=t=>Math.hypot(t[0].clientX-t[
   cv.addEventListener('touchend',()=>{d0=null},{passive:true})}
 function paintPhone(){
   const j=S.slow;
-  if(j){const se=j.session;$('#sess').innerHTML=`${esc(se.track)} · ${fmtLeft(se.left)}`+(se.yellow>0?' · <span class="a">yellow</span>':' · <span class="g">green</span>')}
+  if(j){const se=j.session;$('#sess').innerHTML=(S.rest&&S.rest.demo?'<span class="a">DEMO</span> · ':'')+`${esc(se.track)} · ${fmtLeft(se.left)}`+(se.yellow>0?' · <span class="a">yellow</span>':' · <span class="g">green</span>')}
   if(PTAB==='car')return paintPhoneCar();
   if(!j)return;const me=j.grid.find(g=>g.player)||{};
   if(PTAB==='timing')paintLaps();
@@ -537,7 +537,7 @@ function paintPanels(){
   if(PHONE)return paintPhone();
   const j=S.slow,car=$('#car');if(!car)return;
   const sel=SESS.find(s=>s.id===SEL);
-  if(j){const se=j.session;$('#sess').innerHTML=`${esc(se.track)} · ${SESSN(se.type)} · ${fmtLeft(se.left)}`+(se.yellow>0?' · <span class="a">yellow</span>':'')}
+  if(j){const se=j.session;$('#sess').innerHTML=(S.rest&&S.rest.demo?'<span class="chip a" style="background:#2A1F08;padding:0 6px">DEMO</span> ':'')+`${esc(se.track)} · ${SESSN(se.type)} · ${fmtLeft(se.left)}`+(se.yellow>0?' · <span class="a">yellow</span>':'')}
   if(!j){car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:'')}</b><span class="mu">${esc(sel&&sel.team?sel.team.name:'practice')}</span></div><div class="mu">${LINK&&LINK.state==='live'?(LOCAL?'Waiting for Le Mans Ultimate (on track)…':'Waiting for the driver to be on track…'):'Connecting to the driver’s app…'}</div>`;['#traffic','#pitw','#moments','#battle','#wx','#laps','#dmg'].forEach(k=>{const e=$(k);if(e)e.innerHTML=''});return}
   const me=j.grid.find(g=>g.player)||{},c=j.car,w=c.wheels||[],R=S.rest||{};
   const cls=me.class,inCls=j.grid.filter(g=>g.class===cls).sort((a,b)=>a.place-b.place),pic=inCls.findIndex(g=>g.id===me.id)+1;

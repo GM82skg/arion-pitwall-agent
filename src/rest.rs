@@ -114,6 +114,15 @@ impl Live {
         d[key] = v;
         d["at"] = json!(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|x| x.as_secs()).unwrap_or(0));
     }
+    /// Demo mode: LMU isn't running, so fill in a forecast (rain coming), some wear and a pit estimate.
+    pub fn demo(&self) {
+        let node = |sky: i64, t: f64, r: f64| json!({"WNV_SKY":{"currentValue":sky},"WNV_TEMPERATURE":{"currentValue":t},"WNV_RAIN_CHANCE":{"currentValue":r}});
+        let fc = json!({"START":node(0,24.0,0.0),"NODE_25":node(2,23.0,10.0),"NODE_50":node(3,21.0,30.0),"NODE_75":node(7,20.0,60.0),"FINISH":node(8,19.0,80.0)});
+        self.set("forecast", parse_forecast(&json!({"PRACTICE":fc,"QUALIFY":fc,"RACE":fc})));
+        self.set("wear", parse_wear(&json!({"wearables":{"body":{"aero":0.08},"suspension":[0.03,0,0,0.01],"brakes":[0.032,0.031,0.028,0.028]},"fuelInfo":{"maxVirtualEnergy":100.0}})));
+        self.set("pit", json!({"total": 34.6, "repair": 6.2}));
+        self.set("demo", json!(true));
+    }
     /// Runs on its own thread: wear/damage and pit stop estimate every 2 s, forecast every 30 s.
     pub fn run(&self, base: String, stop: Arc<AtomicBool>, active: Arc<AtomicBool>) {
         let a = agent2();

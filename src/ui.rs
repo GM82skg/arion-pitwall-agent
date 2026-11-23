@@ -33,13 +33,14 @@ struct Running {
     thread: Option<std::thread::JoinHandle<()>>,
 }
 impl Running {
-    fn start(key: String, status: Arc<Mutex<session::Status>>, report: Arc<Mutex<Report>>, local: crate::local::Local) -> Self {
+    fn start(key: String, status: Arc<Mutex<session::Status>>, report: Arc<Mutex<Report>>, local: crate::local::Local, demo: Option<Arc<std::sync::atomic::AtomicU32>>) -> Self {
         let stop = Arc::new(AtomicBool::new(false));
         let sp = stop.clone();
         let thread = std::thread::spawn(move || {
             let rt = tokio::runtime::Builder::new_multi_thread().enable_all().build().expect("runtime");
             let door: Arc<dyn signal::Door> = Arc::new(signal::Supabase::new(config::SUPABASE_URL, config::SUPABASE_KEY, &key));
-            rt.block_on(session::run(door, source::game(), status, report, local, sp));
+            let src: Box<dyn source::Source> = match &demo { Some(sp) => Box::new(source::FakeSource::demo(sp.clone())), None => source::game() };
+            rt.block_on(session::run(door, src, status, report, local, sp, demo.is_some()));
             rt.shutdown_timeout(Duration::from_secs(2));
         });
         Running { stop, thread: Some(thread) }
@@ -61,6 +62,8 @@ pub struct AgentApp {
     report: Arc<Mutex<Report>>,
     running: Option<Running>,
     local: crate::local::Local,
+    /// demo mode: fake car instead of LMU; its speed (100 = 1×)
+    demo: Option<Arc<std::sync::atomic::AtomicU32>>,
     quitting: bool,
     wordmark: Option<egui::TextureHandle>,
     #[cfg(windows)]
@@ -71,6 +74,9 @@ pub struct AgentApp {
 
 impl AgentApp {
     pub fn new() -> Self {
+        Self::with_demo(false)
+    }
+    pub fn with_demo(demo: bool) -> Self {
         let mut a = AgentApp {
             t: T { el: greek() },
             key_input: String::new(),
@@ -80,6 +86,7 @@ impl AgentApp {
             report: Arc::new(Mutex::new(Report::default())),
             running: None,
             local: crate::local::Local::new(),
+            demo: demo.then(|| Arc::new(std::sync::atomic::AtomicU32::new(100))),
             quitting: false,
             wordmark: None,
             #[cfg(windows)]
@@ -99,7 +106,7 @@ impl AgentApp {
             r.stop();
         }
         *self.status.lock().unwrap() = session::Status::default();
-        self.running = Some(Running::start(key, self.status.clone(), self.report.clone(), self.local.clone()));
+        self.running = Some(Running::start(key, self.status.clone(), self.report.clone(), self.local.clone(), self.demo.clone()));
     }
     fn save_key(&mut self) {
         let k = self.key_input.trim().to_string();
@@ -207,6 +214,19 @@ impl eframe::App for AgentApp {
                     ui.label(RichText::new(format!("v{}", config::VERSION)).color(GREY));
                 });
             });
+            if let Some(sp) = &self.demo {
+                ui.add_space(4.0);
+                egui::Frame::new().fill(Color32::from_rgb(42, 31, 8)).stroke(egui::Stroke::new(1.0, AMBER)).corner_radius(6.0).inner_margin(6.0).show(ui, |ui| {
+                    ui.horizontal(|ui| {
+                        ui.label(RichText::new(self.t.s("DEMO · fake car, not Le Mans Ultimate", "DEMO · ψεύτικο αυτοκίνητο, όχι Le Mans Ultimate")).color(AMBER).strong());
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            let cur = sp.load(std::sync::atomic::Ordering::Relaxed);
+                            if ui.selectable_label(cur == 1000, "10×").clicked() { sp.store(1000, std::sync::atomic::Ordering::Relaxed) }
+                            if ui.selectable_label(cur == 100, "1×").clicked() { sp.store(100, std::sync::atomic::Ordering::Relaxed) }
+                        });
+                    });
+                });
+            }
             ui.add_space(8.0);
             if self.editing {
                 ui.label(self.t.s("Telemetry key", "Κλειδί τηλεμετρίας"));
@@ -253,7 +273,9 @@ impl eframe::App for AgentApp {
                     "error" => line(ui, RED, &says(&self.t, &st.error.clone().unwrap_or_default())),
                     _ => line(ui, AMBER, self.t.s("Connecting…", "Σύνδεση…")),
                 }
-                if st.lmu {
+                if st.lmu && self.demo.is_some() {
+                    line(ui, AMBER, self.t.s("Demo car: on track", "Demo αυτοκίνητο: στην πίστα"));
+                } else if st.lmu {
                     line(ui, GREEN, self.t.s("Le Mans Ultimate: on track", "Le Mans Ultimate: στην πίστα"));
                 } else {
                     line(ui, GREY, self.t.s("Waiting for Le Mans Ultimate", "Αναμονή για το Le Mans Ultimate"));
@@ -396,18 +418,18 @@ pub mod win {
     }
 }
 
-pub fn run() -> eframe::Result {
+pub fn run(demo: bool) -> eframe::Result {
     let opts = eframe::NativeOptions {
         viewport: {
             let (rgba, width, height) = icon_rgba();
             egui::ViewportBuilder::default()
                 .with_inner_size([480.0, 250.0])
                 .with_min_inner_size([440.0, 220.0])
-                .with_title("ARION Pit Wall")
+                .with_title(if demo { "ARION Pit Wall – DEMO" } else { "ARION Pit Wall" })
                 .with_icon(std::sync::Arc::new(egui::IconData { rgba, width, height }))
                 .with_visible(!std::env::args().any(|a| a == "--tray"))
         },
         ..Default::default()
     };
-    eframe::run_native("ARION Pit Wall", opts, Box::new(|_cc| Ok(Box::new(AgentApp::new()))))
+    eframe::run_native("ARION Pit Wall", opts, Box::new(move |_cc| Ok(Box::new(AgentApp::with_demo(demo)))))
 }

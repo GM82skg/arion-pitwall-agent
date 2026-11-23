@@ -20,16 +20,23 @@ fn put(dst: &mut [u8], s: &str) {
 
 /// A car lapping an oval (about 1.6 km, ~45 s), braking into both ends, with 7 other cars. No game needed.
 pub struct FakeSource {
-    t0: std::time::Instant,
-    speed: f64,
+    last: std::time::Instant,
+    clock: f64,
+    speed: std::sync::Arc<std::sync::atomic::AtomicU32>,
+    /// demo mode: now and then a penalty, a knock, a pit stop — so alerts and key moments can be seen
+    events: bool,
 }
 impl FakeSource {
     pub fn new() -> Self {
-        FakeSource { t0: std::time::Instant::now(), speed: 1.0 }
+        Self::with_speed(1.0)
     }
     /// A faster clock, so tests see laps, stints and energy use within seconds.
     pub fn with_speed(speed: f64) -> Self {
-        FakeSource { t0: std::time::Instant::now(), speed }
+        FakeSource { last: std::time::Instant::now(), clock: 0.0, speed: std::sync::Arc::new(std::sync::atomic::AtomicU32::new((speed * 100.0) as u32)), events: false }
+    }
+    /// Demo mode: the speed can be changed while it runs (1× or 10×), and race events happen now and then.
+    pub fn demo(speed: std::sync::Arc<std::sync::atomic::AtomicU32>) -> Self {
+        FakeSource { last: std::time::Instant::now(), clock: 0.0, speed, events: true }
     }
 }
 impl Default for FakeSource {
@@ -40,7 +47,11 @@ impl Default for FakeSource {
 
 impl Source for FakeSource {
     fn read(&mut self) -> Option<Box<LMUObjectOut>> {
-        let et = self.t0.elapsed().as_secs_f64() * self.speed;
+        let now = std::time::Instant::now();
+        let k = self.speed.load(std::sync::atomic::Ordering::Relaxed) as f64 / 100.0;
+        self.clock += now.duration_since(self.last).as_secs_f64() * k;
+        self.last = now;
+        let et = self.clock;
         let mut o = zeroed();
         let lap_len = 1600.0;
         let si = &mut o.scoring.scoringInfo;
@@ -98,6 +109,16 @@ impl Source for FakeSource {
         }
         // the player: car 4, braking hard twice a lap
         o.scoring.scoringInfo.mGameMode = 2;
+        if self.events {
+            // every ~6 minutes of game time: a penalty at 2 min, a knock at 3 min, a pit stop at 5 min
+            let cyc = et % 360.0;
+            let sv = &mut o.scoring.vehScoringInfo[3];
+            sv.mNumPenalties = ((et / 360.0) as i16) + (cyc > 120.0) as i16;
+            sv.mNumPitstops = ((et / 360.0) as i16) + (cyc > 300.0) as i16;
+            sv.mInPits = (300.0..318.0).contains(&cyc) as u8;
+            if cyc > 180.0 { o.telemetry.telemInfo[3].mDentSeverity[1] = 1 }
+            o.scoring.scoringInfo.mYellowFlagState = (240.0..255.0).contains(&cyc) as u8;
+        }
         let d = o.scoring.vehScoringInfo[3].mLapDist;
         let (x, z) = pos_at(d);
         let ph = d / lap_len;
@@ -156,4 +177,26 @@ pub fn game() -> Box<dyn Source> {
 #[cfg(windows)]
 pub fn game() -> Box<dyn Source> {
     Box::new(crate::lmu::shm::SharedMemory::new())
+}
+
+#[cfg(test)]
+mod demo_tests {
+    use super::*;
+    use std::sync::atomic::AtomicU32;
+    use std::sync::Arc;
+    #[test]
+    fn demo_runs_faster_and_has_race_events() {
+        let sp = Arc::new(AtomicU32::new(100_000)); // 1000× so 0.15 s of real time = 150 s of race
+        let mut f = FakeSource::demo(sp.clone());
+        std::thread::sleep(std::time::Duration::from_millis(150));
+        let o = f.read().unwrap();
+        let et = o.scoring.scoringInfo.mCurrentET;
+        assert!(et > 120.0 && et < 300.0, "game time {et}");
+        assert_eq!({ o.scoring.vehScoringInfo[3].mNumPenalties }, 1, "a penalty after 2 minutes");
+        sp.store(0, std::sync::atomic::Ordering::Relaxed); // paused
+        let a = f.read().unwrap().scoring.scoringInfo.mCurrentET;
+        std::thread::sleep(std::time::Duration::from_millis(30));
+        let b = f.read().unwrap().scoring.scoringInfo.mCurrentET;
+        assert_eq!(b, a, "speed changes while running");
+    }
 }
