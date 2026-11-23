@@ -39,12 +39,23 @@ async def main():
         chk('battle in class: you plus the cars around you in class (here P1, so only the car behind)', brow == 3 and 'you' in bt, bt[:300])
         chk('battle: pace and energy filled', bt.count(':') >= 2 and '%' in bt, bt[:300])
         pw = await T('#pitw'); chk('pit window: LMU estimate and rejoin', 'Rejoin P' in pw and '34.6 s' in pw and '12.4 s' in pw, pw)
+        # flags: a local yellow in sector 2 shows a flag icon «S2» and colours that sector on the map; FCY shows «FCY / SC»
+        await pg.evaluate("S.secB=[[S.trackLen/3],[S.trackLen*2/3]];secPaths=null;window.__fl=setInterval(()=>{if(S.slow){S.slow.session.sectorFlags=[0,1,0];paintFlags()}},100)"); await asyncio.sleep(0.6)
+        chk('flags: yellow flag icon with its sector', await pg.evaluate('document.querySelectorAll("#flags .flag svg").length===1&&document.querySelector("#flags").innerText.trim()==="S2"'))
+        chk('flags: the flagged sector is drawn on the track', await pg.evaluate('!!secPaths&&secBounds()!==null'))
+        await pg.evaluate("clearInterval(window.__fl);window.__fl=setInterval(()=>{if(S.slow){S.slow.session.sectorFlags=[0,0,0];S.slow.session.yellow=1;paintFlags()}},100)"); await asyncio.sleep(0.6)
+        chk('flags: full course yellow / safety car', 'FCY / SC' in await pg.evaluate('document.querySelector("#flags").innerText'))
+        await pg.evaluate("clearInterval(window.__fl);S.slow.session.yellow=0;paintFlags()")
+        chk('flags: green flag after the yellow ends', 'GREEN' in await pg.evaluate('document.querySelector("#flags").innerText'))
+        m = await T('#moments'); chk('key moments carry race time', ':' in m.split('·')[0] if m else False, m[:80])
+        top = await T('#inpft'); chk('inputs: gear, speed and rpm on top', 'km/h' in top and 'rpm' in top and await pg.evaluate('getComputedStyle(document.querySelector("#inpft .gear")).fontWeight')=='700', top)
+        tyre = await T('#car .tyre'); chk('car box: tyre temperatures (I·M·O), pressure, life %, brake', tyre.count('·') >= 4 and 'kPa' in tyre and '%' in tyre, tyre)
         await pg.screenshot(path='/tmp/phase2.png')
         # layout: panels fill the screen with no gaps, gutters resize, panels move, the layout is kept
         geo = await pg.evaluate('''(()=>{const v=document.querySelector("#view").getBoundingClientRect();const cols=[...document.querySelectorAll(".dcol")].map(c=>c.getBoundingClientRect());
           const gaps=cols.slice(1).map((c,i)=>Math.round(c.left-cols[i].right));const fill=[...document.querySelectorAll(".dcol")].map(c=>{const ps=[...c.querySelectorAll(".dock")].map(p=>p.getBoundingClientRect());return Math.round(ps[ps.length-1].bottom-ps[0].top)});
           return {w:Math.round(v.width),used:Math.round(cols[cols.length-1].right-cols[0].left),gaps,fill,h:Math.round(v.height),n:document.querySelectorAll(".dock").length}})()''')
-        chk('layout: 10 panels, columns edge to edge, each column full height', geo['n'] == 10 and abs(geo['w'] - geo['used']) <= 1 and all(g == 10 for g in geo['gaps']) and all(abs(f - geo['h']) <= 1 for f in geo['fill']), geo)
+        chk('layout: 10 panels, columns edge to edge, each column full height', geo['n'] == 10 and abs(geo['w'] - geo['used']) <= 1 and all(g == 10 for g in geo['gaps']) and all(f >= geo['h'] - 1 for f in geo['fill']), geo)
         g = await pg.query_selector('.gx'); b = await g.bounding_box(); w0 = await pg.evaluate('document.querySelector(".dcol").getBoundingClientRect().width')
         await pg.mouse.move(b['x'] + 5, b['y'] + 300); await pg.mouse.down(); await pg.mouse.move(b['x'] + 125, b['y'] + 300, steps=6); await pg.mouse.up()
         w1 = await pg.evaluate('document.querySelector(".dcol").getBoundingClientRect().width')
@@ -57,7 +68,7 @@ async def main():
         order2 = await pg.evaluate('[...document.querySelectorAll(".dcol")].map(c=>[...c.querySelectorAll(".dock")].map(p=>p.dataset.id))')
         chk('layout: kept after reloading the page', order2 == order, order2)
         await pg.click('#lreset'); await asyncio.sleep(0.5)
-        chk('layout: reset restores the default', await pg.evaluate('[...document.querySelectorAll(".dcol")].map(c=>c.querySelectorAll(".dock").length).join()') == '3,3,4')
+        chk('layout: reset restores the default (George’s layout)', await pg.evaluate('[...document.querySelectorAll(".dcol")].map(c=>[...c.querySelectorAll(".dock")].map(d=>d.dataset.id).join("+")).join(" | ")') == 'car+damage+wx+pit | map+inputs+battle | traffic+laps+moments')
         chk('no page errors', not errs, errs)
         await br.close()
 asyncio.run(main())

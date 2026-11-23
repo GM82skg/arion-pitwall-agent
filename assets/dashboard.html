@@ -41,7 +41,15 @@ input{font:inherit;color:var(--tx);background:#0E0F11;border:1px solid var(--ln)
 .grow{flex:1}
 .main{flex:1;display:flex;min-height:0;position:relative}
 .dcol{display:flex;flex-direction:column;min-width:220px;min-height:0}
-.dock{display:flex;flex-direction:column;overflow:hidden;min-height:60px;container-type:size}
+.dock{display:flex;flex-direction:column;overflow:hidden;min-height:60px;container-type:inline-size}
+/* panels that show a fixed set of facts are never smaller than those facts (no cutting, no hiding);
+   the map, inputs and the growing lists have a fixed minimum and scroll or scale inside */
+.dock.fit{overflow:visible;min-height:auto}.dock.fit>.body{overflow:visible;flex:1 0 auto}
+#car{display:flex;flex-direction:column}.dock #car .tyres{flex:1;grid-auto-rows:1fr}#car .tyre{display:flex;flex-direction:column;justify-content:center}
+.dock #wx{display:flex;flex-direction:column}.dock #wx .slots{flex:1;align-items:stretch}#wx .slot{display:flex;flex-direction:column;justify-content:center}
+#dmg{display:flex;flex-direction:column}
+.dcol{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#3A3D45 transparent}
+.main{overflow-x:auto}
 .dock .ph{flex-wrap:wrap;row-gap:4px}
 @container (max-width:340px){
   .big{font-size:16px}.k3{gap:4px}.tyres{gap:4px}.tyre{padding:5px 7px}.tyre span[style*="16px"]{font-size:14px!important}
@@ -57,14 +65,7 @@ input{font:inherit;color:var(--tx);background:#0E0F11;border:1px solid var(--ln)
 @container (max-width:380px){#car .stl{display:none}}
 @container (max-width:300px){.tyre .mu{display:none}#car .k3.m{grid-template-columns:repeat(2,1fr)!important}}
 @container (max-width:250px){.big{font-size:14px}#car .k3:first-of-type{grid-template-columns:1fr 1fr}#car .k3 > div:nth-child(3){display:none}}
-@container (max-height:390px){#car .tyre .mu{display:none}#car .tyres{margin-top:6px}#car .k3.m{margin-top:6px!important}}
-@container (max-height:330px){#car .k3.m{display:none!important}}
-@container (max-height:300px){#wx .slots{display:none}}
-@container (max-height:240px){#wx svg,#wx .next{display:none}}
-@container (max-height:200px){#dmg .carsvg{max-height:110px}}
 @container (max-width:300px){#dmg .carsvg{display:none}}
-@container (max-height:118px){#pitw .k3{display:none}}
-@container (max-height:170px){#battle .lines{display:none}}
 .dock>.body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:auto;scrollbar-width:thin;scrollbar-color:#3A3D45 transparent}
 .dock>.body::-webkit-scrollbar{width:6px}.dock>.body::-webkit-scrollbar-thumb{background:#3A3D45;border-radius:3px}
 .dock .ph{cursor:grab;user-select:none;touch-action:none}.dock .ph button,.dock .ph input{cursor:pointer}
@@ -78,7 +79,7 @@ body.resizing,body.resizing *{cursor:inherit!important;user-select:none}
 .scrl{overflow:auto;min-height:0;scrollbar-width:thin;scrollbar-color:#3A3D45 transparent}
 .scrl::-webkit-scrollbar{width:6px;height:6px}.scrl::-webkit-scrollbar-track{background:transparent}.scrl::-webkit-scrollbar-thumb{background:#3A3D45;border-radius:3px}.scrl::-webkit-scrollbar-thumb:hover{background:#4A4D56}.scrl::-webkit-scrollbar-corner{background:transparent}
 #traffic{overflow:hidden}.rl{white-space:nowrap}.rl>span{flex:none}.rl>span.nm{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis}.rl>span.grow{flex:1 1 0}
-.tyre .mu{font-size:12px}
+.tyre .mu{font-size:12px}.tyre .tl1{white-space:nowrap;font-size:14px}.tyre .tl1 b{font-size:17px;font-weight:600}.tyre .tl2{white-space:nowrap;font-size:11.5px}
 table.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}table.t td,table.t th{padding:3px 4px;text-align:left;white-space:nowrap}table.t th{font-family:Inter,sans-serif;font-weight:400;color:var(--mu)}table.t tr+tr td{border-top:1px solid #23252A}
 .sc{border-radius:3px;padding:0 4px}.sc.pu{background:#3B2760;color:#C9A8FF}.sc.gn{background:#13361F;color:#3BD16F}.sc.yl{background:#3A3000;color:#F2C200}
 .tb{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}.tb button{padding:3px 9px;font-size:12px}
@@ -93,6 +94,10 @@ table.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12
 .fill{flex:1;display:flex;flex-direction:column}
 .cv{flex:1;position:relative;min-height:0}.cv canvas{position:absolute;inset:0;width:100%;height:100%}
 .big{font-family:var(--mono);font-size:20px}
+.flags{position:absolute;top:8px;left:8px;display:flex;gap:10px;pointer-events:none}.flag{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--mono);font-size:12px;font-weight:700;text-shadow:0 1px 2px #000}
+.flag svg{width:44px;height:38px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6))}
+.inptop{display:flex;align-items:baseline;gap:6px 18px;flex-wrap:wrap;margin:0 0 6px}.inptop .gear{font-size:26px;font-weight:700;color:#F5F5F7}
+.inptop .spd{font-size:22px;font-weight:700}.inptop .rpm{font-size:16px;font-weight:600;color:#C9CBD1}.inptop .sm{font-size:12px;color:var(--mu)}
 .k3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .tyres{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
 .tyre{border-radius:6px;padding:7px 9px;background:#1E2A1F;font-family:var(--mono);font-size:13px}
@@ -110,13 +115,14 @@ table.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12
 body.phone #app{padding:0;gap:0;height:100dvh}
 body.phone .top{border-radius:0;border-width:0 0 1px;padding:calc(6px + env(safe-area-inset-top)) 12px 8px;gap:8px}
 body.phone .top .sep,body.phone #lreset{display:none}
-body.phone .wm{height:18px}body.phone .brand b{font-size:13px}
-body.phone #sess{order:3;font-size:12px;flex:1 1 100%}body.phone #link{font-size:12px;margin-left:auto}
+body.phone .brand{flex:1 1 100%;justify-content:center;padding:2px 0 4px}body.phone .wm{height:22px}body.phone .brand b{font-size:15px}
+body.phone #sess{order:2;font-size:12px;flex:1 1 auto;min-width:0}body.phone #link{order:3;font-size:12px}body.phone #out{order:4}
 body.phone #out{padding:3px 8px;font-size:12px}
-body.phone .tabs{order:4;flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}body.phone .tabs::-webkit-scrollbar{display:none}
+body.phone .tabs{order:5;flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}body.phone .tabs::-webkit-scrollbar{display:none}
 body.phone .tab{flex:none}
 .pview{flex:1;min-height:0;overflow:auto;padding:10px 12px;display:flex;flex-direction:column;gap:9px;scrollbar-width:none}
 .pview::-webkit-scrollbar{display:none}
+.pview>.pn,.pview>#pcar>.pn{flex-shrink:0}
 .pview .pn{border-radius:12px}
 .pnav{flex:none;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ln);background:#141517;padding-bottom:env(safe-area-inset-bottom)}
 .pnav button{background:none;border:0;border-radius:0;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 10px;font-size:11px}
@@ -158,7 +164,7 @@ body.phone.land .pview{padding:8px calc(10px + env(safe-area-inset-right)) 8px c
 <script>
 'use strict';
 // ARION Pit Wall dashboard — Phase 1. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1).
-const VERSION='0.1.8';
+const VERSION='0.1.9';
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
 const CFG={url:'https://isuiksufkyishdowejob.supabase.co',key:'sb_publishable_DMqGCrW9YEmzEN2_cP67-w_ljr1JBo9'};
@@ -172,7 +178,7 @@ let noteT;function note(t){const n=$('#note');n.textContent=t;n.style.display='b
 let USER=null,TOKEN=null,SESS=[],SEL=null,LINK=null;
 const S={fast:null,slow:null,cars:new Map(),hist:[],trail:[],last:[],lap:null,segs:[],cells:new Set(),segBounds:null,trackLen:0,mode:'full',zoom:1,lastPos:new Map(),heading:0,
   laps:[],per:new Map(),clsBest:new Map(),moments:[],prev:null,temps:[],gridTab:'mine',gridCls:null,rest:{}};
-function resetData(){S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
+function resetData(){S.secB=[[],[]];S.flagGreenUntil=0;S.prevFlag=null;S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
 
 // ---------- login and access ----------
 async function boot(){
@@ -337,7 +343,7 @@ function onFast(buf){
       seen.add(id);const prev=S.lastPos.get(id);
       // the track draws itself from where cars drive (not in the pits; no jumps)
       if(prev&&!(b&1)){const dx=x-prev[0],dz=z-prev[1],dd=dx*dx+dz*dz;const key=Math.round((x+prev[0])/6)+','+Math.round((z+prev[1])/6);
-        if(dd>0.04&&dd<3600&&!S.cells.has(key)&&S.segs.length<60000){S.cells.add(key);S.segs.push([prev[0],prev[1],x,z]);growBounds(x,z);trackPath=null}}
+        if(dd>0.04&&dd<3600&&!S.cells.has(key)&&S.segs.length<60000){S.cells.add(key);S.segs.push([prev[0],prev[1],x,z,dist]);growBounds(x,z);trackPath=null}}
       S.lastPos.set(id,[x,z]);const old=S.cars.get(id),tn=performance.now();S.cars.set(id,{id,place,pits:!!(b&1),me:!!(b&2),x,z,dist,t:tn,px:old?old.x:x,pz:old?old.z:z,pt:old?old.t:tn-100});
       if(dist>S.trackLen)S.trackLen=dist}
     for(const id of S.cars.keys())if(!seen.has(id))S.cars.delete(id);
@@ -350,8 +356,12 @@ function onSlow(j){if(j.t!=='slow')return;S.slow=j;if(j.rest&&typeof j.rest==='o
 // ---------- layout ----------
 // ---------- panels: resizable and movable, always snapped together (columns of stacked panels, no gaps) ----------
 // Saved in this browser (one layout per device); «Reset layout» in the top bar restores the default.
-const DEF_LAYOUT={v:1,cols:[{w:25,p:[['car',47],['damage',24],['traffic',29]]},{w:47,p:[['map',55],['inputs',22],['battle',23]]},{w:28,p:[['wx',37],['laps',34],['pit',15],['moments',14]]}]};
-const LKEY='pw-layout-v2';   // v2: new default sizes (v0.1.7)
+// default = George's layout (v0.1.9): Car, Damage, Weather, Pit window · Map, Inputs, Battle · Traffic, Laps and sectors, Key moments
+const DEF_LAYOUT={v:1,cols:[{w:25,p:[['car',38],['damage',18],['wx',27],['pit',17]]},{w:47,p:[['map',60],['inputs',21],['battle',19]]},{w:28,p:[['traffic',30],['laps',45],['moments',25]]}]};
+// what can't shrink below its content, and the minimum size of the others
+const FIT=new Set(['car','damage','wx','pit','battle']);
+const MINH={map:240,inputs:170,traffic:150,laps:210,moments:130},MINW={car:340,damage:320,wx:360,pit:320,map:380,inputs:380,battle:470,traffic:290,laps:390,moments:280};
+const LKEY='pw-layout-v3';   // v3: George's default layout and minimum sizes (v0.1.9)
 let LAYOUT=(()=>{try{const l=JSON.parse(localStorage.getItem(LKEY));if(l&&l.v===1&&validLayout(l))return l}catch{}return JSON.parse(JSON.stringify(DEF_LAYOUT))})();
 function validLayout(l){const ids=l.cols.flatMap(c=>c.p.map(x=>x[0])).sort().join();return ids===DEF_LAYOUT.cols.flatMap(c=>c.p.map(x=>x[0])).sort().join()&&l.cols.every(c=>c.w>0&&c.p.length&&c.p.every(x=>x[1]>0))}
 function saveLayout(){try{localStorage.setItem(LKEY,JSON.stringify(LAYOUT))}catch{}}
@@ -363,10 +373,10 @@ const BODY={
   pit:`<div id="pitw" class="body"></div>`,
   moments:`<div class="ph"><b>Key moments</b></div><div id="moments" class="mom body vlist"></div>`,
   map:`<div class="ph"><b>Track map</b><span class="grow"></span><button id="mFull" class="on">Full</button><button id="mFollow">Follow</button><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div>
-    <div class="cv"><canvas id="map"></canvas></div>
-    <div class="lg"><span class="y">● you</span><span style="color:#FF453A">Hypercar</span><span style="color:#0A84FF">LMP2</span><span style="color:#BF5AF2">LMP3</span><span style="color:#30D158">GT3</span><span style="color:#FF9F0A">GTE</span></div>`,
+    <div class="cv"><canvas id="map"></canvas><div id="flags" class="flags"></div></div>
+    <div class="lg"><span class="y">▲ you</span><span style="color:#FF453A">Hypercar</span><span style="color:#0A84FF">LMP2</span><span style="color:#BF5AF2">LMP3</span><span style="color:#30D158">GT3</span><span style="color:#FF9F0A">GTE</span></div>`,
   inputs:`<div class="ph"><b>Live inputs</b><span class="g">throttle</span><span class="r">brake</span><span>steering</span><span class="a">ABS</span><span class="c">lock</span></div>
-    <div class="cv"><canvas id="inp"></canvas></div><div class="m" id="inpft" style="display:flex;gap:16px;margin-top:6px;flex-wrap:wrap"></div>`,
+    <div class="m inptop" id="inpft"></div><div class="cv"><canvas id="inp"></canvas></div>`,
   battle:`<div id="battle" class="body"></div>`,
   wx:`<div id="wx" class="body"></div>`,
   laps:`<div class="ph"><b>Laps and sectors</b><span class="grow"></span><button id="gMine" class="${S.gridTab==='mine'?'on':''}">This car</button><button id="gAll" class="${S.gridTab==='all'?'on':''}">Full grid</button></div>
@@ -377,7 +387,7 @@ function dashView(){
   if(PHONE)return phoneView();
   const v=$('#view');if(v.dataset.k==='dash')return;v.dataset.k='dash';v.className='main';v.style.flexDirection='';
   const cols=LAYOUT.cols;
-  v.innerHTML=cols.map((c,ci)=>`${ci?`<div class="gx" data-ci="${ci-1}"></div>`:''}<div class="dcol" style="flex:${c.w} 1 0">${c.p.map(([id,h],pi)=>`${pi?`<div class="gy" data-ci="${ci}" data-pi="${pi-1}"></div>`:''}<section class="pn dock" data-id="${id}" style="flex:${h} 1 0">${BODY[id]}</section>`).join('')}</div>`).join('');
+  v.innerHTML=cols.map((c,ci)=>`${ci?`<div class="gx" data-ci="${ci-1}"></div>`:''}<div class="dcol" style="flex:${c.w} 1 0;min-width:${Math.max(...c.p.map(x=>MINW[x[0]]||240))}px">${c.p.map(([id,h],pi)=>`${pi?`<div class="gy" data-ci="${ci}" data-pi="${pi-1}"></div>`:''}<section class="pn dock${FIT.has(id)?' fit':''}" data-id="${id}" style="flex:${h} 1 0${MINH[id]?`;min-height:${MINH[id]}px`:''}">${BODY[id]}</section>`).join('')}</div>`).join('');
   $('#mFull').onclick=()=>{S.mode='full';$('#mFull').className='on';$('#mFollow').className=''};
   $('#mFollow').onclick=()=>{S.mode='follow';$('#mFollow').className='on';$('#mFull').className='';if(S.zoom<2)S.zoom=3};
   if(S.mode==='follow'){$('#mFollow').className='on';$('#mFull').className=''}
@@ -395,8 +405,11 @@ function resizeStart(e,g,axis){
   const ci=+g.dataset.ci,pi=+g.dataset.pi;
   const a=axis==='x'?g.previousElementSibling:g.previousElementSibling,b=g.nextElementSibling;
   const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect(),sizeA=axis==='x'?ra.width:ra.height,sizeB=axis==='x'?rb.width:rb.height,start=axis==='x'?e.clientX:e.clientY;
-  const list=axis==='x'?LAYOUT.cols:LAYOUT.cols[ci].p,ia=axis==='x'?ci:pi,sum=(axis==='x'?list[ia].w+list[ia+1].w:list[ia][1]+list[ia+1][1]),min=axis==='x'?220:70;
-  const move=ev=>{let d=(axis==='x'?ev.clientX:ev.clientY)-start;d=Math.max(min-sizeA,Math.min(sizeB-min,d));
+  const list=axis==='x'?LAYOUT.cols:LAYOUT.cols[ci].p,ia=axis==='x'?ci:pi,sum=(axis==='x'?list[ia].w+list[ia+1].w:list[ia][1]+list[ia+1][1]);
+  // never smaller than the panel's own minimum (its content, for the fact panels)
+  const minOf=el=>axis==='x'?parseFloat(el.style.minWidth)||240:(el.classList.contains('fit')?el.scrollHeight:(MINH[el.dataset.id]||70));
+  const minA=minOf(a),minB=minOf(b);
+  const move=ev=>{let d=(axis==='x'?ev.clientX:ev.clientY)-start;d=Math.max(Math.min(0,minA-sizeA),Math.min(Math.max(0,sizeB-minB),d));
     const fa=(sizeA+d)/(sizeA+sizeB)*sum,fb=sum-fa;
     if(axis==='x'){list[ia].w=fa;list[ia+1].w=fb;a.style.flex=`${fa} 1 0`;b.style.flex=`${fb} 1 0`}else{list[ia][1]=fa;list[ia+1][1]=fb;a.style.flex=`${fa} 1 0`;b.style.flex=`${fb} 1 0`}};
   const up=()=>{g.classList.remove('on');document.body.classList.remove('resizing');document.body.style.cursor='';g.removeEventListener('pointermove',move);g.removeEventListener('pointerup',up);saveLayout()};
@@ -435,7 +448,7 @@ function phoneView(){
   const v=$('#view');const k='phone-'+PTAB;if(v.dataset.k===k)return;v.dataset.k=k;v.className='main';v.style.flexDirection='column';
   const body={
     car:`<div id="pcar" style="display:contents"></div>`,
-    map:`<div class="pmapw"><div class="pn pmap"><div class="ph"><button id="mFollow" class="on">Follow</button><button id="mFull">Full</button><span class="grow"></span><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div><div class="cv"><canvas id="map"></canvas></div></div>
+    map:`<div class="pmapw"><div class="pn pmap"><div class="ph"><button id="mFollow" class="on">Follow</button><button id="mFull">Full</button><span class="grow"></span><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div><div class="cv"><canvas id="map"></canvas><div id="flags" class="flags"></div></div></div>
       <div class="pn pinp"><div class="ph"><span class="g">throttle</span><span class="r">brake</span><span>steer</span><span class="a">ABS</span><span class="c">lock</span></div><div class="cv"><canvas id="inp"></canvas></div><div class="m" id="inpft"></div></div></div><div class="lhint">↻ turn sideways for full screen</div>`,
     timing:`<div class="pn" style="flex:1"><div class="ph"><button id="gMine" class="${S.gridTab==='mine'?'on':''}">This car</button><button id="gAll" class="${S.gridTab==='all'?'on':''}">Grid</button><span class="grow"></span><span id="theo" class="mu m" style="font-size:12px"></span></div><div id="gcls" class="tb"></div><div id="laps"></div></div>`,
     strat:`<div class="pn" id="battle"></div><div class="pn" id="pitw"></div><div class="pn" id="wx"></div>`,
@@ -477,9 +490,9 @@ function paintPhoneCar(){
     <div class="pn pk m">${nb(ah,'Ahead')}${nb(bh,'Behind')}<div><div class="mu">Stint</div>${stint} laps</div></div>
     <div class="pn"><div style="display:flex"><span class="mu">Energy</span><span class="grow"></span><span class="m">${ve>=0&&ve<=1?Math.round(ve*100)+'%':'–'}${energyLeft(me)&&energyLeft(me).laps!=null?` · ${energyLeft(me).laps.toFixed(1)} laps`:''}</span></div><div class="bar"><i style="width:${ve>=0&&ve<=1?ve*100:0}%"></i></div>
       <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} L</span></div></div>
-    <div class="pn pty">${['FL','FR','RL','RR'].map((n,k)=>{const t=w[k]||{t:[0,0,0]};const mid=KC((t.t||[])[1]+273.15);return `<div style="background:${mid==null?'#1F2024':tyreBg(mid)}">${n} <b>${mid==null?'–':Math.round(mid)+'°'}</b> <span class="mu">${t.p>0?Math.round(t.p):'–'}</span></div>`}).join('')}</div>
+    <div class="pn pty">${['FL','FR','RL','RR'].map((n,k)=>{const t=w[k]||{t:[0,0,0]};const mid=KC((t.t||[])[1]+273.15);return `<div style="background:${mid==null?'#1F2024':tyreBg(mid)}">${n} <b>${mid==null?'–':Math.round(mid)+'°'}</b> <span class="mu">${pc(t.wear)}</span><div class="mu" style="font-size:11px">${mid==null?'':(t.t||[]).map(x=>Math.round(x)).join('·')+' · '}${t.p>0?Math.round(t.p)+' kPa':''}</div></div>`}).join('')}</div>
     <div class="pn" style="display:flex;gap:6px 12px;flex-wrap:wrap"><span class="mu">Damage</span><span class="grow"></span><span class="m ${dmg.length?'a':'g'}" style="text-align:right">${dmg.length?dmg.join(' · '):'none'}${R.pit&&R.pit.repair>0?` · repair ${R.pit.repair.toFixed(0)} s`:''}</span></div>
-    <div class="pn mom">${S.moments.slice(0,3).map(m=>`<div><span class="mu">${m.lap!=null?'L'+m.lap:''}</span> <span class="${m.cls||''}">${m.icon}</span> ${esc(m.text)}</div>`).join('')||'<div class="mu">Nothing yet.</div>'}</div>`;
+    <div class="pn mom">${S.moments.slice(0,3).map(m=>`<div><span class="mu">${m.rt!=null?raceT(m.rt):''}${m.lap!=null?' · L'+m.lap:''}</span> <span class="${m.cls||''}">${m.icon}</span> ${esc(m.text)}</div>`).join('')||'<div class="mu">Nothing yet.</div>'}</div>`;
 }
 // keep the phone screen on while a car is live (where the browser allows it)
 let WAKE=null;async function wake(){try{if(PHONE&&LINK&&LINK.state==='live'&&!document.hidden&&!WAKE&&navigator.wakeLock){WAKE=await navigator.wakeLock.request('screen');WAKE.addEventListener('release',()=>{WAKE=null})}}catch{WAKE=null}}
@@ -490,7 +503,8 @@ addEventListener('resize',()=>{checkPhone();if(PHONE){$('#view').dataset.k='';ph
 // LMU sector times are cumulative: s2 = S1+S2, lap = S1+S2+S3. We split them into three sectors.
 const secs=(s1,s2,lap)=>s1>0&&s2>s1&&lap>s2?[s1,s2-s1,lap-s2]:null;
 function clsOf(g){return CLSN(g.class)}
-function moment(icon,text,cls){const lap=(S.slow?.grid||[]).find(g=>g.player)?.laps;S.moments.unshift({lap,icon,text,cls,t:Date.now()});if(S.moments.length>80)S.moments.pop()}
+const raceT=x=>{x=Math.max(0,Math.floor(x));return `${Math.floor(x/3600)}:${String(Math.floor(x%3600/60)).padStart(2,'0')}:${String(x%60).padStart(2,'0')}`};
+function moment(icon,text,cls){const lap=(S.slow?.grid||[]).find(g=>g.player)?.laps,se=S.slow?.session,rt=se?se.now-se.start:null;S.moments.unshift({lap,rt,icon,text,cls,t:Date.now()});if(S.moments.length>80)S.moments.pop()}
 function learn(j){
   const prev=S.prev,now=Date.now();
   for(const g of j.grid){
@@ -508,6 +522,12 @@ function learn(j){
     c.pen=g.penalties;
     if(prev){const pg=prev.grid.find(x=>x.id===g.id);if(pg&&g.player&&pg.name!==g.name)moment('⟳',`Driver swap to ${g.name}`,'')}
   }
+  // sector boundaries, learnt from where cars are when they complete sector 1 and 2 (median of many)
+  if(!S.secB)S.secB=[[],[]];
+  for(const g of j.grid){const c=S.per.get(g.id),car=S.cars.get(g.id);if(!c||!car)continue;
+    if(g.curS1>0&&!(c.cs1>0)&&S.secB[0].length<60){S.secB[0].push(car.dist);secPaths=null}
+    if(g.curS2>0&&!(c.cs2>0)&&S.secB[1].length<60){S.secB[1].push(car.dist);secPaths=null}
+    c.cs1=g.curS1;c.cs2=g.curS2}
   const se=j.session,ps=prev?.session;
   if(ps){
     if(se.yellow>0&&!(ps.yellow>0))moment('⚑','Full course yellow / safety car','a');
@@ -534,6 +554,7 @@ const tyreBg=t=>t<60?'#16263A':t<95?'#1E2A1F':t<110?'#3A2A12':'#3A1616';
 const KC=k=>k>0?k-273.15:null;   // LMU temperatures are kelvin; 0 = no data (e.g. in the garage)
 const pc=v=>v==null||!(v>=0)?'–':Math.round(v*100)+'%';
 function paintPanels(){
+  paintFlags();
   if(PHONE)return paintPhone();
   const j=S.slow,car=$('#car');if(!car)return;
   const sel=SESS.find(s=>s.id===SEL);
@@ -549,7 +570,7 @@ function paintPanels(){
     <div style="display:flex;margin-top:10px"><span class="mu">Virtual energy</span><span class="grow"></span><span class="m">${energy}${maxVE?` <span class="mu">of ${Math.round(maxVE)}</span>`:''}</span></div><div class="bar"><i style="width:${ve>=0&&ve<=1?ve*100:0}%"></i></div>
     <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} / ${(c.fuelCap||0).toFixed(0)} L</span></div>
     <div class="tyres">${['FL','FR','RL','RR'].map((n,i)=>{const t=w[i]||{t:[0,0,0]};const tt=(t.t||[]).map(x=>x+273.15).map(KC);const mid=tt[1];const bm=(wear.brakeMm||[])[i];
-      return `<div class="tyre" style="background:${mid==null?'#1F2024':tyreBg(mid)}">${n} <span style="font-size:16px">${mid==null?'–':Math.round(mid)+'°'}</span> <span class="mu">${mid==null?'':tt.map(x=>Math.round(x)).join('·')}</span><div class="mu" title="pressure · tread left · brake temperature · brake disc">${t.p>0?Math.round(t.p)+' kPa':'–'} · ${pc(t.wear)}${t.brake>-270?` · ${Math.round(t.brake)}°`:''}${bm>0?` · ${bm.toFixed(1)} mm`:''}</div></div>`}).join('')}</div>
+      return `<div class="tyre" style="background:${mid==null?'#1F2024':tyreBg(mid)}" title="${n}: inner · middle · outer °C, pressure, tread left, brake temperature, brake disc"><div class="tl1">${n} <b>${mid==null?'–':Math.round(mid)+'°'}</b> <span class="mu">${mid==null?'':tt.map(x=>Math.round(x)).join('·')}</span></div><div class="mu tl2">${t.p>0?Math.round(t.p)+' kPa':'–'} · ${pc(t.wear)}</div><div class="mu tl2">${t.brake>-270?Math.round(t.brake)+'°':'–'}${bm>0?` · ${bm.toFixed(1)} mm`:''}</div></div>`}).join('')}</div>
     <div class="k3 m" style="grid-template-columns:repeat(4,1fr);margin-top:10px"><div><div class="mu">TC</div>${c.tc}</div><div><div class="mu">ABS</div>${c.abs}</div><div><div class="mu">Bias F:R</div>${c.rearBias>0?((1-c.rearBias)*100).toFixed(1)+':'+(c.rearBias*100).toFixed(1):'–'}</div><div><div class="mu">Map</div>${c.map}</div></div>`;
   paintDamage(c,R);
   paintTraffic();paintPit(j,me);paintMoments();paintBattle(j,me);paintWx(j,me);paintLaps();
@@ -564,7 +585,7 @@ function paintDamage(c,R){
   const any=d.some(x=>x>0)||c.detached||aero>0.005||su.some(x=>x>0.005);
   el.innerHTML=`<div class="ph"><b>Damage</b><span class="grow"></span>${rep>0?`<span class="m a">repair ${rep.toFixed(1)} s</span>`:any?'':'<span class="g">none</span>'}</div>
   <div style="display:flex;gap:12px;align-items:center;flex:1;min-height:0">
-    <svg class="carsvg" viewBox="0 0 160 200" style="height:100%;max-height:220px;min-height:110px;flex:none" role="img" aria-label="Body damage">
+    <svg class="carsvg" viewBox="0 0 160 200" style="height:100%;max-height:150px;min-height:110px;flex:none" role="img" aria-label="Body damage">
       <rect x="40" y="6" width="80" height="34" rx="10" fill="${ZC(d[0])}"/><rect x="10" y="10" width="28" height="44" rx="8" fill="${ZC(d[1])}"/><rect x="122" y="10" width="28" height="44" rx="8" fill="${ZC(d[7])}"/>
       <rect x="10" y="60" width="28" height="80" rx="6" fill="${ZC(d[2])}"/><rect x="40" y="44" width="80" height="112" rx="14" fill="#1C1D21" stroke="#3A3D45"/><rect x="122" y="60" width="28" height="80" rx="6" fill="${ZC(d[6])}"/>
       <rect x="10" y="146" width="28" height="44" rx="8" fill="${ZC(d[3])}"/><rect x="40" y="160" width="80" height="34" rx="10" fill="${ZC(rear)}"/><rect x="122" y="146" width="28" height="44" rx="8" fill="${ZC(d[5])}"/>
@@ -611,7 +632,7 @@ function paintPit(j,me){
     <div class="k3 m" style="margin-top:8px"><div><div class="mu">Stop</div>${P.total.toFixed(1)} s</div><div><div class="mu">Repair</div>${(P.repair||0).toFixed(1)} s</div><div><div class="mu">Lane ≈</div>${lane} s</div></div>`;
 }
 function paintMoments(){const el=$('#moments');if(!el)return;
-  el.innerHTML=S.moments.length?S.moments.slice(0,30).map(m=>`<div><span class="mu">${m.lap!=null?'L'+m.lap:''}</span> <span class="${m.cls||''}">${m.icon}</span> ${esc(m.text)}</div>`).join(''):'<div class="mu">Nothing yet.</div>'}
+  el.innerHTML=S.moments.length?S.moments.slice(0,30).map(m=>`<div><span class="mu">${m.rt!=null?raceT(m.rt):''}${m.lap!=null?' · L'+m.lap:''}</span> <span class="${m.cls||''}">${m.icon}</span> ${esc(m.text)}</div>`).join(''):'<div class="mu">Nothing yet.</div>'}
 const SKY=['clear','light clouds','partly cloudy','mostly cloudy','overcast','cloudy, drizzle','cloudy, light rain','overcast, light rain','overcast, rain','overcast, heavy rain','overcast, storm'];
 const SKYI=n=>n<=0?'☀':n<=3?'⛅':n<=4?'☁':'🌧';
 function paintWx(j,me){
@@ -619,7 +640,7 @@ function paintWx(j,me){
   const key=se.type>=10?'race':se.type>=5&&se.type<=8?'qualify':'practice',slots=fc[key];
   const dur=se.end-se.start,frac=dur>0?(se.now-se.start)/dur:null;
   const wet=(se.wet||[]).map(x=>(x||0).toFixed(2));
-  const t=S.temps,spark=t.length>1?(()=>{const lo=Math.min(...t.map(x=>x.v)),hi=Math.max(...t.map(x=>x.v)),r=Math.max(1,hi-lo);return `<svg viewBox="0 0 200 30" width="100%" height="26" preserveAspectRatio="none"><polyline fill="none" stroke="#FFB020" stroke-width="2" vector-effect="non-scaling-stroke" points="${t.map((x,i)=>`${(i/(t.length-1)*200).toFixed(1)},${(28-(x.v-lo)/r*26).toFixed(1)}`).join(' ')}"/></svg>`})():'';
+  const t=S.temps,spark=t.length>1&&(Math.max(...t.map(x=>x.v))-Math.min(...t.map(x=>x.v)))>=0.5?(()=>{const lo=Math.min(...t.map(x=>x.v)),hi=Math.max(...t.map(x=>x.v)),r=Math.max(1,hi-lo);return `<svg viewBox="0 0 200 30" width="100%" height="26" preserveAspectRatio="none"><polyline fill="none" stroke="#FFB020" stroke-width="2" vector-effect="non-scaling-stroke" points="${t.map((x,i)=>`${(i/(t.length-1)*200).toFixed(1)},${(28-(x.v-lo)/r*26).toFixed(1)}`).join(' ')}"/></svg>`})():'';
   const trend=t.length>3?(t[t.length-1].v-t[0].v):0;
   let slotHtml='',nextHtml='';
   if(slots&&frac!=null){const cur=slots.reduce((k,s,i)=>frac>=s[0]?i:k,0),nx=slots[cur+1];
@@ -661,8 +682,24 @@ function paintTraffic(){
     return `<div class="rl${g.player?' me':''}">${pill(g.class)}<span class="mu">P${g.place}</span><span class="nm" style="${g.player?'color:var(--y)':''}">${esc(g.name)}</span><span class="grow"></span>${g.player?'<span class="y">you</span>':`<span>${s.toFixed(1)}</span><span class="y" style="width:10px;text-align:center">${same?'●':''}</span>`}</div>`}).join('');
 }
 
+// ---------- flags ----------
+const med=a=>{if(!a||!a.length)return null;const b=[...a].sort((x,y)=>x-y);return b[b.length>>1]};
+function secBounds(){const L=S.trackLen,b1=med(S.secB&&S.secB[0]),b2=med(S.secB&&S.secB[1]);return L>100&&b1>0&&b2>b1?[0,b1,b2,L]:null}
+function flagSvg(col,cheq){return `<svg viewBox="0 0 44 38"><rect x="3" y="2" width="3" height="35" rx="1" fill="#C9CBD1"/>${cheq?'<defs><pattern id="ck" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#fff"/><rect width="4" height="4" fill="#111"/><rect x="4" y="4" width="4" height="4" fill="#111"/></pattern></defs>':''}<path d="M6 3 C16 0 22 8 32 5 C36 4 39 3 41 3 L41 22 C33 24 27 18 18 21 C13 23 9 22 6 22 Z" fill="${cheq?'url(#ck)':col}" stroke="rgba(0,0,0,.35)"/></svg>`}
+function flagsNow(se){const f=[];if(!se)return f;
+  if(se.phase===8)f.push(['#fff',1,'FINISH']);
+  else if(se.phase===7)f.push(['#FF3B30',0,'STOP']);
+  else if(se.phase===6||se.yellow>0)f.push(['#FFD60A',0,'FCY / SC']);
+  else{(se.sectorFlags||[]).forEach((x,i)=>{if(x>0)f.push(['#FFD60A',0,'S'+(i+1)])});
+    if(!f.length&&S.flagGreenUntil>Date.now())f.push(['#30D158',0,'GREEN'])}
+  return f}
+function paintFlags(){const el=$('#flags');if(!el)return;const se=S.slow&&S.slow.session;
+  const anyY=se&&(se.phase===6||se.yellow>0||(se.sectorFlags||[]).some(x=>x>0));
+  if(S.prevFlag&&!anyY)S.flagGreenUntil=Date.now()+8000;S.prevFlag=!!anyY;
+  el.innerHTML=flagsNow(se).map(([c,ck,t])=>`<div class="flag" style="color:${ck?'#fff':c}">${flagSvg(c,ck)}<span>${t}</span></div>`).join('')}
+
 // ---------- drawing (every frame; the track is one world-space path, rebuilt only when it grows) ----------
-let trackPath=null;
+let trackPath=null,secPaths=null;
 function fitCanvas(cv){const r=cv.getBoundingClientRect(),dpr=devicePixelRatio||1,w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}}
 // world (x, −z) → screen, as a matrix [a,b,c,d,e,f] for setTransform, and as a point function
 function viewTransform(cv){
@@ -684,6 +721,13 @@ function drawMap(){
   if(!trackPath){trackPath=new Path2D();for(const sg of S.segs){trackPath.moveTo(sg[0],sg[1]);trackPath.lineTo(sg[2],sg[3])}}
   g.setTransform(...T.m);g.lineCap='round';g.lineJoin='round';
   g.strokeStyle='#26282E';g.lineWidth=Math.max(6*dpr/T.s,13);g.stroke(trackPath);
+  // a flagged sector (or the whole track under FCY / safety car) glows yellow on the track
+  const se=S.slow&&S.slow.session,sb=secBounds();
+  if(se){const full=se.phase===6||se.yellow>0,fl=(se.sectorFlags||[]).map(x=>x>0);
+    if(full||fl.some(Boolean)){
+      if(!secPaths&&sb){secPaths=[new Path2D(),new Path2D(),new Path2D()];for(const sg of S.segs){const d=sg[4];if(d==null)continue;const k=d<sb[1]?0:d<sb[2]?1:2;secPaths[k].moveTo(sg[0],sg[1]);secPaths[k].lineTo(sg[2],sg[3])}}
+      g.strokeStyle='rgba(255,214,10,.45)';g.lineWidth=Math.max(6*dpr/T.s,13)+4/T.s;
+      if(full)g.stroke(trackPath);else if(secPaths)fl.forEach((on,k)=>{if(on)g.stroke(secPaths[k])})}}
   const line=(pts,col,w)=>{if(pts.length<2)return;g.strokeStyle=col;g.lineWidth=w/T.s;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.stroke()};
   line(S.last,'#4A4D56',2*dpr);line(S.trail,'#F2C200',2.5*dpr);
   g.setTransform(1,0,0,1,0,0);
@@ -693,8 +737,12 @@ function drawMap(){
   for(const c of list){const k=Math.max(0,Math.min(1,(now-c.t)/Math.max(30,c.t-c.pt)));const p=T.f(c.px+(c.x-c.px)*k,c.pz+(c.z-c.pz)*k);
     const info=cls.get(c.id),r=(c.me?7:5)*dpr;
     g.globalAlpha=c.pits?0.4:1;g.fillStyle=c.me?'#F2C200':CLS(info&&info.class);g.strokeStyle='#121316';g.lineWidth=1.5*dpr;
-    g.beginPath();g.arc(p[0],p[1],r,0,7);g.fill();g.stroke();
-    g.font=`${11*dpr}px JetBrains Mono, monospace`;g.fillStyle=c.me?'#F2C200':'#8C8F98';g.fillText(String(c.place),p[0]+r+2*dpr,p[1]-r);g.globalAlpha=1}
+    if(c.me&&S.hist.length>3){const a=S.hist[Math.max(0,S.hist.length-8)],b=S.hist[S.hist.length-1],pa=T.f(a.x,-a.z),pb=T.f(b.x,-b.z);
+      const ang=Math.atan2(pb[1]-pa[1],pb[0]-pa[0]),R=13*dpr;
+      if(Math.hypot(pb[0]-pa[0],pb[1]-pa[1])>0.5){g.save();g.translate(p[0],p[1]);g.rotate(ang);g.beginPath();g.moveTo(R,0);g.lineTo(-R*0.75,R*0.7);g.lineTo(-R*0.35,0);g.lineTo(-R*0.75,-R*0.7);g.closePath();g.fill();g.lineWidth=2*dpr;g.stroke();g.restore()}
+      else{g.beginPath();g.arc(p[0],p[1],r,0,7);g.fill();g.stroke()}}
+    else{g.beginPath();g.arc(p[0],p[1],r,0,7);g.fill();g.stroke()}
+    g.font=`${11*dpr}px JetBrains Mono, monospace`;g.fillStyle=c.me?'#F2C200':'#8C8F98';g.fillText(String(c.place),p[0]+r+(c.me?8:2)*dpr,p[1]-r);g.globalAlpha=1}
   if(!S.segs.length&&!S.fast){g.fillStyle='#8C8F98';g.font=`${13*dpr}px Inter, sans-serif`;g.fillText('The map appears once cars are moving.',20*dpr,30*dpr)}
   const zv=$('#zv');if(zv)zv.textContent=S.zoom.toFixed(1)+'x';
 }
@@ -709,7 +757,7 @@ function drawInputs(){
   g.fillStyle='#39C5F0';for(const f of h)if(f.flags&0xF0){g.beginPath();g.arc(X(f.et),Y(f.brk),4*dpr,0,7);g.fill()}
   const f=h[h.length-1],ft=$('#inpft');
   if(ft&&(!ft.dataset.t||now()-ft.dataset.t>100)){ft.dataset.t=now();const lock=['FL','FR','RL','RR'].filter((_,i)=>f.flags&(16<<i));
-    ft.innerHTML=`<span>Gear ${f.gear<0?'R':f.gear===0?'N':f.gear}</span><span>${Math.round(f.speed*3.6)} km/h</span><span class="mu">${Math.round(f.rpm)} rpm</span><span class="mu">Brake F ${f.bp[0].toFixed(2)} / R ${f.bp[2].toFixed(2)}</span>${f.flags&1?'<span class="a">ABS</span>':''}${f.flags&2?'<span class="a">TC</span>':''}${lock.length?`<span class="c">lock ${lock.join(' ')}</span>`:''}`}
+    ft.innerHTML=`<span class="gear">${f.gear<0?'R':f.gear===0?'N':f.gear}</span><span class="spd">${Math.round(f.speed*3.6)}<span class="sm"> km/h</span></span><span class="rpm">${Math.round(f.rpm)}<span class="sm"> rpm</span></span><span class="sm">brake F ${f.bp[0].toFixed(2)} / R ${f.bp[2].toFixed(2)}</span>${f.flags&1?'<span class="a">ABS</span>':''}${f.flags&2?'<span class="a">TC</span>':''}${lock.length?`<span class="c">lock ${lock.join(' ')}</span>`:''}`}
 }
 const now=()=>performance.now();
 let lastTraffic=0;
