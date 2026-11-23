@@ -41,7 +41,30 @@ input{font:inherit;color:var(--tx);background:#0E0F11;border:1px solid var(--ln)
 .grow{flex:1}
 .main{flex:1;display:flex;min-height:0;position:relative}
 .dcol{display:flex;flex-direction:column;min-width:220px;min-height:0}
-.dock{display:flex;flex-direction:column;overflow:hidden;min-height:60px}
+.dock{display:flex;flex-direction:column;overflow:hidden;min-height:60px;container-type:size}
+.dock .ph{flex-wrap:wrap;row-gap:4px}
+@container (max-width:340px){
+  .big{font-size:16px}.k3{gap:4px}.tyres{gap:4px}.tyre{padding:5px 7px}.tyre span[style*="16px"]{font-size:14px!important}
+  table.t{font-size:11px}table.t td,table.t th{padding:2px 3px}.lw{display:none}
+  #battle table.t td:nth-child(3),#battle table.t th:nth-child(3),#battle table.t td:nth-child(5),#battle table.t th:nth-child(5),#battle table.t td:nth-child(6),#battle table.t th:nth-child(6),#battle table.t td:nth-child(7),#battle table.t th:nth-child(7){display:none}
+  .slots{font-size:11px;gap:3px}.next{font-size:12px}
+}
+/* tables give up their least important columns as their panel gets narrower */
+@container (max-width:560px){#battle .lw{display:none}#battle table.t td:nth-child(5),#battle table.t th:nth-child(5),#battle table.t td:nth-child(6),#battle table.t th:nth-child(6),#battle table.t td:nth-child(7),#battle table.t th:nth-child(7){display:none}}
+@container (max-width:400px){#laps table.t td:nth-child(2),#laps table.t th:nth-child(2){display:none}#laps table.t{font-size:11.5px}#laps table.t td,#laps table.t th{padding:2px 3px}}
+@container (max-width:330px){#laps table.t td:nth-child(7),#laps table.t th:nth-child(7){display:none}}
+@container (max-width:290px){#laps table.t{font-size:10.5px}#laps table.t td,#laps table.t th{padding:2px 2px}#laps .sc{padding:0 2px}}
+@container (max-width:380px){#car .stl{display:none}}
+@container (max-width:300px){.tyre .mu{display:none}#car .k3.m{grid-template-columns:repeat(2,1fr)!important}}
+@container (max-width:250px){.big{font-size:14px}#car .k3:first-of-type{grid-template-columns:1fr 1fr}#car .k3 > div:nth-child(3){display:none}}
+@container (max-height:390px){#car .tyre .mu{display:none}#car .tyres{margin-top:6px}#car .k3.m{margin-top:6px!important}}
+@container (max-height:330px){#car .k3.m{display:none!important}}
+@container (max-height:300px){#wx .slots{display:none}}
+@container (max-height:240px){#wx svg,#wx .next{display:none}}
+@container (max-height:200px){#dmg .carsvg{max-height:110px}}
+@container (max-width:300px){#dmg .carsvg{display:none}}
+@container (max-height:118px){#pitw .k3{display:none}}
+@container (max-height:170px){#battle .lines{display:none}}
 .dock>.body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:auto;scrollbar-width:thin;scrollbar-color:#3A3D45 transparent}
 .dock>.body::-webkit-scrollbar{width:6px}.dock>.body::-webkit-scrollbar-thumb{background:#3A3D45;border-radius:3px}
 .dock .ph{cursor:grab;user-select:none;touch-action:none}.dock .ph button,.dock .ph input{cursor:pointer}
@@ -95,15 +118,19 @@ body.phone .tab{flex:none}
 .pview{flex:1;min-height:0;overflow:auto;padding:10px 12px;display:flex;flex-direction:column;gap:9px;scrollbar-width:none}
 .pview::-webkit-scrollbar{display:none}
 .pview .pn{border-radius:12px}
-.pnav{flex:none;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--ln);background:#141517;padding-bottom:env(safe-area-inset-bottom)}
+.pnav{flex:none;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ln);background:#141517;padding-bottom:env(safe-area-inset-bottom)}
 .pnav button{background:none;border:0;border-radius:0;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 10px;font-size:11px}
 .pnav button b{font-size:19px;font-weight:400;line-height:1.1}.pnav button.on{color:var(--y)}
 .pk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.pk .mu{font-size:12px}
 .pty{display:grid;grid-template-columns:1fr 1fr;gap:6px}.pty div{border-radius:8px;padding:7px 9px;font-family:var(--mono);font-size:13px}
-.pview .cv{min-height:0;flex:1}.pmap{flex:1;display:flex;flex-direction:column;min-height:380px}
-.pinp{flex:1;display:flex;flex-direction:column;min-height:300px}
+.pview .cv{min-height:0;flex:1}
+.pmapw{flex:1;display:flex;flex-direction:column;gap:9px;min-height:0}
+.pmap{flex:3;display:flex;flex-direction:column;min-height:300px}
+.pinp{flex:2;display:flex;flex-direction:column;min-height:190px}
+#inpft{display:flex;gap:6px 14px;margin-top:6px;flex-wrap:wrap}
+body.land .pmapw{flex-direction:row}body.land .pmap,body.land .pinp{min-height:0;flex:1}
 body.phone #battle table.t td:nth-child(3),body.phone #battle table.t th:nth-child(3),body.phone #laps table.t td:nth-child(2),body.phone #laps table.t th:nth-child(2){display:none}
-body.phone table.t{font-size:11.5px}body.phone table.t td,body.phone table.t th{padding:3px 3px}
+body.phone .lw{display:none}body.phone table.t{font-size:11.5px}body.phone table.t td,body.phone table.t th{padding:3px 3px}
 body.phone #battle table.t td:nth-child(5),body.phone #battle table.t th:nth-child(5),body.phone #battle table.t td:nth-child(6),body.phone #battle table.t th:nth-child(6),body.phone #battle table.t td:nth-child(7),body.phone #battle table.t th:nth-child(7){display:none}
 /* phone turned sideways on Map or Inputs: that view fills the screen */
 body.phone.land .top,body.phone.land .pnav{display:none}
@@ -131,7 +158,7 @@ body.phone.land .pview{padding:8px calc(10px + env(safe-area-inset-right)) 8px c
 <script>
 'use strict';
 // ARION Pit Wall dashboard — Phase 1. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1).
-const VERSION='0.1.6';
+const VERSION='0.1.7';
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
 const CFG={url:'https://isuiksufkyishdowejob.supabase.co',key:'sb_publishable_DMqGCrW9YEmzEN2_cP67-w_ljr1JBo9'};
@@ -323,8 +350,8 @@ function onSlow(j){if(j.t!=='slow')return;S.slow=j;if(j.rest&&typeof j.rest==='o
 // ---------- layout ----------
 // ---------- panels: resizable and movable, always snapped together (columns of stacked panels, no gaps) ----------
 // Saved in this browser (one layout per device); «Reset layout» in the top bar restores the default.
-const DEF_LAYOUT={v:1,cols:[{w:24,p:[['car',44],['damage',22],['traffic',34]]},{w:48,p:[['map',56],['inputs',22],['battle',22]]},{w:28,p:[['wx',27],['laps',43],['pit',13],['moments',17]]}]};
-const LKEY='pw-layout-v1';
+const DEF_LAYOUT={v:1,cols:[{w:25,p:[['car',47],['damage',24],['traffic',29]]},{w:47,p:[['map',55],['inputs',22],['battle',23]]},{w:28,p:[['wx',37],['laps',34],['pit',15],['moments',14]]}]};
+const LKEY='pw-layout-v2';   // v2: new default sizes (v0.1.7)
 let LAYOUT=(()=>{try{const l=JSON.parse(localStorage.getItem(LKEY));if(l&&l.v===1&&validLayout(l))return l}catch{}return JSON.parse(JSON.stringify(DEF_LAYOUT))})();
 function validLayout(l){const ids=l.cols.flatMap(c=>c.p.map(x=>x[0])).sort().join();return ids===DEF_LAYOUT.cols.flatMap(c=>c.p.map(x=>x[0])).sort().join()&&l.cols.every(c=>c.w>0&&c.p.length&&c.p.every(x=>x[1]>0))}
 function saveLayout(){try{localStorage.setItem(LKEY,JSON.stringify(LAYOUT))}catch{}}
@@ -334,7 +361,7 @@ const BODY={
   damage:`<div id="dmg" class="body"></div>`,
   traffic:`<div class="ph"><b>Traffic</b><span class="grow"></span><span class="mu"><span class="y">●</span> class</span></div><div id="traffic" class="body"></div>`,
   pit:`<div id="pitw" class="body"></div>`,
-  moments:`<div class="ph"><b>Key moments</b></div><div id="moments" class="mom body"></div>`,
+  moments:`<div class="ph"><b>Key moments</b></div><div id="moments" class="mom body vlist"></div>`,
   map:`<div class="ph"><b>Track map</b><span class="grow"></span><button id="mFull" class="on">Full</button><button id="mFollow">Follow</button><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div>
     <div class="cv"><canvas id="map"></canvas></div>
     <div class="lg"><span class="y">● you</span><span style="color:#FF453A">Hypercar</span><span style="color:#0A84FF">LMP2</span><span style="color:#BF5AF2">LMP3</span><span style="color:#30D158">GT3</span><span style="color:#FF9F0A">GTE</span></div>`,
@@ -343,7 +370,7 @@ const BODY={
   battle:`<div id="battle" class="body"></div>`,
   wx:`<div id="wx" class="body"></div>`,
   laps:`<div class="ph"><b>Laps and sectors</b><span class="grow"></span><button id="gMine" class="${S.gridTab==='mine'?'on':''}">This car</button><button id="gAll" class="${S.gridTab==='all'?'on':''}">Full grid</button></div>
-    <div id="gcls" class="tb"></div><div id="laps" class="body"></div>
+    <div id="gcls" class="tb"></div><div id="laps" class="body vlist"></div>
     <div class="lg" style="margin-top:6px"><span><span class="sc pu">class best</span></span><span><span class="sc gn">personal best</span></span><span><span class="sc yl">+0.3 s</span></span><span id="theo"></span></div>`,
 };
 function dashView(){
@@ -400,18 +427,19 @@ function movePanel(id,t){
 
 // ---------- phone layout (v0.1.6): five tabs — Car · Map · Timing · Strategy · Inputs ----------
 let PHONE=false,PTAB='car';
-const PT=[['car','◉','Car'],['map','⌖','Map'],['timing','☰','Timing'],['strat','⚑','Strategy'],['inputs','∿','Inputs']];
+const PT=[['car','◉','Car'],['map','⌖','Map'],['timing','☰','Timing'],['strat','⚑','Strategy']];
 function checkPhone(){const was=PHONE,land=innerWidth>innerHeight;PHONE=Math.min(innerWidth,innerHeight)<600;
-  document.body.classList.toggle('phone',PHONE);document.body.classList.toggle('land',PHONE&&land&&(PTAB==='map'||PTAB==='inputs'));
+  document.body.classList.toggle('phone',PHONE);document.body.classList.toggle('land',PHONE&&land&&PTAB==='map');
   if(was!==PHONE&&$('#view').dataset.k){ $('#view').dataset.k='';dashView()}}
 function phoneView(){
   const v=$('#view');const k='phone-'+PTAB;if(v.dataset.k===k)return;v.dataset.k=k;v.className='main';v.style.flexDirection='column';
   const body={
     car:`<div id="pcar" style="display:contents"></div>`,
-    map:`<div class="pn pmap"><div class="ph"><button id="mFollow" class="on">Follow</button><button id="mFull">Full</button><span class="grow"></span><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div><div class="cv"><canvas id="map"></canvas></div></div>`,
+    map:`<div class="pmapw"><div class="pn pmap"><div class="ph"><button id="mFollow" class="on">Follow</button><button id="mFull">Full</button><span class="grow"></span><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div><div class="cv"><canvas id="map"></canvas></div></div>
+      <div class="pn pinp"><div class="ph"><span class="g">throttle</span><span class="r">brake</span><span>steer</span><span class="a">ABS</span><span class="c">lock</span></div><div class="cv"><canvas id="inp"></canvas></div><div class="m" id="inpft"></div></div></div><div class="lhint">↻ turn sideways for full screen</div>`,
     timing:`<div class="pn" style="flex:1"><div class="ph"><button id="gMine" class="${S.gridTab==='mine'?'on':''}">This car</button><button id="gAll" class="${S.gridTab==='all'?'on':''}">Grid</button><span class="grow"></span><span id="theo" class="mu m" style="font-size:12px"></span></div><div id="gcls" class="tb"></div><div id="laps"></div></div>`,
     strat:`<div class="pn" id="battle"></div><div class="pn" id="pitw"></div><div class="pn" id="wx"></div>`,
-    inputs:`<div class="pn pinp"><div class="ph"><span class="g">throttle</span><span class="r">brake</span><span>steering</span><span class="a">ABS</span><span class="c">lock</span></div><div class="cv"><canvas id="inp"></canvas></div><div class="m" id="inpft" style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap"></div></div><div class="lhint">↻ turn sideways for full screen</div>`};
+};
   v.innerHTML=`<div class="pview">${body[PTAB]}</div><nav class="pnav">${PT.map(([id,i,t])=>`<button data-t="${id}" class="${id===PTAB?'on':''}"><b>${i}</b>${t}</button>`).join('')}</nav>`;
   v.querySelectorAll('.pnav button').forEach(b=>b.onclick=()=>{PTAB=b.dataset.t;checkPhone();phoneView()});
   if(PTAB==='map'){if(S.mode!=='follow'&&!S._pmapSet){S.mode='follow';S.zoom=Math.max(S.zoom,3)}S._pmapSet=true;
@@ -450,7 +478,7 @@ function paintPhoneCar(){
     <div class="pn"><div style="display:flex"><span class="mu">Energy</span><span class="grow"></span><span class="m">${ve>=0&&ve<=1?Math.round(ve*100)+'%':'–'}${energyLeft(me)&&energyLeft(me).laps!=null?` · ${energyLeft(me).laps.toFixed(1)} laps`:''}</span></div><div class="bar"><i style="width:${ve>=0&&ve<=1?ve*100:0}%"></i></div>
       <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} L</span></div></div>
     <div class="pn pty">${['FL','FR','RL','RR'].map((n,k)=>{const t=w[k]||{t:[0,0,0]};const mid=KC((t.t||[])[1]+273.15);return `<div style="background:${mid==null?'#1F2024':tyreBg(mid)}">${n} <b>${mid==null?'–':Math.round(mid)+'°'}</b> <span class="mu">${t.p>0?Math.round(t.p):'–'}</span></div>`}).join('')}</div>
-    <div class="pn" style="display:flex"><span class="mu">Damage</span><span class="grow"></span><span class="m ${dmg.length?'a':'g'}">${dmg.length?dmg.join(' · '):'none'}${R.pit&&R.pit.repair>0?` · repair ${R.pit.repair.toFixed(0)} s`:''}</span></div>
+    <div class="pn" style="display:flex;gap:6px 12px;flex-wrap:wrap"><span class="mu">Damage</span><span class="grow"></span><span class="m ${dmg.length?'a':'g'}" style="text-align:right">${dmg.length?dmg.join(' · '):'none'}${R.pit&&R.pit.repair>0?` · repair ${R.pit.repair.toFixed(0)} s`:''}</span></div>
     <div class="pn mom">${S.moments.slice(0,3).map(m=>`<div><span class="mu">${m.lap!=null?'L'+m.lap:''}</span> <span class="${m.cls||''}">${m.icon}</span> ${esc(m.text)}</div>`).join('')||'<div class="mu">Nothing yet.</div>'}</div>`;
 }
 // keep the phone screen on while a car is live (where the browser allows it)
@@ -517,7 +545,7 @@ function paintPanels(){
   const st=S.per.get(me.id),stintLap=st?me.laps-st.stintStart:0;
   const wear=R.wear||{};
   car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:me.name)}</b><span class="chip" style="background:#1F2024">P${pic||'–'} in ${esc(CLSN(cls))}</span><span class="mu">${esc(me.car||'')}</span>${me.pits?'<span class="chip a" style="background:#2A1F08">in pits</span>':''}</div>
-    <div class="k3"><div><div class="mu">Last lap</div><div class="big">${fmtLap(me.last)}</div></div><div><div class="mu">Best lap</div><div class="big g">${fmtLap(me.best)}</div></div><div><div class="mu">Laps</div><div class="big">${me.laps??'–'} <span class="mu" style="font-size:14px">stint ${stintLap}</span></div></div></div>
+    <div class="k3"><div><div class="mu">Last lap</div><div class="big">${fmtLap(me.last)}</div></div><div><div class="mu">Best lap</div><div class="big g">${fmtLap(me.best)}</div></div><div><div class="mu">Laps<span class="stl"> · stint</span></div><div class="big" style="white-space:nowrap">${me.laps??'–'}<span class="mu stl" style="font-size:14px"> · ${stintLap}</span></div></div></div>
     <div style="display:flex;margin-top:10px"><span class="mu">Virtual energy</span><span class="grow"></span><span class="m">${energy}${maxVE?` <span class="mu">of ${Math.round(maxVE)}</span>`:''}</span></div><div class="bar"><i style="width:${ve>=0&&ve<=1?ve*100:0}%"></i></div>
     <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} / ${(c.fuelCap||0).toFixed(0)} L</span></div>
     <div class="tyres">${['FL','FR','RL','RR'].map((n,i)=>{const t=w[i]||{t:[0,0,0]};const tt=(t.t||[]).map(x=>x+273.15).map(KC);const mid=tt[1];const bm=(wear.brakeMm||[])[i];
@@ -561,15 +589,15 @@ function paintBattle(j,me){
   const gap=g=>g.player?null:(me.laps===g.laps?me.behindLeader-g.behindLeader:(g.laps-me.laps)*999);
   const tr=g=>{const p=pace(g.id),el2=energyLeft(g),c=S.per.get(g.id),stint=c?g.laps-c.stintStart:null,nxt=el2&&el2.laps!=null?g.laps+Math.floor(el2.laps):null;
     const gp=gap(g),mp=pace(me.id),rate=p&&mp?(mp-p):null;
-    return `<tr${g.player?' style="background:#2A2400"':''}><td><span class="mu">P${inCls.indexOf(g)+1}</span> ${g.player?'<span class="y">you</span>':esc(g.name)}</td><td>${g.player?'<span class="mu">—</span>':Math.abs(gp)>500?'lap':Math.abs(gp).toFixed(1)}${rate!=null&&!g.player?` <span class="${(gp>0)===(rate<0)?'g':'r'}">${rate>0?'+':''}${rate.toFixed(1)}/lap</span>`:''}</td><td>${p?fmtLap(p):'–'}</td><td>${el2?Math.round(el2.e*100)+'%'+(el2.laps!=null?`, ${el2.laps.toFixed(1)} laps`:''):(g.fuel>0?'fuel '+Math.round(g.fuel*100)+'%':'–')}</td><td>${stint??'–'}</td><td>${g.stops}</td><td>${esc((g.tyreF||'').slice(0,6))||'–'}</td><td>${nxt?'lap '+nxt:'–'}</td></tr>`};
+    return `<tr${g.player?' style="background:#2A2400"':''}><td><span class="mu">P${inCls.indexOf(g)+1}</span> ${g.player?'<span class="y">you</span>':esc(g.name)}</td><td>${g.player?'<span class="mu">—</span>':Math.abs(gp)>500?'lap':Math.abs(gp).toFixed(1)}${rate!=null&&!g.player?` <span class="${(gp>0)===(rate<0)?'g':'r'}">${rate>0?'+':''}${rate.toFixed(1)}<span class="lw">/lap</span></span>`:''}</td><td>${p?fmtLap(p):'–'}</td><td>${el2?Math.round(el2.e*100)+'%'+(el2.laps!=null?` · ${el2.laps.toFixed(1)}<span class="lw"> laps</span>`:''):(g.fuel>0?'fuel '+Math.round(g.fuel*100)+'%':'–')}</td><td>${stint??'–'}</td><td>${g.stops}</td><td>${esc((g.tyreF||'').slice(0,6))||'–'}</td><td>${nxt?'<span class="lw">lap </span>'+nxt:'–'}</td></tr>`};
   const lines=[];const meE=energyLeft(me),meNext=meE&&meE.laps!=null?me.laps+Math.floor(meE.laps):null;
   for(const g of rows){if(g.player)continue;const e=energyLeft(g),n=e&&e.laps!=null?g.laps+Math.floor(e.laps):null;const ahead=gap(g)>0;
     if(n&&meNext){if(ahead&&n<meNext)lines.push(`<div><span class="g">↑</span> ${esc(g.name)} stops around lap ${n}, ${meNext-n} laps before you: clear air to close the ${Math.abs(gap(g)).toFixed(1)} s.</div>`);
       if(!ahead&&n<meNext)lines.push(`<div><span class="g">✓</span> ${esc(g.name)} stops around lap ${n}, ${meNext-n} laps before you.</div>`);
       if(!ahead&&n>meNext)lines.push(`<div><span class="a">!</span> ${esc(g.name)} can run ${n-meNext} laps longer than you: watch the undercut.</div>`)}}
   el.innerHTML=`<div class="ph"><b>Battle in class</b></div>
-    <table class="t"><tr><th>Car</th><th>Gap</th><th>Pace</th><th>Energy</th><th>Stint</th><th>Stops</th><th>Tyres</th><th>Next stop</th></tr>${rows.map(tr).join('')}</table>
-    <div style="display:grid;gap:3px;margin-top:6px;font-size:13px">${lines.join('')||'<div class="mu">Predictions after a few laps.</div>'}</div>`;
+    <table class="t"><tr><th>Car</th><th>Gap</th><th>Pace</th><th>Energy</th><th>Stint</th><th>Stops</th><th>Tyres</th><th>Next<span class="lw"> stop</span></th></tr>${rows.map(tr).join('')}</table>
+    <div class="lines" style="display:grid;gap:3px;margin-top:6px;font-size:13px">${lines.join('')||'<div class="mu">Predictions after a few laps.</div>'}</div>`;
 }
 function paintPit(j,me){
   const el=$('#pitw');if(!el)return;const P=(S.rest||{}).pit;
