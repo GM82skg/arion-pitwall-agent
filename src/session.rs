@@ -59,6 +59,9 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
         let mut last_rest = Instant::now() - Duration::from_secs(50);
         let mut recorder = crate::recorder::Recorder::new(crate::keystore::dir().join("laps"));
         let mut alerts = crate::alerts::Alerts::new();
+        // Phase 3a: live comparison against the class best (reference line, ghost, corner verdicts)
+        let mut compare = crate::compare::Compare::new();
+        let (mut ref_rev_sent, mut ref_sent_at) = (u16::MAX, Instant::now() - Duration::from_secs(60));
         let door_a = door_t.clone();
         while !stop_t.load(Ordering::Relaxed) {
             tick.tick().await;
@@ -68,6 +71,7 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
             let Some(o) = snap else { continue };
             report_t.lock().unwrap().observe(&o);
             recorder.observe(&o);
+            let verdicts = compare.observe(&o);
             // car tab alerts (migration 59): one short message per event; errors are ignored (older database)
             if let Some((level, word)) = alerts.observe(&o) {
                 let d = door_a.clone();
@@ -104,6 +108,25 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
                 let c = protocol::cars_frame(&o);
                 local.send(crate::local::Msg::Fast(c.clone()));
                 hub_t.send_fast(&c).await;
+                if let Some(r) = compare.frame() {
+                    local.send(crate::local::Msg::Fast(r.to_vec()));
+                    hub_t.send_fast(&r).await;
+                }
+            }
+            // the reference (line, corners, recent verdicts): when it changes, and every 20 s for coaches who join later
+            if compare.reference.is_some() && (compare.rev != ref_rev_sent || ref_sent_at.elapsed() >= Duration::from_secs(20)) {
+                if let Some(j) = compare.ref_json() {
+                    let t = j.to_string();
+                    local.send(crate::local::Msg::Slow(t.clone()));
+                    hub_t.send_slow(&t).await;
+                    ref_rev_sent = compare.rev;
+                    ref_sent_at = Instant::now();
+                }
+            }
+            for v in &verdicts {
+                let t = v.to_string();
+                local.send(crate::local::Msg::Slow(t.clone()));
+                hub_t.send_slow(&t).await;
             }
             if last_slow.elapsed() >= Duration::from_secs_f64(1.0 / config::SLOW_HZ as f64) {
                 last_slow = Instant::now();

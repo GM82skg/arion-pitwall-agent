@@ -19,7 +19,7 @@ async def main():
         E = pg.evaluate
         chk('phone layout on, four tabs at the bottom', await E('PHONE') and await E('document.querySelectorAll(".pnav button").length') == 4)
         t = await E('document.querySelector("#pcar").innerText')
-        chk('Car tab: lap times, ahead/behind, energy, tyres, damage, moments', all(x in t for x in ['Last', 'Best', 'Δ live', 'Behind', 'Energy', 'FL', 'Damage', 'Aero 14%']), t[:300])
+        chk('Car tab: delta row, lap times, ahead/behind, energy, tyres, damage, moments', all(x in t for x in ['proj', 'pot', 'Last', 'Best', 'Laps', 'Behind', 'Energy', 'FL', 'Damage', 'Aero 14%']), t[:300])
         sw = lambda: E('[document.documentElement.scrollWidth, innerWidth]')
         r = await sw(); chk('Car tab: no sideways scrolling', r[0] <= r[1], r)
         await pg.screenshot(path='/tmp/ph_car.png')

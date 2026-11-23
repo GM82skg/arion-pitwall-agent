@@ -7,6 +7,8 @@ def chk(n, c, info=''):
     global ok, fail
     if c: ok += 1; print('PASS', n)
     else: fail += 1; print('FAIL', n, json.dumps(info, ensure_ascii=False)[:900])
+# v0.1.10: every panel title bar stays one line on desktop (a child starting below the first row = wrapped)
+HDR = '''[...document.querySelectorAll(".dock .ph")].filter(e=>{const rs=[...e.children].filter(c=>c.getClientRects().length&&c.offsetHeight>0&&c.offsetWidth>0).map(c=>c.getBoundingClientRect());const fb=Math.min(...rs.map(r=>r.bottom));return rs.some(r=>r.top>=fb-1)}).map(e=>e.closest(".dock").dataset.id)'''
 AUDIT = r'''(()=>{const BOX='.pn,.tab,.chip,button,.slot,.tyre,.next,.pill,.sc,.rl,td,th,.pty>div,.pk>div';const out=[];
  const w=document.createTreeWalker(document.querySelector('#app'),NodeFilter.SHOW_TEXT);let n;
  while(n=w.nextNode()){const t=n.textContent.trim();if(!t)continue;const el=n.parentElement;if(!el||!el.getClientRects().length)continue;
@@ -38,11 +40,20 @@ async def main():
         probe = await pg.evaluate("(()=>{const d=document.createElement('div');d.className='pn';d.style.width='60px';d.textContent='ThisWordIsFarTooLongForTheBox';document.querySelector('.pview').appendChild(d);const a="+AUDIT+";d.remove();return a.out.length})()")
         chk('the audit itself catches a real overflow', probe >= 1, probe)
         chk('phone: four tabs (Inputs now under the map)', await pg.evaluate('[...document.querySelectorAll(".pnav button")].map(b=>b.dataset.t).join()') == 'car,map,timing,strat')
+        # v0.1.10: audit the strategy banner opened with its longest content, and the delta row with a long corner verdict
+        await pg.evaluate("""(()=>{window.stratStep=()=>{};S.stOpen=true;
+          S.st={key:'x',since:Date.now(),k:0,gain:3,cover:{id:1,no:'#397'},flipped:[{no:'#146',stop:118},{no:'#31',stop:121},{no:'#7',stop:124}],
+            rows:[{k:0,pos:3,d:3,best:true},{k:1,pos:4,d:2},{k:2,pos:5,d:1},{k:null,pos:6,d:null}],ve:1,ty:'FL RR',repair:128,loss:118,est:true};
+          const v={t:'corner',n:12,lap:3,dt:-1.234,brake_m:-123,vmin:-18,vexit:+12,abs:true,lock:true,at:Date.now()+3e7};S.verdicts=[v];
+          setInterval(()=>{S.verdicts[0]=v},200)})()""")
         for size in [(390, 844), (360, 740)]:
             await pg.set_viewport_size({'width': size[0], 'height': size[1]})
             for tab in ['car', 'map', 'timing', 'strat']:
                 await pg.click(f'.pnav button[data-t="{tab}"]'); await asyncio.sleep(1.2)
-                if tab == 'map': chk(f'phone {size[0]}: map with live inputs under it', await pg.evaluate('!!document.querySelector("#map")&&!!document.querySelector("#inp")&&S.hist.length>10'))
+                if tab == 'map':
+                    chk(f'phone {size[0]}: map with live inputs under it', await pg.evaluate('!!document.querySelector("#map")&&!!document.querySelector("#inp")&&S.hist.length>10'))
+                    chk(f'phone {size[0]}: the opened strategy banner is on the map', await pg.evaluate('!!document.querySelector("#strat .sbt")'))
+                if tab == 'car': chk(f'phone {size[0]}: the delta row is on the Car tab', await pg.evaluate('!!document.querySelector("#pdl .dv")'))
                 a = await pg.evaluate(AUDIT); chk(f'phone {size[0]} {tab}: no text outside its box', not a['out'] and not a['sw'], a)
                 await pg.screenshot(path=f'/tmp/fit_{size[0]}_{tab}.png')
         await pg.click('.pnav button[data-t="map"]'); await pg.set_viewport_size({'width': 844, 'height': 390}); await asyncio.sleep(1.2)
@@ -52,7 +63,12 @@ async def main():
         await pg.screenshot(path='/tmp/fit_land.png')
         for size in [(1920, 1080), (1600, 900), (1280, 720), (1024, 768)]:
             await pg.set_viewport_size({'width': size[0], 'height': size[1]}); await asyncio.sleep(1.5)
+            chk(f'desktop {size[0]}x{size[1]}: banner, delta row and 10 chain icons on screen', await pg.evaluate('!!document.querySelector("#strat .sbt")&&!!document.querySelector("#dlt .vd")&&document.querySelectorAll(".chain").length===10'))
             a = await pg.evaluate(AUDIT); chk(f'desktop {size[0]}x{size[1]}: no text outside its box', not a['out'], a)
+            w = await pg.evaluate(HDR); chk(f'desktop {size[0]}x{size[1]}: every panel title bar on one line', not w, w)
+            if size[0] == 1024:   # the check must catch a real wrap: put the zoom readout back in the narrow map
+                pw = await pg.evaluate('(()=>{const st=document.createElement("style");st.textContent="#zv{display:inline!important}";document.head.appendChild(st);const r='+HDR+';st.remove();return r})()')
+                chk('the title-bar check catches a real wrap', 'map' in pw, pw)
             await pg.screenshot(path=f'/tmp/fit_d{size[0]}.png')
         await br.close()
 asyncio.run(main())

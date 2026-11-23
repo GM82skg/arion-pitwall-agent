@@ -25,18 +25,99 @@ pub struct FakeSource {
     speed: std::sync::Arc<std::sync::atomic::AtomicU32>,
     /// demo mode: now and then a penalty, a knock, a pit stop — so alerts and key moments can be seen
     events: bool,
+    cars: Vec<FakeCar>,
 }
+
+/// One fake car driving the test track: it slows for two corners, so it brakes, turns and accelerates.
+#[derive(Clone, Default)]
+struct FakeCar {
+    d: f64,        // distance into the lap (m)
+    v: f64,        // speed (m/s)
+    brake: f64,
+    throttle: f64,
+    laps: i16,
+    lap_start: f64,
+    last: f64,
+    best: f64,
+    s1: f64,
+    s2: f64,
+    last_s1: f64,
+    last_s2: f64,
+}
+
+pub const FAKE_LAP: f64 = 1600.0;
+/// Top speed and corner sharpness per car. Car 6 (GT3) is the class's fastest: it brakes later for sharper corners.
+fn fake_car_spec(i: usize) -> (f64, f64) {
+    match i {
+        0..=2 => (60.0 - i as f64, 0.034),  // Hypercars
+        5 => (51.0, 0.026),                 // fastest GT3: later braking
+        3 => (50.0, 0.030),                 // the player
+        _ => (49.5 - (i as f64 - 4.0) * 0.4, 0.031),
+    }
+}
+/// Speed target along the lap (fraction 0..1): corners at 25 % and 75 %.
+fn fake_profile(f: f64, w: f64) -> f64 {
+    let bump = |c: f64| (-((f - c) / w).powi(2)).exp();
+    1.0 - 0.55 * bump(0.25) - 0.45 * bump(0.75)
+}
+/// Track shape: an oval whose two ends are the two corners.
+pub fn fake_pos(d: f64) -> (f64, f64) {
+    let a = d / FAKE_LAP * std::f64::consts::TAU - std::f64::consts::FRAC_PI_2;
+    (400.0 * a.cos(), 150.0 * a.sin())
+}
+
 impl FakeSource {
     pub fn new() -> Self {
         Self::with_speed(1.0)
     }
     /// A faster clock, so tests see laps, stints and energy use within seconds.
     pub fn with_speed(speed: f64) -> Self {
-        FakeSource { last: std::time::Instant::now(), clock: 0.0, speed: std::sync::Arc::new(std::sync::atomic::AtomicU32::new((speed * 100.0) as u32)), events: false }
+        Self::make(std::sync::Arc::new(std::sync::atomic::AtomicU32::new((speed * 100.0) as u32)), false)
     }
     /// Demo mode: the speed can be changed while it runs (1× or 10×), and race events happen now and then.
     pub fn demo(speed: std::sync::Arc<std::sync::atomic::AtomicU32>) -> Self {
-        FakeSource { last: std::time::Instant::now(), clock: 0.0, speed, events: true }
+        Self::make(speed, true)
+    }
+    fn make(speed: std::sync::Arc<std::sync::atomic::AtomicU32>, events: bool) -> Self {
+        let cars = (0..8).map(|i| {
+            let (vmax, w) = fake_car_spec(i);
+            let d = (8 - i) as f64 * 140.0;
+            FakeCar { d, v: vmax * fake_profile(d / FAKE_LAP, w), ..Default::default() }
+        }).collect();
+        FakeSource { last: std::time::Instant::now(), clock: 0.0, speed, events, cars }
+    }
+    /// Moves every car forward by dt seconds of race time (small steps, so 10× stays smooth).
+    fn advance(&mut self, et0: f64, dt: f64) {
+        let steps = (dt / 0.02).ceil().max(1.0) as usize;
+        let h = dt / steps as f64;
+        for (i, c) in self.cars.iter_mut().enumerate() {
+            let (vmax, w) = fake_car_spec(i);
+            for k in 0..steps {
+                let t = et0 + h * (k as f64 + 1.0);
+                // look 40 m ahead: brake if the target there is lower, otherwise accelerate
+                let ahead = vmax * fake_profile(((c.d + 40.0) % FAKE_LAP) / FAKE_LAP, w);
+                let target = ahead.min(vmax * fake_profile(c.d / FAKE_LAP, w));
+                let acc = if target < c.v - 0.3 { -14.0 } else if target > c.v + 0.3 { 7.0 } else { 0.0 };
+                c.brake = if acc < 0.0 { 0.85 } else { 0.0 };
+                c.throttle = if acc > 0.0 { 1.0 } else if acc == 0.0 { 0.75 } else { 0.0 };
+                c.v = (c.v + acc * h).clamp(15.0, vmax);
+                let before = c.d;
+                c.d += c.v * h;
+                if before < FAKE_LAP / 3.0 && c.d >= FAKE_LAP / 3.0 { c.s1 = t - c.lap_start }
+                if before < FAKE_LAP * 2.0 / 3.0 && c.d >= FAKE_LAP * 2.0 / 3.0 { c.s2 = t - c.lap_start }
+                if c.d >= FAKE_LAP {
+                    c.d -= FAKE_LAP;
+                    if c.lap_start > 0.0 || c.laps > 0 {
+                        c.last = t - c.lap_start;
+                        c.last_s1 = c.s1;
+                        c.last_s2 = c.s2;
+                        if c.best == 0.0 || c.last < c.best { c.best = c.last }
+                    }
+                    c.laps += 1;
+                    c.lap_start = t;
+                }
+            }
+        }
     }
 }
 impl Default for FakeSource {
@@ -49,11 +130,20 @@ impl Source for FakeSource {
     fn read(&mut self) -> Option<Box<LMUObjectOut>> {
         let now = std::time::Instant::now();
         let k = self.speed.load(std::sync::atomic::Ordering::Relaxed) as f64 / 100.0;
-        self.clock += now.duration_since(self.last).as_secs_f64() * k;
+        let dt = now.duration_since(self.last).as_secs_f64() * k;
         self.last = now;
+        Some(self.step(dt))
+    }
+}
+
+impl FakeSource {
+    /// Advance the race by dt seconds and return LMU's data at that moment (tests call this directly: exact, repeatable).
+    pub fn step(&mut self, dt: f64) -> Box<LMUObjectOut> {
+        let et0 = self.clock;
+        self.clock += dt;
         let et = self.clock;
+        self.advance(et0, dt);
         let mut o = zeroed();
-        let lap_len = 1600.0;
         let si = &mut o.scoring.scoringInfo;
         put(&mut si.mTrackName, "Test Ring");
         si.mSession = 10;
@@ -63,52 +153,57 @@ impl Source for FakeSource {
         si.mGamePhase = 5;
         si.mAmbientTemp = 22.8;
         si.mTrackTemp = 31.4;
-        si.mLapDist = lap_len;
+        si.mLapDist = FAKE_LAP;
         si.mNumVehicles = 8;
         si.mTrackGripLevel = 3;
-        let pos_at = |d: f64| -> (f64, f64) {
-            let a = d / lap_len * std::f64::consts::TAU;
-            (400.0 * a.cos(), 150.0 * a.sin())
-        };
+        si.mGameMode = 2;
+        // places: by laps and distance
+        let mut order: Vec<usize> = (0..8).collect();
+        order.sort_by(|&a, &b| {
+            let ta = self.cars[a].laps as f64 * FAKE_LAP + self.cars[a].d;
+            let tb = self.cars[b].laps as f64 * FAKE_LAP + self.cars[b].d;
+            tb.partial_cmp(&ta).unwrap()
+        });
+        let lead = self.cars[order[0]].laps as f64 * FAKE_LAP + self.cars[order[0]].d;
         for i in 0..8usize {
-            let speed = 36.0 - i as f64 * 0.4;
-            let d = (et * speed + i as f64 * 140.0) % lap_len;
-            let (x, z) = pos_at(d);
+            let c = self.cars[i].clone();
+            let (x, z) = fake_pos(c.d);
             let v = &mut o.scoring.vehScoringInfo[i];
             v.mID = i as i32 + 1;
             put(&mut v.mDriverName, &format!("Driver {}", i + 1));
             put(&mut v.mVehicleName, &format!("Car #{}", 10 + i));
             put(&mut v.mVehicleClass, if i < 3 { "Hypercar" } else { "GT3" });
-            v.mPlace = i as u8 + 1;
-            v.mLapDist = d;
+            v.mPlace = order.iter().position(|&o| o == i).unwrap_or(i) as u8 + 1;
+            v.mLapDist = c.d;
             v.mPos.x = x;
             v.mPos.z = z;
-            v.mTotalLaps = (et * speed / lap_len) as i16;
-            v.mBestLapTime = lap_len / speed;
-            v.mLastLapTime = lap_len / speed + 0.3;
+            v.mTotalLaps = c.laps;
+            v.mBestLapTime = c.best;
+            v.mLastLapTime = c.last;
+            v.mLastSector1 = c.last_s1;
+            v.mLastSector2 = c.last_s2;
+            v.mCurSector1 = c.s1;
+            v.mCurSector2 = c.s2;
+            v.mBestSector1 = if c.best > 0.0 { c.best * 0.31 } else { 0.0 };
+            v.mBestSector2 = if c.best > 0.0 { c.best * 0.66 } else { 0.0 };
             v.mIsPlayer = (i == 3) as u8;
             v.mCountLapFlag = 2;
             v.mControl = if i == 3 { 0 } else if i % 2 == 0 { 2 } else { 1 }; // you, remote players, AI
-            let lap_t = lap_len / speed + 0.3 + ((v.mTotalLaps as f64 * 1.7 + i as f64).sin() * 0.4);
-            v.mLastLapTime = if v.mTotalLaps > 0 { lap_t } else { 0.0 };
-            v.mLastSector1 = if v.mTotalLaps > 0 { lap_t * 0.31 } else { 0.0 };
-            v.mLastSector2 = if v.mTotalLaps > 0 { lap_t * 0.66 } else { 0.0 };
-            v.mBestSector1 = lap_len / speed * 0.31;
-            v.mBestSector2 = lap_len / speed * 0.66;
-            v.mTimeBehindLeader = i as f64 * 3.5;
-            v.mFuelFraction = (230.0 - (v.mTotalLaps as f64 * 9.0) % 200.0) as u8;
+            v.mTimeBehindLeader = (lead - (c.laps as f64 * FAKE_LAP + c.d)) / 45.0;
+            v.mFuelFraction = (230.0 - (c.laps as f64 * 9.0) % 200.0) as u8;
             // every car also has a telemetry slot (positions there are fresher; offset 0.5 m so tests can tell)
             let t = &mut o.telemetry.telemInfo[i];
             t.mID = i as i32 + 1;
             t.mElapsedTime = et;
-            t.mPos.x = x + 0.5;
+            t.mLapStartET = c.lap_start;
+            t.mLapNumber = c.laps as i32;
+            t.mPos.x = x + if i == 3 { 0.0 } else { 0.5 };
             t.mPos.z = z;
-            t.mLocalVel.z = -speed;
-            t.mUnfilteredThrottle = 1.0;
-            t.mVirtualEnergy = (0.95 - ((et * speed / lap_len) * (0.035 + i as f64 * 0.002)) % 0.8) as f32;
+            t.mLocalVel.z = -c.v;
+            t.mUnfilteredThrottle = c.throttle as f32 as f64;
+            t.mUnfilteredBrake = c.brake;
+            t.mVirtualEnergy = (0.95 - ((c.laps as f64 + c.d / FAKE_LAP) * (0.035 + i as f64 * 0.002)) % 0.8) as f32;
         }
-        // the player: car 4, braking hard twice a lap
-        o.scoring.scoringInfo.mGameMode = 2;
         if self.events {
             // every ~6 minutes of game time: a penalty at 2 min, a knock at 3 min, a pit stop at 5 min
             let cyc = et % 360.0;
@@ -119,39 +214,27 @@ impl Source for FakeSource {
             if cyc > 180.0 { o.telemetry.telemInfo[3].mDentSeverity[1] = 1 }
             o.scoring.scoringInfo.mYellowFlagState = (240.0..255.0).contains(&cyc) as u8;
         }
-        let d = o.scoring.vehScoringInfo[3].mLapDist;
-        let (x, z) = pos_at(d);
-        let ph = d / lap_len;
-        let braking = (0.20..0.26).contains(&ph) || (0.70..0.76).contains(&ph);
-        let speed = if braking { 22.0 } else { 50.0 };
+        // the player: car 4, with full telemetry
+        let c = self.cars[3].clone();
+        let braking = c.brake > 0.0;
         let t = &mut o.telemetry;
         t.activeVehicles = 8;
         t.playerHasVehicle = 1;
         t.playerVehicleIdx = 3;
         let v = &mut t.telemInfo[3];
-        v.mID = 4;
-        v.mElapsedTime = et;
-        v.mPos.x = x;
-        v.mLapNumber = o.scoring.vehScoringInfo[3].mTotalLaps as i32;
-        v.mPos.x = x;
-        v.mPos.z = z;
-        v.mLocalVel.z = -speed;
-        v.mGear = if braking { 3 } else { 5 };
-        v.mEngineRPM = 6000.0 + 1500.0 * (et * 2.0).sin();
-        v.mUnfilteredThrottle = if braking { 0.0 } else { 1.0 };
-        v.mUnfilteredBrake = if braking { 0.9 } else { 0.0 };
-        v.mUnfilteredSteering = (ph * std::f64::consts::TAU * 2.0).sin() * 0.3;
+        v.mGear = if c.v < 25.0 { 3 } else if c.v < 38.0 { 4 } else { 5 };
+        v.mEngineRPM = 4500.0 + c.v * 60.0;
+        v.mUnfilteredSteering = (-((c.d / FAKE_LAP - 0.25) / 0.04).powi(2)).exp() * 0.5 - (-((c.d / FAKE_LAP - 0.75) / 0.04).powi(2)).exp() * 0.5;
         v.mABSActive = (braking && (et * 10.0) as i64 % 3 == 0) as u8;
         v.mFuel = 60.0;
         v.mFuelCapacity = 100.0;
-        v.mVirtualEnergy = (0.95 - ((et * 50.0 / lap_len) * 0.04) % 0.8) as f32;
         v.mRearBrakeBias = 0.458;
         v.mTC = 3;
         v.mABS = 4;
         v.mMotorMap = 2;
         for (k, w) in v.mWheels.iter_mut().enumerate() {
             w.mStaticUndeflectedRadius = 34;
-            w.mRotation = -speed / 0.34;
+            w.mRotation = -c.v / 0.34;
             w.mBrakePressure = if braking { if k < 2 { 0.9 * 0.542 } else { 0.9 * 0.458 } } else { 0.0 };
             w.mTemperature = [361.0, 363.0, 362.0];
             w.mTireCarcassTemperature = 360.0;
@@ -159,7 +242,7 @@ impl Source for FakeSource {
             w.mWear = 0.82;
             w.mBrakeTemp = 700.0;
         }
-        Some(o)
+        o
     }
 }
 

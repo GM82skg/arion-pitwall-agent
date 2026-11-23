@@ -4,8 +4,8 @@ All numbers are little-endian. Two WebRTC data channels, both opened by the coac
 
 | Channel | Settings | Carries |
 |---|---|---|
-| `fast` | `ordered: false, maxRetransmits: 0` | fast frames (kind 1, up to 30 Hz) and cars frames (kind 2, 10 Hz), binary |
-| `slow` | reliable, ordered | slow message (JSON text, 2 Hz); latency ping `p:<number>` → reply `q:<same number>` |
+| `fast` | `ordered: false, maxRetransmits: 0` | fast frames (kind 1, up to 30 Hz), cars frames (kind 2, 10 Hz) and comparison frames (kind 3, with kind 1), binary |
+| `slow` | reliable, ordered | slow message (JSON text, 2 Hz), reference (`ref`) and corner verdicts (`corner`); latency ping `p:<number>` → reply `q:<same number>` |
 
 Every binary frame starts with `version (u8) = 1`, `kind (u8)`.
 
@@ -40,6 +40,36 @@ Wheel lock: speed > 5 m/s, brake pedal > 5 %, and the wheel turning under 30 % o
 The slot id matches `grid[].id` in the slow message. Positions come from each car's telemetry slot (LMU updates
 those ~50 times a second), falling back to timing positions (5–6 a second) for a car without one. Sent 10 times a second;
 the dashboard moves cars smoothly between frames.
+
+## Comparison frame (kind 3), 24 bytes — live delta and ghost (since v0.1.15)
+
+Sent with each fast frame once there is a class-best reference lap and the car is on its line.
+
+| Offset | Type | Field |
+|---|---|---|
+| 0 | u8 | version = 1 |
+| 1 | u8 | kind = 3 |
+| 2 | u16 | reference revision (matches `rev` in the `ref` message) |
+| 4 | f32 | live delta to the class best (s; + = slower) |
+| 8 | f32 ×2 | ghost (the class-best car at the same time into the lap): world x, z |
+| 16 | f32 | distance along the reference line (m) |
+| 20 | f32 | live delta to the driver's own best lap (s; NaN while there is none) |
+
+The class best is the fastest valid lap of any car in the driver's class, recorded since the app started, from LMU's
+telemetry. The driver's own best is the fastest valid lap of their own car, used from the start of the lap after it.
+
+## Reference message (JSON, `"t": "ref"`)
+
+Sent when the reference changes and every 20 s: `rev`, `car` (slot id), `name`, `own` (true when the class best is the
+driver's own lap), `lap` (class-best lap time), `own_lap` (the driver's best lap time or null), `len` (m),
+`line` ([x, z, distance, km/h] about every 5 m, at most ~1500 points), `corners` (n, brake/apex/end distances, minimum
+km/h, `at_brake` and `at_apex` as [x, z]), `recent` (the last corner verdicts).
+
+## Corner verdict (JSON, `"t": "corner"`)
+
+After each corner of the reference: `n`, `lap`, `dt` (s lost (+) or gained (−) from 50 m before braking to the
+corner's end), `brake_m` (− = braked earlier than the reference), `vmin` and `vexit` (km/h against the reference),
+`abs`, `lock`, `rev`.
 
 ## Slow message (JSON, `"t": "slow"`)
 

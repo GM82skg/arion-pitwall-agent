@@ -66,6 +66,7 @@ input{font:inherit;color:var(--tx);background:#0E0F11;border:1px solid var(--ln)
 @container (max-width:300px){.tyre .mu{display:none}#car .k3.m{grid-template-columns:repeat(2,1fr)!important}}
 @container (max-width:250px){.big{font-size:14px}#car .k3:first-of-type{grid-template-columns:1fr 1fr}#car .k3 > div:nth-child(3){display:none}}
 @container (max-width:300px){#dmg .carsvg{display:none}}
+@container (max-width:480px){#zv{display:none}}   /* narrow map: the zoom readout goes first, so the header stays one line */
 .dock>.body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:auto;scrollbar-width:thin;scrollbar-color:#3A3D45 transparent}
 .dock>.body::-webkit-scrollbar{width:6px}.dock>.body::-webkit-scrollbar-thumb{background:#3A3D45;border-radius:3px}
 .dock .ph{cursor:grab;user-select:none;touch-action:none}.dock .ph button,.dock .ph input{cursor:pointer}
@@ -142,6 +143,36 @@ body.phone #battle table.t td:nth-child(5),body.phone #battle table.t th:nth-chi
 body.phone.land .top,body.phone.land .pnav{display:none}
 body.phone.land .pview{padding:8px calc(10px + env(safe-area-inset-right)) 8px calc(10px + env(safe-area-inset-left))}
 .lhint{text-align:center;font-size:12px;color:var(--mu)}body.land .lhint{display:none}
+/* ---------- B: live delta (v0.1.10) ---------- */
+.dsw{display:inline-flex;gap:0}.dsw button{padding:2px 8px;font-size:12px;border-radius:0}.dsw button:first-child{border-radius:6px 0 0 6px}.dsw button:last-child{border-radius:0 6px 6px 0;margin-left:-1px}
+.dlt{display:flex;align-items:baseline;gap:4px 12px;flex-wrap:wrap;font-family:var(--mono);margin:0 0 6px;min-width:0}
+.dlt .dv{font-size:28px;font-weight:700;line-height:1.05;white-space:nowrap}.dlt .dk{font-size:13px;white-space:nowrap}.dlt .dk .mu{font-size:12px}
+.dlt .vd{font-size:12px;flex:1 1 180px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.tn{border-radius:3px;padding:0 4px;background:#3B2760;color:#C9A8FF}
+/* ---------- C: OBS panels (v0.1.10) ---------- */
+.chain{background:none;border:0;padding:2px;margin-left:auto;color:var(--mu);display:inline-flex;align-items:center;flex:none;line-height:0}.chain:hover{color:var(--y)}.grow~.chain{margin-left:0}
+.chain svg{width:15px;height:15px}
+html.obs,body.obs{background:transparent!important}body.obs #app{padding:0;gap:0;height:100vh}body.obs .top{display:none}
+body.obs .pn{background:transparent;border:0}body.obs .ph button,body.obs .chain,body.obs .dsw{display:none}body.obs .dock .ph{cursor:default}
+body.obs .obsp{flex:1;min-height:0;min-width:0;padding:6px}
+/* ---------- D: strategy alert on the map (v0.1.10) ---------- */
+.strat{position:absolute;top:8px;right:8px;width:270px;max-width:calc(100% - 16px);max-height:calc(100% - 16px);overflow-y:auto;scrollbar-width:none;border-radius:8px;z-index:2}.strat::-webkit-scrollbar{display:none}
+body.phone .strat{left:8px;right:8px;width:auto}
+.sb{display:flex;flex-direction:column;gap:5px;width:100%;text-align:left;padding:8px 10px 9px;border-radius:8px;font-family:var(--mono);background:rgba(28,23,6,.94);border:1.5px solid var(--y)}
+.sb:hover{border-color:var(--y)}.sb.soon{border-color:var(--a);background:rgba(30,21,6,.94)}
+.sb.now{animation:sbp 1.6s ease-in-out infinite}@keyframes sbp{0%,100%{box-shadow:0 0 0 0 rgba(242,194,0,.55)}50%{box-shadow:0 0 0 7px rgba(242,194,0,0)}}
+@media (prefers-reduced-motion:reduce){.sb.now{animation:none;box-shadow:0 0 0 3px rgba(242,194,0,.35)}}
+.sb1{display:flex;align-items:baseline;gap:7px;min-width:0}.sbl{font-size:15px;font-weight:700;letter-spacing:.03em;color:var(--y);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.sb.soon .sbl{color:var(--a)}
+.sbg{font-size:22px;font-weight:700;color:var(--g);line-height:1}.sbp{font-size:11px}.sb1 svg{align-self:center;flex:none;transition:transform .2s}.sb[aria-expanded="true"] .sb1 svg{transform:rotate(180deg)}
+.sb2{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sb2 b{color:var(--y);font-weight:600}.sb.soon .sb2 b{color:var(--a)}
+.sb3{display:flex;gap:5px;flex-wrap:wrap;font-size:12px}.sb3 span{padding:0 6px;border-radius:4px;background:#262830;white-space:nowrap}
+.sbt{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;border-top:1px solid #3A3320;padding-top:6px;font-size:12px}
+.sbo{display:flex;flex-direction:column;align-items:center;padding:2px 0;border-radius:4px;min-width:0}.sbo>span{white-space:nowrap}.sbo .ow{font-size:11px;color:var(--mu)}
+.sbx{display:flex;flex-direction:column;gap:1px}
+.sbt .best{background:#3A3008;color:var(--y);font-weight:700}.sb.soon .sbt .best{background:#3A2A08;color:var(--a)}.sbt .best .ow{color:inherit}
+.sbn{font-size:11px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.est{padding:0 5px;border-radius:4px;background:#2A1F08;color:var(--a)}
+.cv:has(.strat:not(:empty)) .flags{top:auto;bottom:8px}
+.pnav button.dot b{position:relative}.pnav button.dot b::after{content:'';position:absolute;top:0;right:-7px;width:8px;height:8px;border-radius:50%;background:var(--y)}
 </style>
 </head>
 <body>
@@ -163,13 +194,27 @@ body.phone.land .pview{padding:8px calc(10px + env(safe-area-inset-right)) 8px c
 
 <script>
 'use strict';
-// ARION Pit Wall dashboard — Phase 1. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1).
-const VERSION='0.1.9';
+// ARION Pit Wall dashboard. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1; comparison frames since v0.1.15).
+const VERSION='0.1.10';
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
 const CFG={url:'https://isuiksufkyishdowejob.supabase.co',key:'sb_publishable_DMqGCrW9YEmzEN2_cP67-w_ljr1JBo9'};
 const STUN=[{urls:'stun:stun.cloudflare.com:3478'}];
 const sb=LOCAL?null:supabase.createClient(CFG.url,CFG.key);
+// C (v0.1.10): one panel alone for OBS: /?panel=map&obs=1 on the driver app's local server (no login, transparent)
+const QP=new URLSearchParams(location.search),OBS=QP.get('obs')==='1'&&QP.get('panel')?QP.get('panel'):null;
+if(OBS){document.documentElement.classList.add('obs');document.body.classList.add('obs')}
+const chain=id=>LOCAL&&!OBS?`<button class="chain" data-chain="${id}" title="Link for OBS (Browser Source)" aria-label="Copy the OBS link for this panel"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a3 3 0 0 0 4.2 0l2.1-2.1a3 3 0 0 0-4.2-4.2l-.9.9M9.4 6.6a3 3 0 0 0-4.2 0L3.1 8.7a3 3 0 0 0 4.2 4.2l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>`:'';
+function copyObs(id){const url=`${location.origin}/?panel=${encodeURIComponent(id)}&obs=1`;
+  const done=()=>note(`OBS link copied: ${url}`);
+  const old=()=>{const t=document.createElement('textarea');t.value=url;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();let ok=false;try{ok=document.execCommand('copy')}catch{}t.remove();ok?done():note(`OBS link: ${url}`)};
+  try{navigator.clipboard.writeText(url).then(done,old)}catch{old()}}
+// B (v0.1.10): the big delta is against your own best by default; the switch compares with the class best
+let DMODE=(()=>{try{return localStorage.getItem('pw-delta')==='class'?'class':'own'}catch{return 'own'}})();
+const dsw=()=>`<span class="dsw" role="group" aria-label="Delta against"><button data-dm="own" class="${DMODE==='own'?'on':''}">Δ own</button><button data-dm="class" class="${DMODE==='class'?'on':''}">class</button></span>`;
+function setDMode(m){DMODE=m;try{localStorage.setItem('pw-delta',m)}catch{}S.trail.forEach(p=>p[2]=null);document.querySelectorAll('[data-dm]').forEach(b=>b.className=b.dataset.dm===m?'on':'');paintDelta()}
+document.addEventListener('click',e=>{const c=e.target.closest('.chain');if(c){copyObs(c.dataset.chain);return}const d=e.target.closest('[data-dm]');if(d){setDMode(d.dataset.dm);return}
+  const sbt=e.target.closest('#sbtn');if(sbt){S.stOpen=!S.stOpen;paintStrat()}});
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let noteT;function note(t){const n=$('#note');n.textContent=t;n.style.display='block';clearTimeout(noteT);noteT=setTimeout(()=>n.style.display='none',5000)}
@@ -177,11 +222,12 @@ let noteT;function note(t){const n=$('#note');n.textContent=t;n.style.display='b
 // ---------- state ----------
 let USER=null,TOKEN=null,SESS=[],SEL=null,LINK=null;
 const S={fast:null,slow:null,cars:new Map(),hist:[],trail:[],last:[],lap:null,segs:[],cells:new Set(),segBounds:null,trackLen:0,mode:'full',zoom:1,lastPos:new Map(),heading:0,
-  laps:[],per:new Map(),clsBest:new Map(),moments:[],prev:null,temps:[],gridTab:'mine',gridCls:null,rest:{}};
-function resetData(){S.secB=[[],[]];S.flagGreenUntil=0;S.prevFlag=null;S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
+  laps:[],per:new Map(),clsBest:new Map(),moments:[],prev:null,temps:[],gridTab:'mine',gridCls:null,rest:{},cmp:null,ref:null,verdicts:[],st:null,stHist:[],stOpen:false};
+function resetData(){S.cmp=null;S.ref=null;S.verdicts=[];S.st=null;S.stHist=[];S.stOpen=false;S.lane=null;S.pitWatch=null;refPaths=null;S.secB=[[],[]];S.flagGreenUntil=0;S.prevFlag=null;S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
 
 // ---------- login and access ----------
 async function boot(){
+  if(OBS&&!LOCAL)return msgView('OBS panels come from the ARION Pit Wall app on the racing PC: open «My dashboard» and click a panel’s chain icon.');
   if(LOCAL)return localBoot();
   const {data:{session}}=await sb.auth.getSession();
   USER=session?.user||null;TOKEN=session?.access_token||null;
@@ -247,7 +293,7 @@ function select(id){if(SEL===id&&LINK)return;stopLink();SEL=id;resetData();paint
 
 // ---------- local mode: this PC only, data from the driver app as Server-Sent Events ----------
 function localBoot(){
-  $('#out').style.display='none';SEL='local';
+  $('#out').style.display='none';SEL='local';if(OBS){dashView();LINK=new LocalLink();return}
   $('#tabs').innerHTML=`<span class="tab on"><span class="y">My car</span><span class="mu">this PC</span></span>`;
   dashView();LINK=new LocalLink();
 }
@@ -333,7 +379,7 @@ function onFast(buf){
     if(S.lap!==null&&f.lap!==S.lap){S.last=S.trail;S.trail=[]}
     S.lap=f.lap;
     const p=S.hist.length>10?S.hist[S.hist.length-10]:S.fast;if(p){const dx=f.x-p.x,dz=f.z-p.z;if(dx*dx+dz*dz>1)S.heading=Math.atan2(-dz,dx)}
-    S.fast=f;S.trail.push([f.x,-f.z]);if(S.trail.length>20000)S.trail.shift();
+    S.fast=f;S.trail.push([f.x,-f.z,curDelta()]);if(S.trail.length>20000)S.trail.shift();
     S.hist.push(f);while(S.hist.length&&f.et-S.hist[0].et>15)S.hist.shift();
     if(f.dist>S.trackLen)S.trackLen=f.dist;
   }
@@ -348,10 +394,18 @@ function onFast(buf){
       if(dist>S.trackLen)S.trackLen=dist}
     for(const id of S.cars.keys())if(!seen.has(id))S.cars.delete(id);
   }
+  // comparison (kind 3, driver app v0.1.15+): live delta to the class best and to your own best, ghost of the class best
+  if(k===3&&d.byteLength>=20){const own=d.byteLength>=24?d.getFloat32(20,true):NaN;
+    S.cmp={rev:d.getUint16(2,true),d:d.getFloat32(4,true),gx:d.getFloat32(8,true),gz:-d.getFloat32(12,true),s:d.getFloat32(16,true),own:isFinite(own)?own:null,t:performance.now()}}
 }
+// the delta shown now (null when there is none or it is older than 1.5 s)
+function curDelta(){const c=S.cmp;if(!c||performance.now()-c.t>1500)return null;const x=DMODE==='class'?c.d:c.own;return x!=null&&isFinite(x)?x:null}
 function growBounds(x,z){const b=S.segBounds;if(!b){S.segBounds=[x,z,x,z];return}
   b[0]=Math.min(b[0],x);b[1]=Math.min(b[1],z);b[2]=Math.max(b[2],x);b[3]=Math.max(b[3],z)}
-function onSlow(j){if(j.t!=='slow')return;S.slow=j;if(j.rest&&typeof j.rest==='object')S.rest={...S.rest,...j.rest};learn(j);paintPanels()}
+function onSlow(j){
+  if(j.t==='ref'){S.ref=j;refPaths=null;if(!S.verdicts.length&&Array.isArray(j.recent))S.verdicts=j.recent.slice(0,12);paintDelta();return}
+  if(j.t==='corner'){S.verdicts.unshift({...j,at:Date.now()});if(S.verdicts.length>12)S.verdicts.pop();paintDelta();return}
+  if(j.t!=='slow')return;S.slow=j;if(j.rest&&typeof j.rest==='object')S.rest={...S.rest,...j.rest};learn(j);stratStep(j);paintPanels()}
 
 // ---------- layout ----------
 // ---------- panels: resizable and movable, always snapped together (columns of stacked panels, no gaps) ----------
@@ -369,21 +423,23 @@ function resetLayout(){LAYOUT=JSON.parse(JSON.stringify(DEF_LAYOUT));saveLayout(
 const BODY={
   car:`<div id="car" class="body"></div>`,
   damage:`<div id="dmg" class="body"></div>`,
-  traffic:`<div class="ph"><b>Traffic</b><span class="grow"></span><span class="mu"><span class="y">●</span> class</span></div><div id="traffic" class="body"></div>`,
+  traffic:`<div class="ph"><b>Traffic</b><span class="grow"></span><span class="mu"><span class="y">●</span> class</span>${chain('traffic')}</div><div id="traffic" class="body"></div>`,
   pit:`<div id="pitw" class="body"></div>`,
-  moments:`<div class="ph"><b>Key moments</b></div><div id="moments" class="mom body vlist"></div>`,
-  map:`<div class="ph"><b>Track map</b><span class="grow"></span><button id="mFull" class="on">Full</button><button id="mFollow">Follow</button><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div>
-    <div class="cv"><canvas id="map"></canvas><div id="flags" class="flags"></div></div>
+  moments:`<div class="ph"><b>Key moments</b>${chain('moments')}</div><div id="moments" class="mom body vlist"></div>`,
+  map:`<div class="ph"><b>Track map</b>${dsw()}<span class="grow"></span><button id="mFull" class="on">Full</button><button id="mFollow">Follow</button><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button>${chain('map')}</div>
+    <div id="dlt" class="dlt"></div>
+    <div class="cv"><canvas id="map"></canvas><div id="flags" class="flags"></div><div id="strat" class="strat vlist"></div></div>
     <div class="lg"><span class="y">▲ you</span><span style="color:#FF453A">Hypercar</span><span style="color:#0A84FF">LMP2</span><span style="color:#BF5AF2">LMP3</span><span style="color:#30D158">GT3</span><span style="color:#FF9F0A">GTE</span></div>`,
-  inputs:`<div class="ph"><b>Live inputs</b><span class="g">throttle</span><span class="r">brake</span><span>steering</span><span class="a">ABS</span><span class="c">lock</span></div>
+  inputs:`<div class="ph"><b>Live inputs</b><span class="g">throttle</span><span class="r">brake</span><span>steering</span><span class="a">ABS</span><span class="c">lock</span>${chain('inputs')}</div>
     <div class="m inptop" id="inpft"></div><div class="cv"><canvas id="inp"></canvas></div>`,
   battle:`<div id="battle" class="body"></div>`,
   wx:`<div id="wx" class="body"></div>`,
-  laps:`<div class="ph"><b>Laps and sectors</b><span class="grow"></span><button id="gMine" class="${S.gridTab==='mine'?'on':''}">This car</button><button id="gAll" class="${S.gridTab==='all'?'on':''}">Full grid</button></div>
+  laps:`<div class="ph"><b>Laps and sectors</b><span class="grow"></span><button id="gMine" class="${S.gridTab==='mine'?'on':''}">This car</button><button id="gAll" class="${S.gridTab==='all'?'on':''}">Full grid</button>${chain('laps')}</div>
     <div id="gcls" class="tb"></div><div id="laps" class="body vlist"></div>
     <div class="lg" style="margin-top:6px"><span><span class="sc pu">class best</span></span><span><span class="sc gn">personal best</span></span><span><span class="sc yl">+0.3 s</span></span><span id="theo"></span></div>`,
 };
 function dashView(){
+  if(OBS)return obsView();
   if(PHONE)return phoneView();
   const v=$('#view');if(v.dataset.k==='dash')return;v.dataset.k='dash';v.className='main';v.style.flexDirection='';
   const cols=LAYOUT.cols;
@@ -399,6 +455,10 @@ function dashView(){
   v.onpointerdown=e=>{const ph=e.target.closest('.dock .ph');if(ph&&!e.target.closest('button,input'))moveStart(e,ph.closest('.dock'))};
   paintPanels();
 }
+// C: one panel alone, filling the window (OBS Browser Source)
+function obsView(){const v=$('#view');if(v.dataset.k==='obs')return;v.dataset.k='obs';
+  if(!BODY[OBS]){v.className='center';v.innerHTML=`<div class="card">Unknown panel «${esc(OBS)}».</div>`;return}
+  v.className='main';v.innerHTML=`<section class="pn dock obsp${FIT.has(OBS)?' fit':''}" data-id="${esc(OBS)}">${BODY[OBS]}</section>`;paintPanels()}
 // drag a gutter: the two neighbours share the space; nothing else moves
 function resizeStart(e,g,axis){
   if(innerWidth<=900)return;e.preventDefault();g.setPointerCapture(e.pointerId);g.classList.add('on');document.body.classList.add('resizing');document.body.style.cursor=axis==='x'?'col-resize':'row-resize';
@@ -441,14 +501,14 @@ function movePanel(id,t){
 // ---------- phone layout (v0.1.6): five tabs — Car · Map · Timing · Strategy · Inputs ----------
 let PHONE=false,PTAB='car';
 const PT=[['car','◉','Car'],['map','⌖','Map'],['timing','☰','Timing'],['strat','⚑','Strategy']];
-function checkPhone(){const was=PHONE,land=innerWidth>innerHeight;PHONE=Math.min(innerWidth,innerHeight)<600;
+function checkPhone(){const was=PHONE,land=innerWidth>innerHeight;PHONE=!OBS&&Math.min(innerWidth,innerHeight)<600;
   document.body.classList.toggle('phone',PHONE);document.body.classList.toggle('land',PHONE&&land&&PTAB==='map');
   if(was!==PHONE&&$('#view').dataset.k){ $('#view').dataset.k='';dashView()}}
 function phoneView(){
   const v=$('#view');const k='phone-'+PTAB;if(v.dataset.k===k)return;v.dataset.k=k;v.className='main';v.style.flexDirection='column';
   const body={
     car:`<div id="pcar" style="display:contents"></div>`,
-    map:`<div class="pmapw"><div class="pn pmap"><div class="ph"><button id="mFollow" class="on">Follow</button><button id="mFull">Full</button><span class="grow"></span><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div><div class="cv"><canvas id="map"></canvas><div id="flags" class="flags"></div></div></div>
+    map:`<div class="pmapw"><div class="pn pmap"><div class="ph"><button id="mFollow" class="on">Follow</button><button id="mFull">Full</button><span class="grow"></span><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div><div class="cv"><canvas id="map"></canvas><div id="flags" class="flags"></div><div id="strat" class="strat vlist"></div></div></div>
       <div class="pn pinp"><div class="ph"><span class="g">throttle</span><span class="r">brake</span><span>steer</span><span class="a">ABS</span><span class="c">lock</span></div><div class="cv"><canvas id="inp"></canvas></div><div class="m" id="inpft"></div></div></div><div class="lhint">↻ turn sideways for full screen</div>`,
     timing:`<div class="pn" style="flex:1"><div class="ph"><button id="gMine" class="${S.gridTab==='mine'?'on':''}">This car</button><button id="gAll" class="${S.gridTab==='all'?'on':''}">Grid</button><span class="grow"></span><span id="theo" class="mu m" style="font-size:12px"></span></div><div id="gcls" class="tb"></div><div id="laps"></div></div>`,
     strat:`<div class="pn" id="battle"></div><div class="pn" id="pitw"></div><div class="pn" id="wx"></div>`,
@@ -460,6 +520,7 @@ function phoneView(){
     $('#mFollow').onclick=()=>{S.mode='follow';$('#mFollow').className='on';$('#mFull').className='';if(S.zoom<2)S.zoom=3};
     $('#mFollow').className=S.mode==='follow'?'on':'';$('#mFull').className=S.mode==='full'?'on':'';
     $('#zIn').onclick=()=>{S.zoom=Math.min(12,S.zoom*1.5)};$('#zOut').onclick=()=>{S.zoom=Math.max(1,S.zoom/1.5)};pinchZoom($('#map'))}
+  paintStrat();
   if(PTAB==='timing'){$('#gMine').onclick=()=>{S.gridTab='mine';$('#gMine').className='on';$('#gAll').className='';paintLaps()};$('#gAll').onclick=()=>{S.gridTab='all';$('#gAll').className='on';$('#gMine').className='';paintLaps()}}
   paintPhone();
 }
@@ -485,14 +546,16 @@ function paintPhoneCar(){
   const nb=(g,label)=>{if(!g)return `<div><div class="mu">${label}</div>–</div>`;const r=rate(g),gp=gap(g);return `<div><div class="mu">${label} ${esc((g.name||'').split(' ').pop())}</div>${gp!=null?gp.toFixed(1):'lap'}${r!=null?` <span class="${(label==='Ahead')===(r>0)?'g':'r'}">${r>0?'−':'+'}${Math.abs(r).toFixed(1)}</span>`:''}</div>`};
   const ve=c.energy,su=(wear.susp||[]).map(x=>x>=0?x:0),sw=Math.max(0,...su),dz=(c.damage||[]).filter(x=>x>0).length;
   const dmg=[];if(wear.aero>0.005)dmg.push(`Aero ${Math.round(wear.aero*100)}%`);if(sw>0.005)dmg.push(`${['FL','FR','RL','RR'][su.indexOf(sw)]} ${Math.round(sw*100)}%`);if(dz)dmg.push(`${dz} zone${dz>1?'s':''}`);if(c.detached)dmg.push('wing off');
-  el.innerHTML=`<div class="pn"><div class="ph" style="margin-bottom:6px"><b>${esc(sel?sel.driver:me.name)}</b>${pill(me.class)}<span class="mu">P${i+1} in class</span>${me.pits?'<span class="a">in pits</span>':''}</div>
-    <div class="pk m"><div><div class="mu">Last</div><span style="font-size:17px">${fmtLap(me.last)}</span></div><div><div class="mu">Best</div><span class="g" style="font-size:17px">${fmtLap(me.best)}</span></div><div><div class="mu">Δ live</div><span class="${c.delta<-0.0005?'g':c.delta>0.0005?'r':''}" style="font-size:17px">${c.delta!=null&&isFinite(c.delta)?(c.delta>0.0005?'+':c.delta<-0.0005?'−':'')+Math.abs(c.delta).toFixed(3):'–'}</span></div></div></div>
+  el.innerHTML=`<div class="pn"><div class="ph" style="margin-bottom:6px"><b>${esc(sel?sel.driver:me.name)}</b>${pill(me.class)}<span class="mu">P${i+1} in class</span>${me.pits?'<span class="a">in pits</span>':''}<span class="grow"></span>${dsw()}</div>
+    <div id="pdl" class="dlt"></div>
+    <div class="pk m"><div><div class="mu">Last</div><span style="font-size:17px">${fmtLap(me.last)}</span></div><div><div class="mu">Best</div><span class="g" style="font-size:17px">${fmtLap(me.best)}</span></div><div><div class="mu">Laps</div><span style="font-size:17px">${me.laps??'–'}</span></div></div></div>
     <div class="pn pk m">${nb(ah,'Ahead')}${nb(bh,'Behind')}<div><div class="mu">Stint</div>${stint} laps</div></div>
     <div class="pn"><div style="display:flex"><span class="mu">Energy</span><span class="grow"></span><span class="m">${ve>=0&&ve<=1?Math.round(ve*100)+'%':'–'}${energyLeft(me)&&energyLeft(me).laps!=null?` · ${energyLeft(me).laps.toFixed(1)} laps`:''}</span></div><div class="bar"><i style="width:${ve>=0&&ve<=1?ve*100:0}%"></i></div>
       <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} L</span></div></div>
     <div class="pn pty">${['FL','FR','RL','RR'].map((n,k)=>{const t=w[k]||{t:[0,0,0]};const mid=KC((t.t||[])[1]+273.15);return `<div style="background:${mid==null?'#1F2024':tyreBg(mid)}">${n} <b>${mid==null?'–':Math.round(mid)+'°'}</b> <span class="mu">${pc(t.wear)}</span><div class="mu" style="font-size:11px">${mid==null?'':(t.t||[]).map(x=>Math.round(x)).join('·')+' · '}${t.p>0?Math.round(t.p)+' kPa':''}</div></div>`}).join('')}</div>
     <div class="pn" style="display:flex;gap:6px 12px;flex-wrap:wrap"><span class="mu">Damage</span><span class="grow"></span><span class="m ${dmg.length?'a':'g'}" style="text-align:right">${dmg.length?dmg.join(' · '):'none'}${R.pit&&R.pit.repair>0?` · repair ${R.pit.repair.toFixed(0)} s`:''}</span></div>
     <div class="pn mom">${S.moments.slice(0,3).map(m=>`<div><span class="mu">${m.rt!=null?raceT(m.rt):''}${m.lap!=null?' · L'+m.lap:''}</span> <span class="${m.cls||''}">${m.icon}</span> ${esc(m.text)}</div>`).join('')||'<div class="mu">Nothing yet.</div>'}</div>`;
+  paintDelta();
 }
 // keep the phone screen on while a car is live (where the browser allows it)
 let WAKE=null;async function wake(){try{if(PHONE&&LINK&&LINK.state==='live'&&!document.hidden&&!WAKE&&navigator.wakeLock){WAKE=await navigator.wakeLock.request('screen');WAKE.addEventListener('release',()=>{WAKE=null})}}catch{WAKE=null}}
@@ -517,11 +580,13 @@ function learn(j){
       if(g.player){S.laps.unshift({lap:g.laps,driver:g.name,sec:sc,time:g.last,valid,pit:c.pitLap===g.laps||c.pitLap===g.laps-1,out:c.outLap===g.laps});if(S.laps.length>60)S.laps.pop();
         const pb=valid&&g.last>0&&g.last<=g.best+1e-6&&(!prev||g.best<(prev.grid.find(x=>x.id===g.id)?.best??9e9)-1e-6);if(pb)moment('★',`Personal best ${fmtLap(g.last)}`,'g')}
       c.laps=g.laps}
-    if(g.stops!==c.stops){c.stops=g.stops;c.stintStart=g.laps;c.pitLap=g.laps;if(g.player)moment('⛽',`Pit stop ${g.stops}`,'')}
+    if(g.stops!==c.stops){c.stops=g.stops;c.stintStart=g.laps;c.pitLap=g.laps;c.stopAt=now;
+      if(g.player){moment('⛽',`Pit stop ${g.stops}`,'');const P=(S.rest||{}).pit;S.pitWatch={lap:g.laps,pace:pace(g.id),stop:P&&P.total>0?P.total:null}}}
     if(g.penalties>c.pen){if(g.player||clsOf(g)===clsOf(j.grid.find(x=>x.player)||{}))moment('⚖',`${g.player?'You':g.name}: penalty`,'r');}
     c.pen=g.penalties;
     if(prev){const pg=prev.grid.find(x=>x.id===g.id);if(pg&&g.player&&pg.name!==g.name)moment('⟳',`Driver swap to ${g.name}`,'')}
   }
+  learnLane(j);
   // sector boundaries, learnt from where cars are when they complete sector 1 and 2 (median of many)
   if(!S.secB)S.secB=[[],[]];
   for(const g of j.grid){const c=S.per.get(g.id),car=S.cars.get(g.id);if(!c||!car)continue;
@@ -556,16 +621,16 @@ const pc=v=>v==null||!(v>=0)?'–':Math.round(v*100)+'%';
 function paintPanels(){
   paintFlags();
   if(PHONE)return paintPhone();
-  const j=S.slow,car=$('#car');if(!car)return;
+  const j=S.slow,car=$('#car');
   const sel=SESS.find(s=>s.id===SEL);
   if(j){const se=j.session;$('#sess').innerHTML=(S.rest&&S.rest.demo?'<span class="chip a" style="background:#2A1F08;padding:0 6px">DEMO</span> ':'')+`${esc(se.track)} · ${SESSN(se.type)} · ${fmtLeft(se.left)}`+(se.yellow>0?' · <span class="a">yellow</span>':'')}
-  if(!j){car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:'')}</b><span class="mu">${esc(sel&&sel.team?sel.team.name:'practice')}</span></div><div class="mu">${LINK&&LINK.state==='live'?(LOCAL?'Waiting for Le Mans Ultimate (on track)…':'Waiting for the driver to be on track…'):'Connecting to the driver’s app…'}</div>`;['#traffic','#pitw','#moments','#battle','#wx','#laps','#dmg'].forEach(k=>{const e=$(k);if(e)e.innerHTML=''});return}
+  if(!j){if(car)car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:'')}</b><span class="mu">${esc(sel&&sel.team?sel.team.name:'practice')}</span>${chain('car')}</div><div class="mu">${LINK&&LINK.state==='live'?(LOCAL?'Waiting for Le Mans Ultimate (on track)…':'Waiting for the driver to be on track…'):'Connecting to the driver’s app…'}</div>`;['#traffic','#pitw','#moments','#battle','#wx','#laps','#dmg'].forEach(k=>{const e=$(k);if(e)e.innerHTML=''});return}
   const me=j.grid.find(g=>g.player)||{},c=j.car,w=c.wheels||[],R=S.rest||{};
   const cls=me.class,inCls=j.grid.filter(g=>g.class===cls).sort((a,b)=>a.place-b.place),pic=inCls.findIndex(g=>g.id===me.id)+1;
   const maxVE=R.wear&&R.wear.maxVE;const ve=c.energy;const energy=(ve>=0&&ve<=1)?`${Math.round(ve*100)}%`:'–';
   const st=S.per.get(me.id),stintLap=st?me.laps-st.stintStart:0;
   const wear=R.wear||{};
-  car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:me.name)}</b><span class="chip" style="background:#1F2024">P${pic||'–'} in ${esc(CLSN(cls))}</span><span class="mu">${esc(me.car||'')}</span>${me.pits?'<span class="chip a" style="background:#2A1F08">in pits</span>':''}</div>
+  if(car)car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:me.name)}</b><span class="chip" style="background:#1F2024">P${pic||'–'} in ${esc(CLSN(cls))}</span><span class="mu">${esc(me.car||'')}</span>${me.pits?'<span class="chip a" style="background:#2A1F08">in pits</span>':''}${chain('car')}</div>
     <div class="k3"><div><div class="mu">Last lap</div><div class="big">${fmtLap(me.last)}</div></div><div><div class="mu">Best lap</div><div class="big g">${fmtLap(me.best)}</div></div><div><div class="mu">Laps<span class="stl"> · stint</span></div><div class="big" style="white-space:nowrap">${me.laps??'–'}<span class="mu stl" style="font-size:14px"> · ${stintLap}</span></div></div></div>
     <div style="display:flex;margin-top:10px"><span class="mu">Virtual energy</span><span class="grow"></span><span class="m">${energy}${maxVE?` <span class="mu">of ${Math.round(maxVE)}</span>`:''}</span></div><div class="bar"><i style="width:${ve>=0&&ve<=1?ve*100:0}%"></i></div>
     <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} / ${(c.fuelCap||0).toFixed(0)} L</span></div>
@@ -573,7 +638,7 @@ function paintPanels(){
       return `<div class="tyre" style="background:${mid==null?'#1F2024':tyreBg(mid)}" title="${n}: inner · middle · outer °C, pressure, tread left, brake temperature, brake disc"><div class="tl1">${n} <b>${mid==null?'–':Math.round(mid)+'°'}</b> <span class="mu">${mid==null?'':tt.map(x=>Math.round(x)).join('·')}</span></div><div class="mu tl2">${t.p>0?Math.round(t.p)+' kPa':'–'} · ${pc(t.wear)}</div><div class="mu tl2">${t.brake>-270?Math.round(t.brake)+'°':'–'}${bm>0?` · ${bm.toFixed(1)} mm`:''}</div></div>`}).join('')}</div>
     <div class="k3 m" style="grid-template-columns:repeat(4,1fr);margin-top:10px"><div><div class="mu">TC</div>${c.tc}</div><div><div class="mu">ABS</div>${c.abs}</div><div><div class="mu">Bias F:R</div>${c.rearBias>0?((1-c.rearBias)*100).toFixed(1)+':'+(c.rearBias*100).toFixed(1):'–'}</div><div><div class="mu">Map</div>${c.map}</div></div>`;
   paintDamage(c,R);
-  paintTraffic();paintPit(j,me);paintMoments();paintBattle(j,me);paintWx(j,me);paintLaps();
+  paintTraffic();paintPit(j,me);paintMoments();paintBattle(j,me);paintWx(j,me);paintLaps();paintStrat();
 }
 
 // LMU's 8 body zones: 0 front, 1 front-left, 2 left, 3 rear-left, 4 rear, 5 rear-right, 6 right, 7 front-right (as TinyPedal maps them)
@@ -583,7 +648,7 @@ function paintDamage(c,R){
   const rear=c.detached?2:d[4];
   const sp=(i,x,y,a)=>`<text x="${x}" y="${y}" text-anchor="${a}" font-family="JetBrains Mono,monospace" font-size="12" fill="${su[i]>0.15?'#FF5A5A':su[i]>0.02?'#FFB020':'#8C8F98'}">${su[i]!=null?Math.round(su[i]*100)+'%':'–'}</text>`;
   const any=d.some(x=>x>0)||c.detached||aero>0.005||su.some(x=>x>0.005);
-  el.innerHTML=`<div class="ph"><b>Damage</b><span class="grow"></span>${rep>0?`<span class="m a">repair ${rep.toFixed(1)} s</span>`:any?'':'<span class="g">none</span>'}</div>
+  el.innerHTML=`<div class="ph"><b>Damage</b><span class="grow"></span>${rep>0?`<span class="m a">repair ${rep.toFixed(1)} s</span>`:any?'':'<span class="g">none</span>'}${chain('damage')}</div>
   <div style="display:flex;gap:12px;align-items:center;flex:1;min-height:0">
     <svg class="carsvg" viewBox="0 0 160 200" style="height:100%;max-height:150px;min-height:110px;flex:none" role="img" aria-label="Body damage">
       <rect x="40" y="6" width="80" height="34" rx="10" fill="${ZC(d[0])}"/><rect x="10" y="10" width="28" height="44" rx="8" fill="${ZC(d[1])}"/><rect x="122" y="10" width="28" height="44" rx="8" fill="${ZC(d[7])}"/>
@@ -616,20 +681,20 @@ function paintBattle(j,me){
     if(n&&meNext){if(ahead&&n<meNext)lines.push(`<div><span class="g">↑</span> ${esc(g.name)} stops around lap ${n}, ${meNext-n} laps before you: clear air to close the ${Math.abs(gap(g)).toFixed(1)} s.</div>`);
       if(!ahead&&n<meNext)lines.push(`<div><span class="g">✓</span> ${esc(g.name)} stops around lap ${n}, ${meNext-n} laps before you.</div>`);
       if(!ahead&&n>meNext)lines.push(`<div><span class="a">!</span> ${esc(g.name)} can run ${n-meNext} laps longer than you: watch the undercut.</div>`)}}
-  el.innerHTML=`<div class="ph"><b>Battle in class</b></div>
+  el.innerHTML=`<div class="ph"><b>Battle in class</b>${chain('battle')}</div>
     <table class="t"><tr><th>Car</th><th>Gap</th><th>Pace</th><th>Energy</th><th>Stint</th><th>Stops</th><th>Tyres</th><th>Next<span class="lw"> stop</span></th></tr>${rows.map(tr).join('')}</table>
     <div class="lines" style="display:grid;gap:3px;margin-top:6px;font-size:13px">${lines.join('')||'<div class="mu">Predictions after a few laps.</div>'}</div>`;
 }
 function paintPit(j,me){
   const el=$('#pitw');if(!el)return;const P=(S.rest||{}).pit;
-  if(!P||!(P.total>0)){el.innerHTML=`<div class="ph"><b>Pit window</b></div><div class="mu">Waiting for LMU…</div>`;return}
-  const lane=25,loss=P.total+lane;   // pit lane time added to LMU's own stop estimate (first version: a fixed 25 s)
+  if(!P||!(P.total>0)){el.innerHTML=`<div class="ph"><b>Pit window</b>${chain('pit')}</div><div class="mu">Waiting for LMU…</div>`;return}
+  const lane=laneTime(),loss=P.total+lane;   // pit lane time added to LMU's own stop estimate: 25 s until your first stop measures it
   const others=j.grid.filter(g=>g.class===me.class&&!g.player&&g.laps>=me.laps-1).map(g=>({g,t:g.behindLeader+(me.laps-g.laps)*(pace(me.id)||90)})).sort((a,b)=>a.t-b.t);
   const myT=me.behindLeader+loss;let pos=1;for(const o of others)if(o.t<myT)pos++;
   const ahead=others.filter(o=>o.t<myT).pop(),behind=others.find(o=>o.t>=myT);
-  el.innerHTML=`<div class="ph"><b>Pit window</b><span class="mu">pit now</span><span class="grow"></span><span class="m">≈ ${loss.toFixed(0)} s</span></div>
+  el.innerHTML=`<div class="ph"><b>Pit window</b><span class="mu">pit now</span><span class="grow"></span><span class="m">≈ ${loss.toFixed(0)} s</span>${chain('pit')}</div>
     <div class="m"><span class="y">Rejoin P${pos} in class</span> <span class="mu">${ahead?`${(myT-ahead.t).toFixed(1)} s behind ${esc(ahead.g.name)}`:''}${ahead&&behind?', ':''}${behind?`${(behind.t-myT).toFixed(1)} s ahead of ${esc(behind.g.name)}`:''}</span></div>
-    <div class="k3 m" style="margin-top:8px"><div><div class="mu">Stop</div>${P.total.toFixed(1)} s</div><div><div class="mu">Repair</div>${(P.repair||0).toFixed(1)} s</div><div><div class="mu">Lane ≈</div>${lane} s</div></div>`;
+    <div class="k3 m" style="margin-top:8px"><div><div class="mu">Stop</div>${P.total.toFixed(1)} s</div><div><div class="mu">Repair</div>${(P.repair||0).toFixed(1)} s</div><div><div class="mu">Lane${S.lane?'':' ≈'}</div>${lane.toFixed(0)} s</div></div>`;
 }
 function paintMoments(){const el=$('#moments');if(!el)return;
   el.innerHTML=S.moments.length?S.moments.slice(0,30).map(m=>`<div><span class="mu">${m.rt!=null?raceT(m.rt):''}${m.lap!=null?' · L'+m.lap:''}</span> <span class="${m.cls||''}">${m.icon}</span> ${esc(m.text)}</div>`).join(''):'<div class="mu">Nothing yet.</div>'}
@@ -648,7 +713,7 @@ function paintWx(j,me){
     if(nx){const mins=(nx[0]*dur-(se.now-se.start))/60,lap=lapT?Math.round(me.laps+mins*60/lapT):null;
       nextHtml=`<div class="next"><span class="${nx[3]>=0.5?'a':''}">${SKYI(nx[1])} ${esc(SKY[nx[1]]||'')} · rain chance ${Math.round(nx[3]*100)}%</span> <span class="m">in ${Math.max(0,Math.round(mins))} min${lap?`, about lap ${lap}`:''}</span></div>`}
     slotHtml=`<div class="slots" style="margin-top:8px">${slots.map((s,i)=>{const at=s[0]*dur/60,h=Math.floor(at/60),m=Math.round(at%60);return `<div class="slot ${i<cur?'past':i===cur?'now':i===cur+1?'nx':''}"><div class="mu">${h}:${String(m).padStart(2,'0')}</div><div style="font-size:18px">${SKYI(s[1])}</div><div>${Math.round(s[2])}°</div><div class="${s[3]>=0.5?'a':'mu'}">${Math.round(s[3]*100)}%</div></div>`}).join('')}</div>`}
-  el.innerHTML=`<div class="ph"><b>Weather</b><span class="mu">grip ${['green','low','medium','high','saturated'][se.grip]||'–'}</span></div>
+  el.innerHTML=`<div class="ph"><b>Weather</b><span class="mu">grip ${['green','low','medium','high','saturated'][se.grip]||'–'}</span>${chain('wx')}</div>
     <div class="m" style="display:flex;gap:12px;flex-wrap:wrap"><span>Track ${se.track_temp.toFixed(1)}° ${Math.abs(trend)>=0.5?`<span class="${trend<0?'r':'a'}">${trend<0?'falling':'rising'}</span>`:''}</span><span class="mu">Air ${se.air.toFixed(1)}°</span><span>Rain ${Math.round((se.rain||0)*100)}%</span><span class="mu">Wet ${wet.join('/')}</span></div>
     ${spark?`<div title="Track temperature, last 60 min">${spark}</div>`:''}
     ${nextHtml}${slotHtml||'<div class="mu" style="margin-top:6px">Waiting for LMU’s forecast…</div>'}`;
@@ -682,6 +747,116 @@ function paintTraffic(){
     return `<div class="rl${g.player?' me':''}">${pill(g.class)}<span class="mu">P${g.place}</span><span class="nm" style="${g.player?'color:var(--y)':''}">${esc(g.name)}</span><span class="grow"></span>${g.player?'<span class="y">you</span>':`<span>${s.toFixed(1)}</span><span class="y" style="width:10px;text-align:center">${same?'●':''}</span>`}</div>`}).join('');
 }
 
+// ---------- B: live delta, projected and potential lap, corner verdicts (v0.1.10) ----------
+function verdictText(v){const sg=x=>x>0?'+':x<0?'−':'';
+  const p=[`<span class="tn">T${v.n}</span> <span class="${v.dt<-0.005?'g':v.dt>0.005?'r':'mu'}">${sg(v.dt)}${Math.abs(v.dt).toFixed(2)}</span>`];
+  if(Math.abs(v.brake_m)>=3)p.push(`braked ${Math.abs(v.brake_m)} m ${v.brake_m<0?'early':'late'}`);
+  if(Math.abs(v.vmin)>=2)p.push(`apex ${sg(v.vmin)}${Math.abs(v.vmin)} km/h`);
+  if(Math.abs(v.vexit)>=2)p.push(`exit ${sg(v.vexit)}${Math.abs(v.vexit)} km/h`);
+  if(v.lock)p.push('<span class="c">lock</span>');else if(v.abs)p.push('<span class="a">ABS</span>');
+  return p.join(' · ')}
+function deltaHtml(){
+  const j=S.slow,me=j&&j.grid.find(g=>g.player),R0=S.ref,d=curDelta();
+  const refLap=R0?(DMODE==='class'?R0.lap:R0.own_lap):null;
+  if(d==null&&!(refLap>0))return `<span class="dv mu">–</span><span class="dk mu">${DMODE==='class'?'after a clean lap in your class':'after your first clean lap'}</span>`;
+  const sg=x=>(x>0.0005?'+':x<-0.0005?'−':'')+Math.abs(x).toFixed(3);
+  const meC=me&&S.per.get(me.id),b=meC&&meC.best,pot=b&&b.every(x=>x<9e8)?fmtLap(b[0]+b[1]+b[2]):'–';
+  const v=S.verdicts[0],vt=v&&v.at&&Date.now()-v.at<60000?verdictText(v):'';
+  return `<span class="dv ${d==null?'mu':d<-0.0005?'g':d>0.0005?'r':''}">${d==null?'–':sg(d)}</span><span class="dk"><span class="mu">proj</span> ${d!=null&&refLap>0?fmtLap(refLap+d):'–'}</span><span class="dk"><span class="mu">pot</span> ${pot}</span>${vt?`<span class="vd">${vt}</span>`:''}`}
+function paintDelta(){const h=deltaHtml();for(const e of [$('#dlt'),$('#pdl')])if(e&&e._h!==h){e.innerHTML=h;e._h=h}}
+
+// ---------- D: strategy alert (v0.1.10) ----------
+// Plays through pitting now, after 1 more lap, after 2 more laps, or staying out until your energy runs out, for every
+// car in your class, and speaks only when a stop clearly gains places (needs the same answer 3 times in a row).
+// What it can't see: rivals' tyre wear (each car is assumed to lose time with tyre age like you), the true pit loss before
+// your first stop (LMU's stop estimate + 25 s lane), and safety cars (it stays silent under yellow).
+const carNo=g=>{const m=/#\s?(\d+)/.exec(g&&g.car||'');return m?'#'+m[1]:esc(((g&&g.name)||'?').split(' ').pop())};
+function laneTime(){return S.lane||25}
+function learnLane(j){const w=S.pitWatch;if(!w)return;const me=j.grid.find(g=>g.player);if(!me||me.laps<w.lap+2)return;S.pitWatch=null;
+  if(!(w.pace>0)||!(w.stop>0))return;
+  // your pit loss: the two laps around the stop that took longest, minus two normal laps; the lane is that minus the stop itself
+  const L=S.laps.filter(l=>l.lap>=w.lap&&l.lap<=w.lap+2&&l.time>0);let worst=0;
+  for(const a of L){const b=L.find(x=>x.lap===a.lap+1);if(b)worst=Math.max(worst,a.time+b.time)}
+  const lane=worst-2*w.pace-w.stop;if(worst&&lane>=5&&lane<=120){S.lane=lane;moment('⏱',`Pit lane measured: ${lane.toFixed(0)} s`,'')}}
+// tyre loss per lap of age, from your clean laps of this stint (0.05 s/lap until there are 5 of them)
+function degSlope(me){const c=S.per.get(me.id);if(!c)return 0.05;
+  const pts=c.times.filter(x=>x.lap>c.stintStart+1&&x.t>0).map(x=>[x.lap-c.stintStart,x.t]);if(pts.length<5)return 0.05;
+  const mt=pts.reduce((a,p)=>a+p[1],0)/pts.length;const ok=pts.filter(p=>Math.abs(p[1]-mt)<2);if(ok.length<5)return 0.05;
+  const n=ok.length,ma=ok.reduce((a,p)=>a+p[0],0)/n,mb=ok.reduce((a,p)=>a+p[1],0)/n;let sxy=0,sxx=0;for(const p of ok){sxy+=(p[0]-ma)*(p[1]-mb);sxx+=(p[0]-ma)**2}
+  return sxx>0?Math.max(0,Math.min(0.3,sxy/sxx)):0.05}
+// distance covered (in laps) after T seconds, stopping once at the end of lap `stopAt`
+function runCar(c,T){let t=T,laps=c.laps,frac=c.frac,age=c.age,stopped=c.stopAt==null;
+  for(let n=0;n<300&&t>0;n++){const lt=c.base+c.slope*age,rem=(1-frac)*lt;
+    if(rem>=t)return laps+frac+t/lt;
+    t-=rem;laps++;frac=0;age++;
+    if(!stopped&&laps>=c.stopAt){stopped=true;if(t<=c.loss)return laps;t-=c.loss;age=0}}
+  return laps+frac}
+function stratModel(j){
+  const se=j.session,me=j.grid.find(g=>g.player);
+  if(!me||!(se.type>=10)||se.phase!==5||se.yellow>0||me.pits||me.pitState>0)return null;
+  const P=(S.rest||{}).pit;if(!P||!(P.total>0))return null;
+  const loss=P.total+laneTime(),L=S.trackLen>100?S.trackLen:null,slope=degSlope(me);
+  const frac=g=>{const c=S.cars.get(g.id);return L&&c?Math.max(0,Math.min(0.999,c.dist/L)):0.5};
+  const mk=(g,stopAt)=>{const p=pace(g.id),c=S.per.get(g.id),age=c?Math.max(0,g.laps-c.stintStart):0;
+    return {id:g.id,g,laps:g.laps,frac:frac(g),age,slope,base:Math.max(p*0.9,p-slope*age),stopAt,loss,p}};
+  const myP=pace(me.id),myE=energyLeft(me);if(!myP||!myE||myE.per==null)return null;
+  const forced=me.laps+Math.max(1,Math.floor(myE.laps+frac(me)));   // the lap you must come in at the end of
+  if(forced<=me.laps+1)return null;   // no choice left: the stop is this lap anyway
+  const inCls=j.grid.filter(g=>g.class===me.class&&g.id!==me.id);
+  const riv=[],unmod=[];
+  for(const g of inCls){const e=energyLeft(g);
+    if(g.pits||!pace(g.id)||!e||e.per==null){unmod.push(g);continue}
+    riv.push(mk(g,g.laps+Math.max(1,Math.floor(e.laps+frac(g)))))}
+  if(!riv.length)return null;
+  // horizon: everyone (and you, staying out) has made the stop and done 2 more laps; or the flag, if sooner
+  const tTo=c=>(c.stopAt-c.laps-c.frac)*c.p+c.loss+2*c.p;
+  const meStay=mk(me,forced);
+  let T=Math.max(tTo(meStay),...riv.map(tTo));T=Math.min(T,45*myP);
+  if(se.left>0){if(se.left<=tTo(meStay)-2*myP)return null;T=Math.min(T,se.left)}
+  const R=new Map(riv.map(c=>[c.id,runCar(c,T)]));
+  const margin=1.0/myP;   // a car less than 1 s away counts as ahead (cautious)
+  const unAhead=unmod.filter(g=>g.place<me.place).length;
+  const opt=k=>{const c=k==null?meStay:mk(me,me.laps+1+k),M=runCar(c,T);
+    const ahead=riv.filter(r=>R.get(r.id)>M-margin);return {k,pos:1+unAhead+ahead.length,ahead:new Set(ahead.map(r=>r.id))}};
+  const stay=opt(null),opts=[0,1,2].filter(k=>me.laps+1+k<forced).map(opt);
+  if(!opts.length)return null;
+  let best=opts[0];for(const o of opts)if(o.pos<best.pos)best=o;
+  const gain=stay.pos-best.pos;if(gain<1)return null;
+  const flipped=riv.filter(r=>stay.ahead.has(r.id)&&!best.ahead.has(r.id));
+  // COVER: a car next to you in class has just stopped and the stop keeps you ahead of it
+  const order=[...inCls,me].filter(g=>!g.pits||g.id===me.id).sort((a,b)=>a.place-b.place),mi=order.findIndex(g=>g.id===me.id);
+  const near=[order[mi-1],order[mi+1]].filter(Boolean),nowT=Date.now();
+  const cov=best.k<=1?near.find(g=>{const c=S.per.get(g.id);return c&&c.stopAt&&nowT-c.stopAt<90000}):null;
+  // what to do at the stop
+  const after=Math.max(0,(se.left>0?se.left:45*myP)-(best.k+1-frac(me))*myP-loss);
+  const ve=Math.min(1,Math.ceil(after/myP)*myE.per+0.03);
+  const w=(j.car.wheels||[]).map(x=>x&&x.wear),chg=['FL','FR','RL','RR'].filter((_,i)=>w[i]!=null&&w[i]>=0&&w[i]<0.7);
+  const ty=chg.length===4?'all':chg.join()==='FL,RL'?'L':chg.join()==='FR,RR'?'R':chg.join()==='FL,FR'?'front':chg.join()==='RL,RR'?'rear':chg.length?chg.join(' '):'keep';
+  return {k:best.k,gain,cover:cov?{id:cov.id,no:carNo(cov)}:null,flipped:flipped.map(r=>({no:carNo(r.g),stop:r.stopAt})),
+    rows:[...opts.map(o=>({k:o.k,pos:o.pos,d:stay.pos-o.pos,best:o===best})),{k:null,pos:stay.pos,d:null,best:false}],
+    ve,ty,repair:P.repair>0?P.repair:0,loss,est:!S.lane,forced}}
+function stratStep(j){
+  const r=stratModel(j),key=r?`${r.k}:${r.cover?r.cover.id:''}`:'',now=Date.now(),me=j.grid.find(g=>g.player);
+  S.stHist.push(key);if(S.stHist.length>3)S.stHist.shift();
+  const steady=key&&S.stHist.length===3&&S.stHist.every(x=>x===key);
+  if(steady){const isNew=!S.st||S.st.key!==key;S.st={...r,key,since:isNew?now:S.st.since};
+    if(isNew)moment('⛽',`${stLabel(S.st)}: +${r.gain} in class`,'y')}
+  else if(S.st&&(!key||key!==S.st.key)&&(now-S.st.since>8000||(me&&(me.pits||me.pitState>0)))){S.st=null;S.stOpen=false}}
+function stLabel(r){return r.cover?`COVER ${r.cover.no}`:r.k===0?'PIT NOW':`PIT IN ${r.k} LAP${r.k>1?'S':''}`}
+function paintStrat(){
+  const nb=document.querySelector('.pnav button[data-t="strat"]');if(nb)nb.classList.toggle('dot',!!S.st);
+  const el=$('#strat');if(!el)return;const r=S.st;if(!r){if(el._h!==''){el.innerHTML='';el._h=''}return}
+  const kind=r.k===0?'now':'soon',when=k=>k==null?'stay out':k===0?'now':`+${k} lap${k>1?'s':''}`;
+  const why=r.cover?`<b>${r.cover.no}</b> pitted · ${r.k===0?'pit now':`pit in ${r.k}`}`:r.flipped.length?`undercut ${r.flipped.map(f=>`<b>${f.no}</b>`).join(' · ')}`:'gains places';
+  const stops=[...new Set(r.flipped.map(f=>f.stop))];
+  const note=r.flipped.length?(stops.length===1?`${r.flipped.map(f=>f.no).join(' ')} out of VE lap ${stops[0]}`:r.flipped.map(f=>`${f.no} L${f.stop}`).join(' · ')+' out of VE'):'';
+  const h=`<button id="sbtn" class="sb ${kind}" aria-expanded="${S.stOpen}"><span class="sb1"><span class="sbl">${stLabel(r)}</span><span class="grow"></span><span class="sbg">+${r.gain}</span><span class="mu sbp">pos</span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="#9A9DA6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="sb2">${why}</span>
+    <span class="sb3"><span>VE ${Math.round(r.ve*100)}%</span><span>tyres ${r.ty}</span><span class="${r.repair?'a':'mu'}">repair ${r.repair?r.repair.toFixed(0)+' s':'–'}</span></span>
+    ${S.stOpen?`<span class="sbt">${r.rows.map(o=>`<span class="sbo${o.best?' best':''}"><span class="ow">${when(o.k)}</span><span>P${o.pos} <span class="${o.d==null?'mu':o.d>0?'g':o.d<0?'r':'mu'}">${o.d==null?'–':(o.d>0?'+':o.d<0?'−':'')+Math.abs(o.d)}</span></span></span>`).join('')}</span>
+      <span class="sbx">${note?`<span class="sbn">${note}</span>`:''}<span class="sbn">loss ${r.loss.toFixed(0)} s ${r.est?'<span class="est">est.</span>':''}</span></span>`:''}</button>`;
+  if(el._h!==h){el.innerHTML=h;el._h=h}}
+
 // ---------- flags ----------
 const med=a=>{if(!a||!a.length)return null;const b=[...a].sort((x,y)=>x-y);return b[b.length>>1]};
 function secBounds(){const L=S.trackLen,b1=med(S.secB&&S.secB[0]),b2=med(S.secB&&S.secB[1]);return L>100&&b1>0&&b2>b1?[0,b1,b2,L]:null}
@@ -699,7 +874,7 @@ function paintFlags(){const el=$('#flags');if(!el)return;const se=S.slow&&S.slow
   el.innerHTML=flagsNow(se).map(([c,ck,t])=>`<div class="flag" style="color:${ck?'#fff':c}">${flagSvg(c,ck)}<span>${t}</span></div>`).join('')}
 
 // ---------- drawing (every frame; the track is one world-space path, rebuilt only when it grows) ----------
-let trackPath=null,secPaths=null;
+let trackPath=null,secPaths=null,refPaths=null;
 function fitCanvas(cv){const r=cv.getBoundingClientRect(),dpr=devicePixelRatio||1,w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}}
 // world (x, −z) → screen, as a matrix [a,b,c,d,e,f] for setTransform, and as a point function
 function viewTransform(cv){
@@ -716,7 +891,7 @@ function viewTransform(cv){
 }
 function drawMap(){
   const cv=$('#map');if(!cv)return;fitCanvas(cv);const g=cv.getContext('2d'),W=cv.width,H=cv.height,dpr=devicePixelRatio||1;
-  g.setTransform(1,0,0,1,0,0);g.fillStyle='#121316';g.fillRect(0,0,W,H);
+  g.setTransform(1,0,0,1,0,0);if(OBS)g.clearRect(0,0,W,H);else{g.fillStyle='#121316';g.fillRect(0,0,W,H)}
   const T=viewTransform(cv);
   if(!trackPath){trackPath=new Path2D();for(const sg of S.segs){trackPath.moveTo(sg[0],sg[1]);trackPath.lineTo(sg[2],sg[3])}}
   g.setTransform(...T.m);g.lineCap='round';g.lineJoin='round';
@@ -729,11 +904,22 @@ function drawMap(){
       g.strokeStyle='rgba(255,214,10,.45)';g.lineWidth=Math.max(6*dpr/T.s,13)+4/T.s;
       if(full)g.stroke(trackPath);else if(secPaths)fl.forEach((on,k)=>{if(on)g.stroke(secPaths[k])})}}
   const line=(pts,col,w)=>{if(pts.length<2)return;g.strokeStyle=col;g.lineWidth=w/T.s;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.stroke()};
-  line(S.last,'#4A4D56',2*dpr);line(S.trail,'#F2C200',2.5*dpr);
+  line(S.last,'#4A4D56',2*dpr);
+  // this lap's trail: green where you gain on the chosen best, red where you lose (yellow without a delta)
+  (pts=>{if(pts.length<2)return;g.lineWidth=2.5*dpr/T.s;
+    const colAt=i=>{const a=pts[i][2],b=pts[Math.max(0,i-8)][2];if(a==null||b==null)return '#F2C200';const x=a-b;return x>0.004?'#FF5A5A':x<-0.004?'#3BD16F':'#F2C200'};
+    let col=colAt(1);g.beginPath();g.moveTo(pts[0][0],pts[0][1]);
+    for(let i=1;i<pts.length;i++){const c=colAt(i);if(c!==col){g.lineTo(pts[i][0],pts[i][1]);g.strokeStyle=col;g.stroke();g.beginPath();g.moveTo(pts[i][0],pts[i][1]);col=c}else g.lineTo(pts[i][0],pts[i][1])}
+    g.strokeStyle=col;g.stroke()})(S.trail);
   g.setTransform(1,0,0,1,0,0);
   // cars glide from their previous position to the newest one over one frame interval (~100 ms behind live)
   const now=performance.now(),cls=new Map((S.slow?.grid||[]).map(c=>[c.id,c]));
   const list=[...S.cars.values()].sort((a,b)=>a.me-b.me);
+  // B: braking points of the class-best lap (purple diamonds, numbered) and its ghost car (purple ring)
+  const R0=S.ref;if(R0&&Array.isArray(R0.corners)){g.font=`${10*dpr}px JetBrains Mono, monospace`;
+    for(const c of R0.corners){const a=c.at_brake;if(!a)continue;const p=T.f(a[0],-a[1]);g.fillStyle='#C9A8FF';g.strokeStyle='#121316';g.lineWidth=1.5*dpr;
+      g.beginPath();g.moveTo(p[0],p[1]-6*dpr);g.lineTo(p[0]+5*dpr,p[1]);g.lineTo(p[0],p[1]+6*dpr);g.lineTo(p[0]-5*dpr,p[1]);g.closePath();g.fill();g.stroke();g.fillText('T'+c.n,p[0]+7*dpr,p[1]+4*dpr)}}
+  const cm=S.cmp;if(cm&&now-cm.t<1500&&R0&&cm.rev===R0.rev){const p=T.f(cm.gx,cm.gz);g.strokeStyle='#C9A8FF';g.lineWidth=2.5*dpr;g.beginPath();g.arc(p[0],p[1],7*dpr,0,7);g.stroke()}
   for(const c of list){const k=Math.max(0,Math.min(1,(now-c.t)/Math.max(30,c.t-c.pt)));const p=T.f(c.px+(c.x-c.px)*k,c.pz+(c.z-c.pz)*k);
     const info=cls.get(c.id),r=(c.me?7:5)*dpr;
     g.globalAlpha=c.pits?0.4:1;g.fillStyle=c.me?'#F2C200':CLS(info&&info.class);g.strokeStyle='#121316';g.lineWidth=1.5*dpr;
@@ -761,8 +947,8 @@ function drawInputs(){
 }
 const now=()=>performance.now();
 let lastTraffic=0;
-let lastDraw=0;
-function frame(t){if(!PHONE||t-lastDraw>=30){lastDraw=t;drawMap();drawInputs()}if(now()-lastTraffic>500){lastTraffic=now();if(!PHONE)paintTraffic()}requestAnimationFrame(frame)}
+let lastDraw=0,lastDelta=0;
+function frame(t){if(!PHONE||t-lastDraw>=30){lastDraw=t;drawMap();drawInputs()}if(now()-lastDelta>100){lastDelta=now();paintDelta()}if(now()-lastTraffic>500){lastTraffic=now();if(!PHONE)paintTraffic()}requestAnimationFrame(frame)}
 checkPhone();
 requestAnimationFrame(frame);
 addEventListener('pagehide',()=>{if(LINK){const L=LINK;LINK=null;L.stop(true)}});

@@ -9,6 +9,8 @@ Windows only. Needs Le Mans Ultimate 1.2 or newer.
    Windows may warn that the app is from an unknown publisher: **More info → Run anyway.**
 3. Paste the key with **Paste** (or Ctrl+V and **Save**). Done — from now on it just runs.
 
+**Streaming with OBS:** open **My dashboard**, click the chain icon at the top right of a panel, and add the copied link in OBS as a **Browser Source**. It shows that one panel on a transparent background.
+
 ### If Chrome or Windows warns
 The app is new and not yet signed with a paid certificate, so Chrome and Windows don't know it yet and warn about
 *every* program like that. The warning is about reputation, not about anything found in the file.
@@ -48,6 +50,8 @@ second monitor. It works only on this PC, needs no login, and doesn't use one of
 2. Κατέβασε το `ARION-Pit-Wall-vX.Y.Z.exe` από τα **Releases** και άνοιξέ το.
    Αν τα Windows προειδοποιήσουν για άγνωστο εκδότη: **Περισσότερες πληροφορίες → Εκτέλεση οπωσδήποτε.**
 3. Πάτα **Επικόλληση** (ή Ctrl+V και **Αποθήκευση**). Τέλος — από εκεί και πέρα τρέχει μόνη της.
+
+**Για streaming με OBS:** άνοιξε το **My dashboard**, πάτα το εικονίδιο αλυσίδας πάνω δεξιά σε ένα πάνελ και πρόσθεσε τον σύνδεσμο που αντιγράφηκε στο OBS ως **Browser Source**. Δείχνει μόνο εκείνο το πάνελ, με διάφανο φόντο.
 
 ### Αν το Chrome ή τα Windows δείξουν προειδοποίηση
 Η εφαρμογή είναι καινούργια και δεν έχει ακόμα πληρωμένη ψηφιακή υπογραφή, οπότε το Chrome και τα Windows δεν την

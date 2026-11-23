@@ -36,7 +36,9 @@ async def main():
         await pg.click('#gcls button[data-c="All"]'); await asyncio.sleep(0.4)
         chk('full grid: All shows every car', await pg.evaluate('document.querySelectorAll("#laps tr").length') == 9)
         bt = await T('#battle'); brow = await pg.evaluate('document.querySelectorAll("#battle tr").length')
-        chk('battle in class: you plus the cars around you in class (here P1, so only the car behind)', brow == 3 and 'you' in bt, bt[:300])
+        # since v0.1.15 the fake race has a faster GT3 (car 6) that passes the player, so count the neighbours live
+        want = await pg.evaluate('(()=>{const g=S.slow.grid,me=g.find(x=>x.player),c=g.filter(x=>x.class===me.class).sort((a,b)=>a.place-b.place),i=c.indexOf(me);return 2+(i>0)+(i<c.length-1)})()')
+        chk('battle in class: you plus the cars just ahead and behind you in class', brow == want and 'you' in bt, (brow, want, bt[:300]))
         chk('battle: pace and energy filled', bt.count(':') >= 2 and '%' in bt, bt[:300])
         pw = await T('#pitw'); chk('pit window: LMU estimate and rejoin', 'Rejoin P' in pw and '34.6 s' in pw and '12.4 s' in pw, pw)
         # flags: a local yellow in sector 2 shows a flag icon «S2» and colours that sector on the map; FCY shows «FCY / SC»
