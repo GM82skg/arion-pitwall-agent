@@ -27,6 +27,7 @@ AUDIT = r'''(()=>{const BOX='.pn,.tab,.chip,button,.slot,.tyre,.next,.pill,.sc,.
   if(r.right>R+1||r.left<L-1)out.push({box:(el.className||el.tagName).toString().slice(0,30),text:el.innerText.trim().slice(0,30),over:Math.round(Math.max(r.right-R,L-r.left))})}
  for(const el of document.querySelectorAll('#app .body,#app .dock,#app .pview,#app .pn'))if(el.getClientRects().length&&el.scrollWidth>el.clientWidth+1)out.push({box:'sideways overflow in '+(el.id||el.className).toString().slice(0,30),over:el.scrollWidth-el.clientWidth});
  const sw=document.documentElement.scrollWidth>innerWidth;return {out,sw}})()'''
+import portwait; portwait.wait_free()   # the previous test's app may still hold 6420
 rest = subprocess.Popen([sys.executable, f'{HERE}/mock_lmu_rest.py', '6397'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 ag = subprocess.Popen([BIN, '--key', 'arion_tk_' + 'ab' * 32, '--fake', '--fake-speed', '10', '--url', 'http://127.0.0.1:9', '--apikey', 'x', '--seconds', '120'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1.5)

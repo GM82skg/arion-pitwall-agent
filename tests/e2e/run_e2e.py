@@ -9,6 +9,7 @@ def chk(n, c, info=''):
     global ok, fail
     if c: ok += 1; print('PASS', n)
     else: fail += 1; print('FAIL', n, info)
+import portwait; portwait.wait_free()   # the previous test's app may still hold 6420
 db = subprocess.Popen([sys.executable, f'{HERE}/mock_db.py', str(PORT)])
 time.sleep(0.8)
 bad = subprocess.run([BIN, '--key', 'arion_tk_' + 'cd' * 32, '--fake', '--url', f'http://127.0.0.1:{PORT}', '--apikey', 'test_pub', '--seconds', '3'], capture_output=True, text=True, timeout=30)

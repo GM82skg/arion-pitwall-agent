@@ -6,6 +6,7 @@ def chk(n, c, info=''):
     global ok, fail
     if c: ok += 1; print('PASS', n)
     else: fail += 1; print('FAIL', n, info)
+import portwait; portwait.wait_free()   # the previous test's app may still hold 6420
 rest = subprocess.Popen([sys.executable, f'{HERE}/mock_lmu_rest.py', '6397'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 ag = subprocess.Popen([BIN, '--key', 'arion_tk_' + 'ab' * 32, '--fake', '--fake-speed', '10', '--url', 'http://127.0.0.1:9', '--apikey', 'x', '--seconds', '70'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1.5)

@@ -6,6 +6,7 @@ def chk(n, c, info=''):
     global ok, fail
     if c: ok += 1; print('PASS', n)
     else: fail += 1; print('FAIL', n, info)
+import portwait; portwait.wait_free()   # the previous test's app may still hold 6420
 rest = subprocess.Popen([sys.executable, f'{HERE}/mock_lmu_rest.py', '6397'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 ag = subprocess.Popen([BIN, '--key', 'arion_tk_' + 'ab' * 32, '--fake', '--fake-speed', '10', '--url', 'http://127.0.0.1:9', '--apikey', 'x', '--seconds', '60'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1.5)
@@ -17,8 +18,9 @@ async def main():
         await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(22)
         T = lambda sel: pg.evaluate(f'(document.querySelector("{sel}")||{{}}).innerText||""')
-        dmg = await T('#dmg'); chk('damage panel: aero, all four wheels, repair time', 'Aero' in dmg and '14%' in dmg and 'FL 6%' in dmg and 'RR 1%' in dmg and 'repair 12.4 s' in dmg, dmg)
-        chk('damage panel: car outline with 8 zones', await pg.evaluate('document.querySelectorAll("#dmg svg rect").length') >= 9)
+        dmg = await T('#dmg'); chk('damage panel: aero, all four wheels, repair time', 'Aero' in dmg and '14%' in dmg and 'FL 6%' in dmg and 'RR 1%' in dmg and 'Repair' in dmg and '12.4 s' in dmg, dmg)
+        # v0.1.13: George removed the car drawing; the body zones are counted in text
+        chk('damage panel: body zones in text, no car drawing', 'Body' in dmg and ('clean' in dmg or 'zones' in dmg) and await pg.evaluate('!document.querySelector("#dmg svg.carsvg")'), dmg)
         car = await T('#car')
         chk('energy shows LMU maximum', 'of 100' in car, car[:200])
         chk('brake discs in mm', '32.0 mm' in car, car)
@@ -26,6 +28,7 @@ async def main():
         chk('weather: 5 forecast slots for this session', slots == 5, wx[:200])
         chk('weather: next change with time and lap', 'rain chance' in wx and ' min' in wx, wx[:300])
         tr = await T('#traffic'); chk('traffic: no ahead/behind words', 'ahead' not in tr and 'behind' not in tr and 'you' in tr, tr[:120])
+        await pg.click('#gMine'); await asyncio.sleep(0.5)   # Full grid is the default since v0.1.13
         laps = await pg.evaluate('document.querySelectorAll("#laps tr:not(.ch)").length')
         chk('laps and sectors: this car’s laps listed', laps >= 3, laps)
         secs = await pg.evaluate('[...document.querySelectorAll("#laps tr")].slice(1,2).map(r=>r.innerText)[0]||""')

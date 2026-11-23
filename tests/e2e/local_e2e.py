@@ -7,6 +7,7 @@ def chk(n, c, info=''):
     if c: ok += 1; print('PASS', n)
     else: fail += 1; print('FAIL', n, info)
 # the key is checked against a database that isn't there: "My dashboard" must still work
+import portwait; portwait.wait_free()   # the previous test's app may still hold 6420
 ag = subprocess.Popen([BIN, '--key', 'arion_tk_' + 'ab' * 32, '--fake', '--url', 'http://127.0.0.1:9', '--apikey', 'x', '--seconds', '40'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 url = None; t0 = time.time()
 while time.time() - t0 < 10 and not url:

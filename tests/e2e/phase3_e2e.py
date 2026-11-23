@@ -20,6 +20,7 @@ MODEL = r'''(sc)=>{const keep={per:S.per,cars:S.cars,rest:S.rest,trackLen:S.trac
   const j={t:'slow',session:{type:10,phase:5,yellow:0,left:sc.left??7200},car:{wheels:[{wear:0.6},{wear:0.9},{wear:0.62},{wear:0.88}]},grid:g};
   const r=stratModel(j);return r?{k:r.k,gain:r.gain,cover:r.cover&&r.cover.no,flipped:r.flipped.map(f=>f.no),ty:r.ty,ve:r.ve,rows:r.rows,est:r.est}:null}
  finally{Object.assign(S,keep)}}'''
+import portwait; portwait.wait_free()   # the previous test's app may still hold 6420
 rest = subprocess.Popen([sys.executable, f'{HERE}/mock_lmu_rest.py', '6397'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 ag = subprocess.Popen([BIN, '--key', 'arion_tk_' + 'ab' * 32, '--fake', '--fake-speed', '10', '--url', 'http://127.0.0.1:9', '--apikey', 'x', '--seconds', '150'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1.5)
@@ -31,7 +32,7 @@ async def main():
         pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)[:200]))
         await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(1)
-        chk('dashboard version 0.1.12', await pg.evaluate('VERSION') == '0.1.12')
+        chk('dashboard version 0.1.13', await pg.evaluate('VERSION') == '0.1.13')
         # ---------- B ----------
         st = None
         for _ in range(60):

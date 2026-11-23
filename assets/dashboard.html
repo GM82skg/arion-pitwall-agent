@@ -81,7 +81,9 @@ body.resizing,body.resizing *{cursor:inherit!important;user-select:none}
 .carsvg rect{transition:fill .3s}
 .scrl{overflow:auto;min-height:0;scrollbar-width:thin;scrollbar-color:#3A3D45 transparent}
 .scrl::-webkit-scrollbar{width:6px;height:6px}.scrl::-webkit-scrollbar-track{background:transparent}.scrl::-webkit-scrollbar-thumb{background:#3A3D45;border-radius:3px}.scrl::-webkit-scrollbar-thumb:hover{background:#4A4D56}.scrl::-webkit-scrollbar-corner{background:transparent}
-#traffic{overflow:hidden}.rl{white-space:nowrap}.rl>span{flex:none}.rl>span.nm{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis}.rl>span.grow{flex:1 1 0}
+#traffic{overflow:hidden}.tt td.nm{max-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tt td:nth-child(3){width:34%}.tt td:nth-child(4){width:30%}.tt tr.me td{background:#2A2400}.tt td,.tt th{white-space:nowrap}.tt .gp,.mt .gp{text-align:right}
+.mt td{white-space:nowrap;vertical-align:top}.mt td.tx{white-space:normal;width:100%;font-family:Inter,system-ui,sans-serif}
+.rl{white-space:nowrap}.rl>span{flex:none}.rl>span.nm{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis}.rl>span.grow{flex:1 1 0}
 .tyre .mu{font-size:12px}.tyre .tl1{white-space:nowrap;font-size:14px}.tyre .tl1 b{font-size:17px;font-weight:600}.tyre .tl2{white-space:nowrap;font-size:11.5px}
 table.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}table.t td,table.t th{padding:3px 4px;text-align:left;white-space:nowrap}table.t th{font-family:Inter,sans-serif;font-weight:400;color:var(--mu)}table.t tr+tr td{border-top:1px solid #23252A}
 .sc{border-radius:3px;padding:0 4px}.sc.pu{background:#3B2760;color:#C9A8FF}.sc.gn{background:#13361F;color:#3BD16F}.sc.yl{background:#3A3000;color:#F2C200}
@@ -117,7 +119,7 @@ table.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12
 /* ---------- phone (v0.1.6): one topic per screen, tab bar at the bottom ---------- */
 body.phone #app{padding:0;gap:0;height:100dvh}
 body.phone .top{border-radius:0;border-width:0 0 1px;padding:calc(6px + env(safe-area-inset-top)) 12px 8px;gap:8px}
-body.phone .top .sep,body.phone #lreset{display:none}
+body.phone .top .sep,body.phone #lreset,body.phone #pnl{display:none}
 body.phone .brand{flex:1 1 100%;justify-content:center;padding:2px 0 4px}body.phone .wm{height:22px}body.phone .brand b{font-size:15px}
 body.phone #sess{order:2;font-size:12px;flex:1 1 auto;min-width:0}body.phone #link{order:3;font-size:12px}body.phone #out{order:4}
 body.phone #out{padding:3px 8px;font-size:12px}
@@ -155,11 +157,11 @@ body.phone.land .pview{padding:8px calc(10px + env(safe-area-inset-right)) 8px c
 .chain{background:none;border:0;padding:2px;margin-left:auto;color:var(--mu);display:inline-flex;align-items:center;flex:none;line-height:0}.chain:hover{color:var(--y)}.grow~.chain{margin-left:0}
 .chain svg{width:15px;height:15px}
 html.obs,body.obs{background:transparent!important}body.obs #app{padding:0;gap:0;height:100vh}body.obs .top{display:none}
-body.obs .pn{background:transparent;border:0}body.obs .ph button,body.obs .chain,body.obs .dsw{display:none}body.obs .dock .ph{cursor:default}
+body.obs .pn{background:transparent;border:0}body.obs .ph button,body.obs .chain,body.obs .dsw,body.obs #gcls{display:none}body.obs .dock .ph{cursor:default}
 body.obs .obsp{flex:1;min-height:0;min-width:0;padding:6px}
 body.obs .pn{background:rgba(22,23,26,var(--obsbg,0));border-radius:8px}
 .obspop{position:fixed;z-index:50;width:250px;padding:10px 12px;border-radius:8px;background:#1C1D21;border:1px solid var(--ln);box-shadow:0 8px 30px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:8px;font-size:13px}
-.obspop label{display:flex;align-items:center;gap:8px}.obspop input{flex:1;accent-color:var(--y)}.obspop .m{min-width:38px;text-align:right}
+.obspop label{display:flex;align-items:center;gap:8px}.obspop .pck{cursor:pointer;gap:8px}.obspop .pck input{flex:none;width:15px;height:15px;accent-color:var(--y)}.obspop input{flex:1;accent-color:var(--y)}.obspop .m{min-width:38px;text-align:right}
 .obsprev{height:34px;border-radius:6px;background:repeating-conic-gradient(#3A3D45 0 25%,#24262B 0 50%) 0 0/14px 14px;position:relative;overflow:hidden}
 .obsprev span{position:absolute;inset:5px;border-radius:5px;display:flex;align-items:center;padding:0 8px;font-family:var(--mono);font-size:12px;color:var(--tx)}
 /* ---------- D: strategy alert on the map (v0.1.10) ---------- */
@@ -197,6 +199,7 @@ body.phone .strat{left:8px;right:8px;width:auto}
     <div id="tabs" class="tabs"></div>
     <span class="sep"></span>
     <span id="link" class="m mu"></span>
+    <button id="pnl" aria-haspopup="dialog" title="Show or hide panels">Panels</button>
     <button id="lreset" title="Back to the default panel layout">Reset layout</button>
     <button id="out" style="display:none">Sign out</button>
   </div>
@@ -207,7 +210,7 @@ body.phone .strat{left:8px;right:8px;width:auto}
 <script>
 'use strict';
 // ARION Pit Wall dashboard. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1; comparison frames since v0.1.15).
-const VERSION='0.1.12';
+const VERSION='0.1.13';
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
 const CFG={url:'https://isuiksufkyishdowejob.supabase.co',key:'sb_publishable_DMqGCrW9YEmzEN2_cP67-w_ljr1JBo9'};
@@ -233,8 +236,9 @@ function obsPopup(btn){closeObsPopup();const id=btn.dataset.chain,r=btn.getBound
   $('#obsBg').oninput=e=>{OBSPICK=+e.target.value;try{localStorage.setItem('pw-obsbg',String(OBSPICK))}catch{}pv()};
   $('#obsCopy').onclick=()=>{copyObs(id,OBSPICK);closeObsPopup()};$('#obsBg').focus()}
 function closeObsPopup(){const p=$('#obsPop');if(p)p.remove()}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeObsPopup()});
-document.addEventListener('pointerdown',e=>{if(!e.target.closest('#obsPop,.chain'))closeObsPopup()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeObsPopup();closePanelsMenu()}});
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#obsPop,.chain'))closeObsPopup();if(!e.target.closest('#pnlPop,#pnl'))closePanelsMenu()});
+document.addEventListener('click',e=>{if(e.target.closest('#pnl')){$('#pnlPop')?closePanelsMenu():panelsMenu(e.target.closest('#pnl'))}});
 function copyObs(id,bg){const url=`${location.origin}/?panel=${encodeURIComponent(id)}&obs=1&bg=${bg||0}`;
   const done=()=>note(`OBS link copied: ${url}`);
   const old=()=>{const t=document.createElement('textarea');t.value=url;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();let ok=false;try{ok=document.execCommand('copy')}catch{}t.remove();ok?done():note(`OBS link: ${url}`)};
@@ -258,7 +262,7 @@ let noteT;function note(t){const n=$('#note');n.textContent=t;n.style.display='b
 // ---------- state ----------
 let USER=null,TOKEN=null,SESS=[],SEL=null,LINK=null;
 const S={fast:null,slow:null,cars:new Map(),hist:[],trail:[],last:[],lap:null,segs:[],cells:new Set(),segBounds:null,trackLen:0,mode:'full',zoom:1,lastPos:new Map(),heading:0,
-  laps:[],per:new Map(),clsBest:new Map(),moments:[],prev:null,temps:[],gridTab:'mine',gridCls:null,rest:{},cmp:null,ref:null,verdicts:[],st:null,stHist:[],stOpen:false};
+  laps:[],per:new Map(),clsBest:new Map(),moments:[],prev:null,temps:[],gridTab:'all',gridCls:null,rest:{},cmp:null,ref:null,verdicts:[],st:null,stHist:[],stOpen:false};
 function resetData(){S.hs=null;S.hv=0;S.me0=S.me1=null;S.cmp=null;S.ref=null;S.verdicts=[];S.st=null;S.stHist=[];S.stOpen=false;S.lane=null;S.pitWatch=null;refPaths=null;S.secB=[[],[]];S.flagGreenUntil=0;S.prevFlag=null;S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
 
 // ---------- login and access ----------
@@ -454,7 +458,25 @@ const FIT=new Set(['car','damage','wx','pit','battle']);
 const MINH={map:240,inputs:170,traffic:150,laps:210,moments:130},MINW={car:340,damage:320,wx:360,pit:320,map:380,inputs:380,battle:470,traffic:290,laps:390,moments:280};
 const LKEY='pw-layout-v4';   // v4: Live inputs under the left column, Pit window on the right; fixed-content panels at their contents' height (v0.1.11)
 let LAYOUT=(()=>{try{const l=JSON.parse(localStorage.getItem(LKEY));if(l&&l.v===1&&validLayout(l))return l}catch{}return JSON.parse(JSON.stringify(DEF_LAYOUT))})();
-function validLayout(l){const ids=l.cols.flatMap(c=>c.p.map(x=>x[0])).sort().join();return ids===DEF_LAYOUT.cols.flatMap(c=>c.p.map(x=>x[0])).sort().join()&&l.cols.every(c=>c.w>0&&c.p.length&&c.p.every(x=>x[1]>0))}
+// v0.1.13: panels can be hidden, so a layout holds any of them, each at most once
+function validLayout(l){const ALLP=DEF_LAYOUT.cols.flatMap(c=>c.p.map(x=>x[0]));const ids=l.cols.flatMap(c=>c.p.map(x=>x[0]));return ids.length>0&&new Set(ids).size===ids.length&&ids.every(x=>ALLP.includes(x))&&l.cols.every(c=>c.w>0&&c.p.length&&c.p.every(x=>x[1]>0))}
+const ALLP=DEF_LAYOUT.cols.flatMap(c=>c.p.map(x=>x[0]));
+const PNAME={car:'Car',damage:'Damage',wx:'Weather',pit:'Pit window',map:'Track map',inputs:'Live inputs',battle:'Battle in class',traffic:'Traffic',laps:'Laps and sectors',moments:'Key moments'};
+const shown=id=>LAYOUT.cols.some(c=>c.p.some(x=>x[0]===id));
+function setPanel(id,on){if(on===shown(id))return;
+  if(!on){if(LAYOUT.cols.flatMap(c=>c.p).length<=1)return;LAYOUT.cols.forEach(c=>c.p=c.p.filter(x=>x[0]!==id));LAYOUT.cols=LAYOUT.cols.filter(c=>c.p.length)}
+  else{const di=DEF_LAYOUT.cols.findIndex(c=>c.p.some(x=>x[0]===id)),h=DEF_LAYOUT.cols[di].p.find(x=>x[0]===id)[1],order=DEF_LAYOUT.cols[di].p.map(x=>x[0]);
+    // back into its own column (the one holding its default neighbours), at its default place
+    let col=LAYOUT.cols.find(c=>c.p.some(x=>order.includes(x[0])));
+    if(!col){col={w:DEF_LAYOUT.cols[di].w,p:[]};LAYOUT.cols.splice(Math.min(di,LAYOUT.cols.length),0,col)}
+    const at=col.p.findIndex(x=>order.indexOf(x[0])>order.indexOf(id));col.p.splice(at<0?col.p.length:at,0,[id,h])}
+  saveLayout();$('#view').dataset.k='';dashView();paintPanels()}
+function panelsMenu(btn){closePanelsMenu();const r=btn.getBoundingClientRect(),d=document.createElement('div');d.className='obspop';d.id='pnlPop';d.setAttribute('role','dialog');d.setAttribute('aria-label','Panels');
+  d.innerHTML=`<b>Panels</b>${ALLP.map(id=>`<label class="pck"><input type="checkbox" data-p="${id}" ${shown(id)?'checked':''}> ${PNAME[id]}</label>`).join('')}`;
+  document.body.appendChild(d);d.style.left=Math.max(8,Math.min(innerWidth-258,r.right-250))+'px';d.style.top=(r.bottom+6)+'px';
+  d.querySelectorAll('input').forEach(c=>c.onchange=()=>{setPanel(c.dataset.p,c.checked);d.querySelectorAll('input').forEach(x=>{x.checked=shown(x.dataset.p);x.disabled=x.checked&&ALLP.filter(shown).length<=1})});
+  d.querySelectorAll('input').forEach(x=>x.disabled=x.checked&&ALLP.filter(shown).length<=1)}
+function closePanelsMenu(){const p=$('#pnlPop');if(p)p.remove()}
 function saveLayout(){try{localStorage.setItem(LKEY,JSON.stringify(LAYOUT))}catch{}}
 function resetLayout(){LAYOUT=JSON.parse(JSON.stringify(DEF_LAYOUT));saveLayout();$('#view').dataset.k='';dashView()}
 const BODY={
@@ -481,12 +503,17 @@ function dashView(){
   const v=$('#view');if(v.dataset.k==='dash')return;v.dataset.k='dash';v.className='main';v.style.flexDirection='';
   const cols=LAYOUT.cols;
   v.innerHTML=cols.map((c,ci)=>`${ci?`<div class="gx" data-ci="${ci-1}"></div>`:''}<div class="dcol" style="flex:${c.w} 1 0;min-width:${Math.max(...c.p.map(x=>MINW[x[0]]||240))}px">${c.p.map(([id,h],pi)=>`${pi?`<div class="gy" data-ci="${ci}" data-pi="${pi-1}"></div>`:''}<section class="pn dock${FIT.has(id)?' fit':''}" data-id="${id}" style="flex:${dflex(c,id,h)}${MINH[id]?`;min-height:${MINH[id]}px`:''}">${BODY[id]}</section>`).join('')}</div>`).join('');
-  $('#mFull').onclick=()=>{S.mode='full';$('#mFull').className='on';$('#mFollow').className=''};
-  $('#mFollow').onclick=()=>{S.mode='follow';$('#mFollow').className='on';$('#mFull').className='';if(S.zoom<2)S.zoom=3};
-  if(S.mode==='follow'){$('#mFollow').className='on';$('#mFull').className=''}
-  $('#zIn').onclick=()=>{S.zoom=Math.min(12,S.zoom*1.5)};$('#zOut').onclick=()=>{S.zoom=Math.max(1,S.zoom/1.5)};
-  $('#gMine').onclick=()=>{S.gridTab='mine';$('#gMine').className='on';$('#gAll').className='';paintLaps()};
-  $('#gAll').onclick=()=>{S.gridTab='all';$('#gAll').className='on';$('#gMine').className='';paintLaps()};
+  // (v0.1.13: a hidden panel's buttons aren't there, so only wire what is)
+  if($('#mFull')){
+    $('#mFull').onclick=()=>{S.mode='full';$('#mFull').className='on';$('#mFollow').className=''};
+    $('#mFollow').onclick=()=>{S.mode='follow';$('#mFollow').className='on';$('#mFull').className='';if(S.zoom<2)S.zoom=3};
+    if(S.mode==='follow'){$('#mFollow').className='on';$('#mFull').className=''}
+    $('#zIn').onclick=()=>{S.zoom=Math.min(12,S.zoom*1.5)};$('#zOut').onclick=()=>{S.zoom=Math.max(1,S.zoom/1.5)};
+  }
+  if($('#gMine')){
+    $('#gMine').onclick=()=>{S.gridTab='mine';$('#gMine').className='on';$('#gAll').className='';paintLaps()};
+    $('#gAll').onclick=()=>{S.gridTab='all';$('#gAll').className='on';$('#gMine').className='';paintLaps()};
+  }
   v.querySelectorAll('.gx').forEach(g=>g.onpointerdown=e=>resizeStart(e,g,'x'));
   v.querySelectorAll('.gy').forEach(g=>g.onpointerdown=e=>resizeStart(e,g,'y'));
   v.onpointerdown=e=>{const ph=e.target.closest('.dock .ph');if(ph&&!e.target.closest('button,input'))moveStart(e,ph.closest('.dock'))};
@@ -593,7 +620,7 @@ function paintPhoneCar(){
       <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} L</span></div></div>
     <div class="pn pty">${['FL','FR','RL','RR'].map((n,k)=>{const t=w[k]||{t:[0,0,0]};const mid=KC((t.t||[])[1]+273.15);return `<div style="background:${mid==null?'#1F2024':tyreBg(mid)}">${n} <b>${mid==null?'–':Math.round(mid)+'°'}</b> <span class="mu">${pc(t.wear)}</span><div class="mu" style="font-size:11px">${mid==null?'':(t.t||[]).map(x=>Math.round(x)).join('·')+' · '}${t.p>0?Math.round(t.p)+' kPa':''}</div></div>`}).join('')}</div>
     <div class="pn" style="display:flex;gap:6px 12px;flex-wrap:wrap"><span class="mu">Damage</span><span class="grow"></span><span class="m ${dmg.length?'a':'g'}" style="text-align:right">${dmg.length?dmg.join(' · '):'none'}${R.pit&&R.pit.repair>0?` · repair ${R.pit.repair.toFixed(0)} s`:''}</span></div>
-    <div class="pn mom">${S.moments.slice(0,3).map(m=>`<div><span class="mu">${m.rt!=null?raceT(m.rt):''}${m.lap!=null?' · L'+m.lap:''}</span> <span class="${m.cls||''}">${m.icon}</span> ${esc(m.text)}</div>`).join('')||'<div class="mu">Nothing yet.</div>'}</div>`;
+    <div class="pn mom">${S.moments.length?momRows(S.moments.slice(0,3)):'<div class="mu">Nothing yet.</div>'}</div>`;
   paintDelta();
 }
 // keep the phone screen on while a car is live (where the browser allows it)
@@ -687,18 +714,13 @@ function paintDamage(c,R){
   const rear=c.detached?2:d[4];
   const sp=(i,x,y,a)=>`<text x="${x}" y="${y}" text-anchor="${a}" font-family="JetBrains Mono,monospace" font-size="12" fill="${su[i]>0.15?'#FF5A5A':su[i]>0.02?'#FFB020':'#8C8F98'}">${su[i]!=null?Math.round(su[i]*100)+'%':'–'}</text>`;
   const any=d.some(x=>x>0)||c.detached||aero>0.005||su.some(x=>x>0.005);
-  el.innerHTML=`<div class="ph"><b>Damage</b><span class="grow"></span>${rep>0?`<span class="m a">repair ${rep.toFixed(1)} s</span>`:any?'':'<span class="g">none</span>'}${chain('damage')}</div>
-  <div style="display:flex;gap:14px;align-items:center;min-height:0">
-    <svg class="carsvg" viewBox="0 0 160 200" style="height:104px;flex:none" role="img" aria-label="Body damage">
-      <rect x="40" y="6" width="80" height="34" rx="10" fill="${ZC(d[0])}"/><rect x="10" y="10" width="28" height="44" rx="8" fill="${ZC(d[1])}"/><rect x="122" y="10" width="28" height="44" rx="8" fill="${ZC(d[7])}"/>
-      <rect x="10" y="60" width="28" height="80" rx="6" fill="${ZC(d[2])}"/><rect x="40" y="44" width="80" height="112" rx="14" fill="#1C1D21" stroke="#3A3D45"/><rect x="122" y="60" width="28" height="80" rx="6" fill="${ZC(d[6])}"/>
-      <rect x="10" y="146" width="28" height="44" rx="8" fill="${ZC(d[3])}"/><rect x="40" y="160" width="80" height="34" rx="10" fill="${ZC(rear)}"/><rect x="122" y="146" width="28" height="44" rx="8" fill="${ZC(d[5])}"/>
-      ${sp(0,74,36,'end')}${sp(1,86,36,'start')}${sp(2,74,182,'end')}${sp(3,86,182,'start')}
-      <text x="80" y="104" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#8C8F98">${c.detached?'wing off':'body'}</text></svg>
-    <div class="m" style="display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-size:13px;flex:1;min-width:0">
+  // v0.1.13: no car drawing; repair time beside aero and body
+  el.innerHTML=`<div class="ph"><b>Damage</b><span class="grow"></span>${any?'':'<span class="g">none</span>'}${chain('damage')}</div>
+    <div class="m dmgf" style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;font-size:13px">
       <div><div class="mu">Aero</div><span class="${aero>0.25?'r':aero>0.005?'a':''}">${aero!=null?Math.round(aero*100)+'%':'–'}</span></div>
-      <div><div class="mu">Body</div>${d.filter(x=>x>0).length?`<span class="${d.some(x=>x>1)?'r':'a'}">${d.filter(x=>x>0).length} of 8 zones</span>`:'<span class="mu">clean</span>'}</div>
-      <div style="grid-column:1/-1"><div class="mu">Suspension</div>${['FL','FR','RL','RR'].map((n,i)=>`<span class="${su[i]>0.15?'r':su[i]>0.02?'a':'mu'}">${n} ${su[i]!=null?Math.round(su[i]*100)+'%':'–'}</span>`).join(' ')}</div></div></div>`;
+      <div><div class="mu">Body</div>${c.detached?'<span class="r">wing off</span>':d.filter(x=>x>0).length?`<span class="${d.some(x=>x>1)?'r':'a'}">${d.filter(x=>x>0).length} of 8 zones</span>`:'<span class="mu">clean</span>'}</div>
+      <div><div class="mu">Repair</div>${rep>0?`<span class="a">${rep.toFixed(1)} s</span>`:'<span class="mu">–</span>'}</div>
+      <div><div class="mu">Suspension</div>${['FL','FR','RL','RR'].map((n,i)=>`<span class="${su[i]>0.15?'r':su[i]>0.02?'a':'mu'}">${n} ${su[i]!=null?Math.round(su[i]*100)+'%':'–'}</span>${i===1?'<br>':i<3?' ':''}`).join('')}</div></div>`;
 }
 // pace from a car's last clean laps (no pit laps)
 function pace(id,n=5){const c=S.per.get(id);if(!c)return null;const t=c.times.slice(-n).map(x=>x.t).filter(x=>x>0);if(t.length<2)return null;t.sort((a,b)=>a-b);const k=t.slice(0,Math.max(2,t.length-1));return k.reduce((a,b)=>a+b,0)/k.length}
@@ -736,8 +758,10 @@ function paintPit(j,me){
     <div class="k3 m" style="margin-top:8px"><div><div class="mu">Stop</div>${P.total.toFixed(1)} s</div><div><div class="mu">Repair</div>${(P.repair||0).toFixed(1)} s</div><div><div class="mu">Lane${S.lane?'':' ≈'}</div>${lane.toFixed(0)} s</div></div>
     ${(sp=>sp?`<div class="m" style="margin-top:8px"><span class="mu">Must stop</span> lap ${sp.forced}${sp.ve!=null?` <span class="mu">· fill</span> VE ${Math.round(sp.ve*100)}%`:''} <span class="mu">· tyres</span> ${sp.ty}</div>`:`<div class="m mu" style="margin-top:8px">Stop plan after 2 laps of energy use</div>`)(stopPlan(j,me,0))}`;
 }
+// v0.1.13: moments as columns (race time · lap · icon · what happened)
+const momRows=list=>`<table class="t mt">${list.map(m=>`<tr><td class="mu">${m.rt!=null?raceT(m.rt):''}</td><td class="mu">${m.lap!=null?'L'+m.lap:''}</td><td class="${m.cls||''}">${m.icon}</td><td class="tx">${esc(m.text)}</td></tr>`).join('')}</table>`;
 function paintMoments(){const el=$('#moments');if(!el)return;
-  el.innerHTML=S.moments.length?S.moments.slice(0,30).map(m=>`<div><span class="mu">${m.rt!=null?raceT(m.rt):''}${m.lap!=null?' · L'+m.lap:''}</span> <span class="${m.cls||''}">${m.icon}</span> ${esc(m.text)}</div>`).join(''):'<div class="mu">Nothing yet.</div>'}
+  el.innerHTML=S.moments.length?momRows(S.moments.slice(0,30)):'<div class="mu">Nothing yet.</div>'}
 const SKY=['clear','light clouds','partly cloudy','mostly cloudy','overcast','cloudy, drizzle','cloudy, light rain','overcast, light rain','overcast, rain','overcast, heavy rain','overcast, storm'];
 const SKYI=n=>n<=0?'☀':n<=3?'⛅':n<=4?'☁':'🌧';
 function paintWx(j,me){
@@ -793,10 +817,13 @@ function paintTraffic(){
   if(!me||!meCar||!(L>100)){el.innerHTML='<div class="mu">Waiting for positions…</div>';return}
   const v=me.best>0?L/me.best:(S.fast&&S.fast.speed>10?S.fast.speed:50);
   const rows=j.grid.filter(g=>S.cars.has(g.id)&&!S.cars.get(g.id).pits||g.player).map(g=>{let d=(S.cars.get(g.id)?.dist??0)-meCar.dist;if(d>L/2)d-=L;if(d<-L/2)d+=L;return {g,d}}).sort((a,b)=>b.d-a.d);
-  const i=rows.findIndex(r=>r.g.player);const rh=(el.querySelector('.rl')?.offsetHeight||22)+1,fit=Math.max(3,Math.floor((el.clientHeight||el.parentElement.clientHeight-40)/rh)),half=Math.floor((fit-1)/2);
+  const i=rows.findIndex(r=>r.g.player);const rh=(el.querySelector('tr.tr')?.offsetHeight||22),head=(el.querySelector('tr.th')?.offsetHeight||20),
+    fit=Math.max(3,Math.floor(((el.clientHeight||el.parentElement.clientHeight-40)-head)/rh)),half=Math.floor((fit-1)/2);
   const st=Math.max(0,Math.min(i-half,rows.length-fit));const view=rows.slice(st,st+fit);
-  el.innerHTML=view.map(({g,d})=>{const s=Math.abs(d)/v;const same=g.class===me.class;
-    return `<div class="rl${g.player?' me':''}">${pill(g.class)}<span class="mu">P${g.place}</span><span class="nm" style="${g.player?'color:var(--y)':''}">${esc(g.name)}</span><span class="grow"></span>${g.player?'<span class="y">you</span>':`<span>${s.toFixed(1)}</span><span class="y" style="width:10px;text-align:center">${same?'●':''}</span>`}</div>`}).join('');
+  // v0.1.13: columns (class · P · driver · car · VE · gap to you), so every row lines up
+  el.innerHTML=`<table class="t tt"><tr class="th"><th></th><th>P</th><th>Driver</th><th>Car</th><th class="gp">VE</th><th class="gp">Gap</th><th></th></tr>${view.map(({g,d})=>{const s=Math.abs(d)/v,same=g.class===me.class,e=energyLeft(g);
+    const ve=g.energy>=0&&g.energy<=1?`${Math.round(g.energy*100)}%${e&&e.per!=null?` <span class="mu">· ${e.laps.toFixed(1)}</span>`:''}`:'–';
+    return `<tr class="tr${g.player?' me':''}"><td>${pill(g.class)}</td><td class="mu">P${g.place}</td><td class="nm"${g.player?' style="color:var(--y)"':''}>${esc(g.name)}</td><td class="nm mu">${esc(g.car||'')}</td><td class="gp">${ve}</td>${g.player?'<td class="gp y">you</td><td></td>':`<td class="gp">${d>=0?'+':'−'}${s.toFixed(1)}</td><td class="y" style="width:12px;text-align:center">${same?'●':''}</td>`}</tr>`}).join('')}</table>`;
 }
 
 // ---------- B: live delta, projected and potential lap, corner verdicts (v0.1.10) ----------
@@ -950,8 +977,8 @@ function smoothHeading(){const t=performance.now(),dt=Math.min(0.1,Math.max(0.00
   let c=S.hs-h;while(c>Math.PI)c-=2*Math.PI;while(c<-Math.PI)c+=2*Math.PI;
   const w=2/0.3,x=w*dt,e=1/(1+x+0.48*x*x+0.235*x*x*x),tmp=(S.hv+w*c)*dt;
   S.hv=(S.hv-w*tmp)*e;S.hs=h+(c+tmp)*e;return S.hs}
-function viewTransform(cv){
-  const mp=mePos(),fx0=mp?mp.x:S.fast?S.fast.x:0,fz0=mp?mp.z:S.fast?-S.fast.z:0;
+function viewTransform(cv,mp=mePos()){   // drawMap passes the frame's one position, so view and arrow agree exactly
+  const fx0=mp?mp.x:S.fast?S.fast.x:0,fz0=mp?mp.z:S.fast?-S.fast.z:0;
   const b=S.segBounds||[fx0-300,fz0-300,fx0+300,fz0+300];
   const W=cv.width,H=cv.height,pad=30*(devicePixelRatio||1),bw=Math.max(60,b[2]-b[0]),bh=Math.max(60,b[3]-b[1]);
   const base=Math.min((W-2*pad)/bw,(H-2*pad)/bh),s=base*S.zoom;
@@ -965,7 +992,7 @@ function viewTransform(cv){
 function drawMap(){
   const cv=$('#map');if(!cv)return;fitCanvas(cv);const g=cv.getContext('2d'),W=cv.width,H=cv.height,dpr=devicePixelRatio||1;
   g.setTransform(1,0,0,1,0,0);if(OBS){g.clearRect(0,0,W,H);if(OBSBG){g.fillStyle=`rgba(18,19,22,${OBSBG/100})`;g.fillRect(0,0,W,H)}}else{g.fillStyle='#121316';g.fillRect(0,0,W,H)}
-  smoothHeading();const T=viewTransform(cv);
+  smoothHeading();const mpF=mePos(),T=viewTransform(cv,mpF);
   if(!trackPath){trackPath=new Path2D();for(const sg of S.segs){trackPath.moveTo(sg[0],sg[1]);trackPath.lineTo(sg[2],sg[3])}}
   g.setTransform(...T.m);g.lineCap='round';g.lineJoin='round';
   g.strokeStyle='#26282E';g.lineWidth=Math.max(6*dpr/T.s,13);g.stroke(trackPath);
@@ -992,7 +1019,7 @@ function drawMap(){
     for(const c of R0.corners){const a=c.at_brake;if(!a)continue;const p=T.f(a[0],-a[1]);g.fillStyle='#C9A8FF';g.strokeStyle='#121316';g.lineWidth=1.5*dpr;
       g.beginPath();g.moveTo(p[0],p[1]-6*dpr);g.lineTo(p[0]+5*dpr,p[1]);g.lineTo(p[0],p[1]+6*dpr);g.lineTo(p[0]-5*dpr,p[1]);g.closePath();g.fill();g.stroke();g.fillText('T'+c.n,p[0]+7*dpr,p[1]+4*dpr)}}
   const cm=S.cmp;if(cm&&now-cm.t<1500&&R0&&cm.rev===R0.rev){const p=T.f(cm.gx,cm.gz);g.strokeStyle='#C9A8FF';g.lineWidth=2.5*dpr;g.beginPath();g.arc(p[0],p[1],7*dpr,0,7);g.stroke()}
-  const mp=mePos(),hs=S.hs;
+  const mp=mpF,hs=S.hs;
   for(const c of list){const k=Math.max(0,Math.min(1,(now-c.t)/Math.max(30,c.t-c.pt)));const p=c.me&&mp?T.f(mp.x,mp.z):T.f(c.px+(c.x-c.px)*k,c.pz+(c.z-c.pz)*k);
     const info=cls.get(c.id),r=(c.me?7:5)*dpr;
     g.globalAlpha=c.pits?0.4:1;g.fillStyle=c.me?'#F2C200':CLS(info&&info.class);g.strokeStyle='#121316';g.lineWidth=1.5*dpr;

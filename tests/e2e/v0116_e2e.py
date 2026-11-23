@@ -11,6 +11,7 @@ EMPTY = '''Object.fromEntries([...document.querySelectorAll("section.dock")].map
   const w=document.createTreeWalker(d,NodeFilter.SHOW_TEXT);let t;while(t=w.nextNode()){if(!t.textContent.trim()||t.parentElement.closest("svg"))continue;const g=document.createRange();g.selectNodeContents(t);const q=g.getBoundingClientRect();if(q.height>0)b=Math.max(b,q.bottom)}
   for(const e of d.querySelectorAll("svg,canvas,img,button,.bar,.tyre,.slot"))if(!e.parentElement.closest("svg")&&e.getClientRects().length){const q=e.getBoundingClientRect();if(q.height>0)b=Math.max(b,q.bottom)}
   return [d.dataset.id,Math.round(r.bottom-parseFloat(cs.paddingBottom)-b)]}))'''
+import portwait; portwait.wait_free()   # the previous test's app may still hold 6420
 rest = subprocess.Popen([sys.executable, f'{HERE}/mock_lmu_rest.py', '6397'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 ag = subprocess.Popen([BIN, '--key', 'arion_tk_' + 'ab' * 32, '--fake', '--fake-speed', '10', '--url', 'http://127.0.0.1:9', '--apikey', 'x', '--seconds', '120'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1.5)
@@ -21,7 +22,7 @@ async def main():
         pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)[:200]))
         await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(14)
-        chk('version 0.1.12', await pg.evaluate('VERSION') == '0.1.12')
+        chk('version 0.1.13', await pg.evaluate('VERSION') == '0.1.13')
         # ---------- G ----------
         lay = await pg.evaluate('[...document.querySelectorAll(".dcol")].map(c=>[...c.querySelectorAll("section.dock")].map(s=>s.dataset.id).join(","))')
         chk('G: new default layout: Live inputs under the left column, the map gets the middle, Pit window on the right', lay == ['car,damage,wx,inputs', 'map,battle', 'traffic,laps,pit,moments'], lay)
@@ -42,7 +43,7 @@ async def main():
         # ---------- H ----------
         await pg.click('#mFollow'); await asyncio.sleep(1.5)
         h = await pg.evaluate('''new Promise(res=>{const out=[];const cv=document.querySelector("#map");let n=0;
-          const step=()=>{const T=viewTransform(cv),mp=mePos(),p=T.f(mp.x,mp.z);
+          const step=()=>{const mp=mePos(),T=viewTransform(cv,mp),p=T.f(mp.x,mp.z);   /* one position per frame, as drawMap does */
             const c=[...S.cars.values()].find(c=>c.me);let old=null;if(c){const k=Math.max(0,Math.min(1,(performance.now()-c.t)/Math.max(30,c.t-c.pt)));old=T.f(c.px+(c.x-c.px)*k,c.pz+(c.z-c.pz)*k)}
             out.push({p,old,hs:S.hs,raw:S.heading,t:performance.now()/1000,W:cv.width,H:cv.height});if(++n<120)requestAnimationFrame(step);else res(out)};requestAnimationFrame(step)})''')
         dev = max(max(abs(x['p'][0] - x['W'] / 2), abs(x['p'][1] - x['H'] * 0.62)) for x in h)
