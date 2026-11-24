@@ -75,8 +75,8 @@ body.phone .mpos b{font-size:28px}
 }
 /* tables give up their least important columns as their panel gets narrower */
 @container (max-width:560px){#battle .lw{display:none}#battle table.t td:nth-child(5),#battle table.t th:nth-child(5),#battle table.t td:nth-child(6),#battle table.t th:nth-child(6),#battle table.t td:nth-child(7),#battle table.t th:nth-child(7){display:none}}
-@container (max-width:400px){#laps table.t td:nth-child(2),#laps table.t th:nth-child(2){display:none}#laps table.t{font-size:11.5px}#laps table.t td,#laps table.t th{padding:2px 3px}}
-@container (max-width:330px){#laps table.t td:nth-child(7),#laps table.t th:nth-child(7){display:none}}
+@container (max-width:400px){#laps table.t:not(.st) td:nth-child(2),#laps table.t:not(.st) th:nth-child(2){display:none}#laps table.t{font-size:11.5px}#laps table.t td,#laps table.t th{padding:2px 3px}}
+@container (max-width:330px){#laps table.t:not(.st) td:nth-child(7),#laps table.t:not(.st) th:nth-child(7){display:none}}
 @container (max-width:290px){#laps table.t{font-size:10.5px}#laps table.t td,#laps table.t th{padding:2px 2px}#laps .sc{padding:0 2px}}
 @container (max-width:380px){#car .stl{display:none}}
 @container (max-width:300px){.tyre .mu{display:none}#car .k3.m{grid-template-columns:repeat(2,1fr)!important}}
@@ -214,6 +214,8 @@ body.phone .strat{left:8px;right:8px;width:auto}
 .st tr.ch td{background:#1F2024;padding:4px 7px;font-size:12px}.st tr.me td{background:#2A2400}.st td.nm{max-width:0;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .st .gp{text-align:right;white-space:nowrap}.st .pb{color:var(--p);font-weight:600}.st .chip{padding:0 5px;font-size:10px}
 .pnav button.dot b{position:relative}.pnav button.dot b::after{content:'';position:absolute;top:0;right:-7px;width:8px;height:8px;border-radius:50%;background:var(--y)}
+
+.tci,.tcq{display:inline-block;width:11px;height:11px;vertical-align:-1px;margin-right:6px}.tci i{display:block;width:11px;height:11px;border-radius:50%}.tcq{position:relative}.tcq i{position:absolute;width:5px;height:5px;border-radius:50%}.tcq i:nth-child(1){left:0;top:0}.tcq i:nth-child(2){right:0;top:0}.tcq i:nth-child(3){left:0;bottom:0}.tcq i:nth-child(4){right:0;bottom:0}
 </style>
 </head>
 <body>
@@ -236,7 +238,7 @@ body.phone .strat{left:8px;right:8px;width:auto}
 <script>
 'use strict';
 // ARION Pit Wall dashboard. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1; comparison frames since v0.1.15).
-const VERSION='0.1.19';
+const VERSION='0.1.20';
 {const e=document.getElementById('bver');if(e)e.textContent='v'+VERSION}
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
@@ -448,7 +450,7 @@ function onFast(buf){
     if(S.lap!==null&&f.lap!==S.lap){S.last=S.trail;S.trail=[]}
     S.lap=f.lap;
     const p=S.hist.length>10?S.hist[S.hist.length-10]:S.fast;if(p){const dx=f.x-p.x,dz=f.z-p.z;if(dx*dx+dz*dz>1)S.heading=Math.atan2(-dz,dx)}
-    S.fast=f;S.trail.push([f.x,-f.z,curDelta()]);S.me0=S.me1;S.me1={x:f.x,z:-f.z,t:performance.now()};if(S.trail.length>20000)S.trail.shift();
+    S.fast=f;S.trail.push([f.x,-f.z,curDelta(),f.thr,f.brk]);S.me0=S.me1;S.me1={x:f.x,z:-f.z,t:performance.now()};if(S.trail.length>20000)S.trail.shift();
     S.hist.push(f);while(S.hist.length&&f.et-S.hist[0].et>15)S.hist.shift();
     if(f.dist>S.trackLen)S.trackLen=f.dist;
   }
@@ -475,7 +477,7 @@ function paintAppV(j){const e=$('#appv');if(!e)return;const a=j&&j.app,t=a&&a.ne
 function onSlow(j){
   if(j.t==='ref'){S.ref=j;refPaths=null;if(!S.verdicts.length&&Array.isArray(j.recent))S.verdicts=j.recent.slice(0,12);paintDelta();return}
   if(j.t==='corner'){S.verdicts.unshift({...j,at:Date.now()});if(S.verdicts.length>12)S.verdicts.pop();paintDelta();return}
-  if(j.t!=='slow')return;S.slow=j;if(j.rest&&typeof j.rest==='object')S.rest={...S.rest,...j.rest};learn(j);stratStep(j);paintAppV(j);paintPanels()}
+  if(j.t!=='slow')return;S.slow=j;if(j.rest&&typeof j.rest==='object')S.rest={...S.rest,...j.rest};learn(j);learnTyres(j);stratStep(j);paintAppV(j);paintPanels()}
 
 // ---------- layout (v0.1.17): free splits and tabs ----------
 // The layout is a tree. A split holds children side by side ('row') or stacked ('col') with their sizes;
@@ -539,7 +541,7 @@ function closePanelsMenu(){const p=$('#setPop');if(p)p.remove();const b=$('#gear
 const BODY={
   car:`<div id="car" class="body"></div>`,
   damage:`<div id="dmg" class="body"></div>`,
-  traffic:`<div class="ph"><b>Traffic</b><span class="grow"></span><span class="mu"><span class="y">●</span> class</span>${chain('traffic')}</div><div id="traffic" class="body"></div>`,
+  traffic:`<div class="ph"><b>Traffic</b><span class="grow"></span>${chain('traffic')}</div><div id="traffic" class="body"></div>`,
   pit:`<div id="pitw" class="body"></div>`,
   moments:`<div class="ph"><b>Events</b>${chain('moments')}</div><div id="moments" class="mom body vlist"></div>`,
   map:`<div class="ph"><b>Track map</b>${dsw()}<span class="grow"></span><button id="mFull" class="on">Full</button><button id="mFollow">Follow</button><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button>${chain('map')}</div>
@@ -906,6 +908,26 @@ function paintWx(j,me){
 }
 // laps and sectors: this car's laps, or the whole grid's last laps
 function scCls(x,pb,cb){if(!(x>0))return '';if(cb&&x<=cb+1e-4)return 'pu';if(pb&&x<=pb+1e-4)return 'gn';if(pb&&x>pb+0.3)return 'yl';return ''}
+// v0.1.20: tyre compound as LMU colours it (hard white, medium yellow, soft red, wet blue, unknown grey): one dot when
+// all four wheels match, else four small dots seen from above, front on top (FL FR / RL RR); then the lowest wheel's life.
+// Per wheel from driver app v0.1.24 (tyreCI = each wheel's index in the car's tyre list): an index gets its name when a
+// whole axle runs on it (LMU names compounds only per axle), learned per car model; an index not learned yet takes its
+// axle's name, unless that name already belongs to another index (then it is unknown, grey). Older apps: axle names.
+const TMAP=new Map();
+const tModel=g=>(g.car||'').replace(/\s*#\s?\d+.*$/,'').trim()||g.class||'';
+function learnTyres(j){for(const g of j.grid||[]){const ci=g.tyreCI;if(!Array.isArray(ci)||ci.length!==4)continue;
+  const k=tModel(g);if(!TMAP.has(k))TMAP.set(k,new Map());const m=TMAP.get(k);
+  if(ci[0]===ci[1]&&g.tyreF)m.set(ci[0],g.tyreF);if(ci[2]===ci[3]&&g.tyreR)m.set(ci[2],g.tyreR)}}
+function tyreNames(g){const F=g.tyreF,R=g.tyreR,ci=g.tyreCI;if(!Array.isArray(ci)||ci.length!==4)return [F,F,R,R];
+  const m=TMAP.get(tModel(g))||new Map();
+  return ci.map((x,i)=>{if(m.has(x))return m.get(x);const a=i<2?F:R;for(const [y,n] of m)if(n===a&&y!==x)return '';return a})}
+const TCOL=n=>{const s=(n||'').toLowerCase();return s.includes('soft')?'#E8413C':s.includes('med')?'#F2C200':s.includes('hard')?'#ECEDEF':s.includes('wet')||s.includes('rain')?'#3B8BFF':'#6B6E76'};
+function tyreCell(j,g){const c=tyreNames(g);
+  const same=c.every(x=>x===c[0]),tip=same?`All ${c[0]||'?'}`:['FL','FR','RL','RR'].map((w,i)=>`${w} ${c[i]||'?'}`).join(' · ');
+  const ico=same?`<span class="tci" title="${esc(tip)}"><i style="background:${TCOL(c[0])}"></i></span>`:`<span class="tcq" title="${esc(tip)}">${c.map(x=>`<i style="background:${TCOL(x)}"></i>`).join('')}</span>`;
+  const w=(g.player?((j.car||{}).wheels||[]).map(x=>x&&x.wear):(g.tyreWear||[])).filter(x=>typeof x==='number'&&x>=0&&x<=1);
+  // all four exactly 0 = LMU sent nothing for this car (a worn-out set never reads 0 on all four at once)
+  return ico+(w.length===4&&w.some(x=>x>0)?`<span class="mu">${Math.round(Math.min(...w)*100)}%</span>`:'')}
 function paintLaps(){
   const el=$('#laps'),j=S.slow;if(!el||!j)return;const me=j.grid.find(g=>g.player)||{},meC=S.per.get(me.id);
   const cb=i=>S.clsBest.get(CLSN(me.class)+i);
@@ -920,17 +942,17 @@ function paintLaps(){
   const by=new Map();for(const g of j.grid){const k=CLSN(g.class);if(!by.has(k))by.set(k,[]);by.get(k).push(g)}
   const FIX=['HY','P2','P3','GTE','GT3'],cbest=k=>Math.min(...by.get(k).map(g=>g.best>0?g.best:9e9));
   const classes=[...by.keys()].sort((a,b)=>cbest(a)-cbest(b)||FIX.indexOf(a)-FIX.indexOf(b));
-  if(!S.gridCls||(S.gridCls!=='All'&&!classes.includes(S.gridCls)))S.gridCls=CLSN(me.class);
+  if(!S.gridCls||(S.gridCls!=='All'&&!classes.includes(S.gridCls)))S.gridCls='All';
   $('#gcls').innerHTML=['All',...classes].map(c=>`<button class="${S.gridCls===c?'on':''}" data-c="${c}">${esc(c)}</button>`).join('');
   document.querySelectorAll('#gcls button').forEach(b=>b.onclick=()=>{S.gridCls=b.dataset.c;paintLaps()});
   const FULL={HY:'Hypercar',P2:'LMP2',P3:'LMP3',GTE:'GTE',GT3:'GT3'};
   const body=classes.filter(k=>S.gridCls==='All'||k===S.gridCls).map(k=>{const cars=by.get(k).sort((a,b)=>a.place-b.place),ld=cars[0],col=CLS(ld.class),fb=cbest(k);
-    const head=`<tr class="ch"><td colspan="5" style="box-shadow:inset 3px 0 0 ${col};padding-left:10px"><b>${esc(FULL[k]||ld.class||k)}</b> <span class="mu">${cars.length} car${cars.length>1?'s':''}</span></td></tr>`;
+    const head=`<tr class="ch"><td colspan="7" style="box-shadow:inset 3px 0 0 ${col};padding-left:10px"><b>${esc(FULL[k]||ld.class||k)}</b> <span class="mu">${cars.length} car${cars.length>1?'s':''}</span></td></tr>`;
     return head+cars.map((g,i)=>{let gap='–';
       if(i){const pl=prog(ld),pg=prog(g),down=pl!=null&&pg!=null?Math.floor(pl-pg):Math.max(0,ld.laps-g.laps-1);
         if(down>=1)gap=down+'L';else{const t=g.behindLeader-ld.behindLeader;gap=isFinite(t)&&t>=0?t.toFixed(1):'–'}}
-      return `<tr${g.player?' class="me"':''}><td class="mu" style="box-shadow:inset 3px 0 0 ${col};padding-left:8px">${i+1}</td><td class="nm"><span class="mu">${carNo(g)}</span> <span${g.player?' class="y"':''}>${esc(g.name)}</span>${g.pits?' <span class="chip a">PIT</span>':''}</td><td class="gp">${gap}</td><td class="gp"><span class="${g.best>0&&g.best<=fb?'pb':''}">${fmtLap(g.best)}</span></td><td class="gp">${fmtLap(g.last)}</td></tr>`}).join('')}).join('');
-  el.innerHTML=`<table class="t st"><tr><th>P</th><th>Driver</th><th class="gp">Gap</th><th class="gp">Fastest</th><th class="gp">Last</th></tr>${body}</table>`;
+      return `<tr${g.player?' class="me"':''}><td class="mu" style="box-shadow:inset 3px 0 0 ${col};padding-left:8px">${i+1}</td><td class="nm"><span class="mu">${carNo(g)}</span> <span${g.player?' class="y"':''}>${esc(g.name)}</span>${g.pits?' <span class="chip a">PIT</span>':''}</td><td class="gp">${gap}</td><td class="gp"><span class="${g.best>0&&g.best<=fb?'pb':''}">${fmtLap(g.best)}</span></td><td class="gp">${fmtLap(g.last)}</td><td class="gp">${tyreCell(j,g)}</td><td class="gp">${g.energy>=0&&g.energy<=1?Math.round(g.energy*100)+'%':'–'}</td></tr>`}).join('')}).join('');
+  el.innerHTML=`<table class="t st"><tr><th>P</th><th>Driver</th><th class="gp">Gap</th><th class="gp">Fastest</th><th class="gp">Last</th><th class="gp">Tyres</th><th class="gp">VE</th></tr>${body}</table>`;
   $('#theo').innerHTML='';
 }
 function paintTraffic(){
@@ -943,9 +965,9 @@ function paintTraffic(){
     fit=Math.max(3,Math.floor(((el.clientHeight||el.parentElement.clientHeight-40)-head)/rh)),half=Math.floor((fit-1)/2);
   const st=Math.max(0,Math.min(i-half,rows.length-fit));const view=rows.slice(st,st+fit);
   // v0.1.13: columns (class · P · driver · car · VE · gap to you), so every row lines up
-  el.innerHTML=`<table class="t tt"><tr class="th"><th></th><th>P</th><th>Driver</th><th>Car</th><th class="gp">VE</th><th class="gp">Gap</th><th></th></tr>${view.map(({g,d})=>{const s=Math.abs(d)/v,same=g.class===me.class,e=energyLeft(g);
+  el.innerHTML=`<table class="t tt"><tr class="th"><th></th><th>P</th><th>Driver</th><th>Car</th><th class="gp">VE</th><th class="gp">Gap</th></tr>${view.map(({g,d})=>{const s=Math.abs(d)/v,e=energyLeft(g);
     const ve=g.energy>=0&&g.energy<=1?`${Math.round(g.energy*100)}%${e&&e.per!=null?` <span class="mu">· ${e.laps.toFixed(1)}</span>`:''}`:'–';
-    return `<tr class="tr${g.player?' me':''}"><td>${pill(g.class)}</td><td class="mu">P${g.place}</td><td class="nm"${g.player?' style="color:var(--y)"':''}>${esc(g.name)}</td><td class="nm mu">${esc(g.car||'')}</td><td class="gp">${ve}</td>${g.player?'<td class="gp y">you</td><td></td>':`<td class="gp">${d>=0?'+':'−'}${s.toFixed(1)}</td><td class="y" style="width:12px;text-align:center">${same?'●':''}</td>`}</tr>`}).join('')}</table>`;
+    return `<tr class="tr${g.player?' me':''}"><td>${pill(g.class)}</td><td class="mu">P${g.place}</td><td class="nm"${g.player?' style="color:var(--y)"':''}>${esc(g.name)}</td><td class="nm mu">${esc(g.car||'')}</td><td class="gp">${ve}</td>${g.player?'<td class="gp y">you</td>':`<td class="gp">${d>=0?'+':'−'}${s.toFixed(1)}</td>`}</tr>`}).join('')}</table>`;
 }
 
 // ---------- B: live delta, projected and potential lap, corner verdicts (v0.1.10) ----------
@@ -1083,12 +1105,9 @@ function paintFlags(){const el=$('#flags');if(!el)return;const se=S.slow&&S.slow
 let trackPath=null,secPaths=null,refPaths=null;
 function fitCanvas(cv){const r=cv.getBoundingClientRect(),dpr=devicePixelRatio||1,w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}}
 // world (x, −z) → screen, as a matrix [a,b,c,d,e,f] for setTransform, and as a point function
-// H (v0.1.11): trail colour per point from the delta's change over the last ~1 s (30 frames), with hysteresis:
-// red once you've lost more than 0.02 s, green once you've gained 0.02 s, yellow again only when it's back under 0.006 s
-function trailColours(pts){let st='#F2C200';const out=new Array(pts.length);
-  for(let i=0;i<pts.length;i++){const a=pts[i][2],b=pts[Math.max(0,i-30)][2];
-    if(a==null||b==null)st='#F2C200';else{const x=a-b;st=x>0.02?'#FF5A5A':x<-0.02?'#3BD16F':Math.abs(x)<0.006?'#F2C200':st}out[i]=st}
-  return out}
+// v0.1.20: trail colour per point from the pedals (George's choice A): brake red (wins when both are pressed),
+// throttle green, no pedal grey; 5 % dead zone. Light grey, so it can't be taken for the darker previous-lap line.
+function pedalColours(pts){return pts.map(p=>p[4]>0.05?'#FF5A5A':p[3]>0.05?'#3BD16F':'#9A9DA6')}
 // H (v0.1.11): your car glides between telemetry frames like the others, and the map follows that glided position and a
 // smoothed heading, so the arrow sits still on screen instead of jumping as frames arrive unevenly
 function mePos(){const a=S.me0,b=S.me1;if(!b)return null;if(!a)return b;const k=Math.max(0,Math.min(1,(performance.now()-b.t)/Math.max(16,b.t-a.t)));return {x:a.x+(b.x-a.x)*k,z:a.z+(b.z-a.z)*k}}
@@ -1128,23 +1147,22 @@ function drawMap(){
       if(full)g.stroke(trackPath);else if(secPaths)fl.forEach((on,k)=>{if(on)g.stroke(secPaths[k])})}}
   const line=(pts,col,w)=>{if(pts.length<2)return;g.strokeStyle=col;g.lineWidth=w/T.s;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.stroke()};
   line(S.last,'#4A4D56',2*dpr);
-  // this lap's trail: green where you gain on the chosen best, red where you lose (yellow without a delta)
+  // this lap's trail: green on throttle, red on the brakes, grey with no pedal (v0.1.20)
   (pts=>{if(pts.length<2)return;g.lineWidth=2.5*dpr/T.s;
-    const cols=trailColours(pts);let col=cols[1];g.beginPath();g.moveTo(pts[0][0],pts[0][1]);
+    const cols=pedalColours(pts);let col=cols[1];g.beginPath();g.moveTo(pts[0][0],pts[0][1]);
     for(let i=1;i<pts.length;i++){const c=cols[i];if(c!==col){g.lineTo(pts[i][0],pts[i][1]);g.strokeStyle=col;g.stroke();g.beginPath();g.moveTo(pts[i][0],pts[i][1]);col=c}else g.lineTo(pts[i][0],pts[i][1])}
     g.strokeStyle=col;g.stroke()})(S.trail);
   g.setTransform(1,0,0,1,0,0);
   // cars glide from their previous position to the newest one over one frame interval (~100 ms behind live)
   const now=performance.now(),cls=new Map((S.slow?.grid||[]).map(c=>[c.id,c]));
   const list=[...S.cars.values()].sort((a,b)=>a.me-b.me);
-  // B: braking points of the class-best lap (purple diamonds, numbered) and its ghost car (purple ring)
+  // B: braking points of the class-best lap (purple diamonds, numbered); the ghost ring was removed in v0.1.20
   const R0=S.ref;if(R0&&Array.isArray(R0.corners)){g.font=`${10*dpr}px JetBrains Mono, monospace`;
     for(const c of R0.corners){const a=c.at_brake;if(!a)continue;const p=T.f(a[0],-a[1]);g.fillStyle='#C9A8FF';g.strokeStyle='#121316';g.lineWidth=1.5*dpr;
       g.beginPath();g.moveTo(p[0],p[1]-6*dpr);g.lineTo(p[0]+5*dpr,p[1]);g.lineTo(p[0],p[1]+6*dpr);g.lineTo(p[0]-5*dpr,p[1]);g.closePath();g.fill();g.stroke();g.fillText('T'+c.n,p[0]+7*dpr,p[1]+4*dpr)}}
-  const cm=S.cmp;if(cm&&now-cm.t<1500&&R0&&cm.rev===R0.rev){const p=T.f(cm.gx,cm.gz);g.strokeStyle='#C9A8FF';g.lineWidth=2.5*dpr;g.beginPath();g.arc(p[0],p[1],7*dpr,0,7);g.stroke()}
   const mp=mpF,hs=S.hs;
   for(const c of list){const k=Math.max(0,Math.min(1,(now-c.t)/Math.max(30,c.t-c.pt)));const p=c.me&&mp?T.f(mp.x,mp.z):T.f(c.px+(c.x-c.px)*k,c.pz+(c.z-c.pz)*k);
-    const info=cls.get(c.id),r=(c.me?7:5)*dpr;
+    const info=cls.get(c.id),r=(c.me?9:7)*dpr;
     g.globalAlpha=c.pits?0.4:1;g.fillStyle=c.me?'#F2C200':CLS(info&&info.class);g.strokeStyle='#121316';g.lineWidth=1.5*dpr;
     if(c.me&&S.hist.length>3&&hs!=null&&mp){const a=S.hist[Math.max(0,S.hist.length-8)],b=S.hist[S.hist.length-1],pb=T.f(mp.x+Math.cos(hs),mp.z+Math.sin(hs));
       const ang=Math.atan2(pb[1]-p[1],pb[0]-p[0]),R=13*dpr;

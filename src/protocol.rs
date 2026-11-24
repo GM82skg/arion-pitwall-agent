@@ -151,7 +151,11 @@ pub fn slow_json_with(o: &LMUObjectOut, rest: &Value) -> Option<Value> {
         "penalties": cp(c.mNumPenalties), "pitState": cp(c.mPitState), "countLap": cp(c.mCountLapFlag), "control": cp(c.mControl),
         "energy": slots.get(&cp(c.mID)).map(|&i| cp(o.telemetry.telemInfo[i].mVirtualEnergy)),
         "tyreF": slots.get(&cp(c.mID)).map(|&i| cstr(&cp(o.telemetry.telemInfo[i].mFrontTireCompoundName))),
-        "tyreR": slots.get(&cp(c.mID)).map(|&i| cstr(&cp(o.telemetry.telemInfo[i].mRearTireCompoundName))) })).collect();
+        "tyreR": slots.get(&cp(c.mID)).map(|&i| cstr(&cp(o.telemetry.telemInfo[i].mRearTireCompoundName))),
+        // v0.1.24: per wheel (FL FR RL RR) for every car: tyre life 0–1 and the compound's index in that car's tyre list.
+        // Whether LMU fills these for other cars in an online race is still to be checked; the dashboard copes if not.
+        "tyreWear": slots.get(&cp(c.mID)).map(|&i| cp(o.telemetry.telemInfo[i].mWheels).iter().map(|w| cp(w.mWear)).collect::<Vec<f64>>()),
+        "tyreCI": slots.get(&cp(c.mID)).map(|&i| cp(o.telemetry.telemInfo[i].mWheels).iter().map(|w| cp(w.mCompoundIndex)).collect::<Vec<u8>>()) })).collect();
     Some(json!({
         "t": "slow", "v": PROTOCOL_VERSION,
         "session": { "track": cstr(&cp(si.mTrackName)), "type": cp(si.mSession), "length": cp(si.mLapDist), "start": cp(si.mStartET), "maxLaps": cp(si.mMaxLaps), "now": cp(si.mCurrentET), "end": cp(si.mEndET),

@@ -76,7 +76,9 @@ corner's end), `brake_m` (− = braked earlier than the reference), `vmin` and `
 `session` (track, type, time, phase, flags, air/track temperature, rain, wetness min/avg/max, grip, clouds),
 `car` (fuel, capacity, virtual energy, battery, TC, ABS, map, brake bias front, delta, damage, four wheels with
 tyre temperatures °C, carcass, pressure kPa, wear, brake temperature, flat, compound),
-`grid` (per car: id, driver name as in the game, car, class, place, laps, best, last, sectors, gaps, pits, stops).
+`grid` (per car: id, driver name as in the game, car, class, place, laps, best, last, sectors, gaps, pits, stops,
+virtual energy, front and rear tyre compound names `tyreF`/`tyreR`; since v0.1.24 also per wheel, FL FR RL RR,
+`tyreWear` (tyre life 0–1) and `tyreCI` (the compound's index in that car's tyre list)).
 SteamIDs are never sent.
 
 Data source: LMU's own shared memory `LMU_Data`; layout generated from pyLMUSharedMemory (see THIRD-PARTY.md)

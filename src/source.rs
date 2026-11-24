@@ -203,6 +203,15 @@ impl FakeSource {
             t.mUnfilteredThrottle = c.throttle as f32 as f64;
             t.mUnfilteredBrake = c.brake;
             t.mVirtualEnergy = (0.95 - ((c.laps as f64 + c.d / FAKE_LAP) * (0.035 + i as f64 * 0.002)) % 0.8) as f32;
+            // tyres (v0.1.24): this fake car model's list is 0 Soft, 1 Medium, 2 Hard. Car 1 runs soft all round, car 2 a soft
+            // left front with mediums elsewhere, car 3 hards, the rest mediums; life drops with laps and differs per wheel
+            let (names, idx): ([&str; 2], [u8; 4]) = match i { 0 => (["Soft", "Soft"], [0; 4]), 1 => (["Medium", "Medium"], [0, 1, 1, 1]), 2 => (["Hard", "Hard"], [2; 4]), _ => (["Medium", "Medium"], [1; 4]) };
+            for (k, b) in names[0].bytes().enumerate() { t.mFrontTireCompoundName[k] = b }
+            for (k, b) in names[1].bytes().enumerate() { t.mRearTireCompoundName[k] = b }
+            for (k, w) in t.mWheels.iter_mut().enumerate() {
+                w.mCompoundIndex = idx[k];
+                w.mWear = (0.98 - ((c.laps as f64 + c.d / FAKE_LAP) * (0.012 + k as f64 * 0.002 + i as f64 * 0.001)) % 0.6).max(0.3);
+            }
         }
         if self.events {
             // every ~6 minutes of game time: a penalty at 2 min, a knock at 3 min, a pit stop at 5 min

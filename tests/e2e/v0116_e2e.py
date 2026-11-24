@@ -22,7 +22,7 @@ async def main():
         pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)[:200]))
         await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(14)
-        chk('version 0.1.19', await pg.evaluate('VERSION') == '0.1.19')
+        chk('version 0.1.20', await pg.evaluate('VERSION') == '0.1.20')
         # ---------- G ----------
         lay = await pg.evaluate('[...document.querySelectorAll(".dcol")].map(c=>[...c.querySelectorAll("section.dock")].map(s=>s.dataset.id).join(","))')
         chk('G: new default layout: Live inputs under the left column, the map gets the middle, Pit window on the right', lay == ['car,damage,wx,inputs', 'map,battle', 'traffic,laps,pit,moments'], lay)
@@ -58,14 +58,10 @@ async def main():
         sm, rw = spikes('hs'), spikes('raw')
         chk('H: the view turns without jerks (turn-rate jumps ≤ 1/3 of turning on the raw heading)', sm * 3 <= rw, [sm, rw])
         await pg.click('#mFull'); await asyncio.sleep(0.5)
-        # a lap's worth of delta at 30 Hz: lose 0.3 s steadily, hold, gain 0.3 s back, with ±4 ms frame noise (seeded, repeatable)
-        fl = await pg.evaluate('''(()=>{let r=12345;const rnd=()=>(r=(r*1103515245+12345)%2147483648)/2147483648;const pts=[];let d=0;
-            for(let i=0;i<400;i++){d+=i<150?0.002:i<250?0:-0.002;pts.push([i,0,d+(rnd()-0.5)*0.008])}
-            const ch=a=>a.reduce((n,c,i)=>n+(i&&c!==a[i-1]),0);
-            const old=pts.map((p,i)=>{const b=pts[Math.max(0,i-8)][2],x=p[2]-b;return x>0.004?'r':x<-0.004?'g':'y'});
-            const now=trailColours(pts);return {old:ch(old),now:ch(now),lose:now[120],hold:now[230],gain:now[330]}})()''')
-        chk('H: trail colour: red while losing, yellow while holding, green while gaining', fl['lose'] == '#FF5A5A' and fl['hold'] == '#F2C200' and fl['gain'] == '#3BD16F', fl)
-        chk('H: …and it changes only a few times (≤ 6), where the old colouring flickered (≥ 3× more)', fl['now'] <= 6 and fl['old'] >= 3 * fl['now'], fl)
+        # v0.1.20 (George, choice A): the trail is coloured by the pedals, no longer by the delta (that check moved to the
+        # dashboard repo's tests/v0120_e2e.py); here only that the H drawing still runs with it
+        fl = await pg.evaluate('pedalColours([[0,0,0,1,0],[0,0,0,0,1],[0,0,0,0,0]])')
+        chk('H: trail colour by pedals: throttle green, brake red, none grey', fl == ['#3BD16F', '#FF5A5A', '#9A9DA6'], fl)
         # ---------- F ----------
         await pg.click('#gear'); await asyncio.sleep(0.3)   # v0.1.16: size is in the settings menu
         chk('F: − 100% + in the settings menu (⚙)', await pg.evaluate('document.querySelector("#setPop #zmV").innerText') == '100%')
