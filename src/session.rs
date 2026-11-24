@@ -59,6 +59,8 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
         let mut last_rest = Instant::now() - Duration::from_secs(50);
         let mut recorder = crate::recorder::Recorder::new(crate::keystore::dir().join("laps"));
         let mut alerts = crate::alerts::Alerts::new();
+        // v0.1.26: each car's penalties still to serve, with their type (always on, so none are missed)
+        let mut pens = crate::penalties::Penalties::with_log(crate::keystore::dir().join("penalties.log"));
         // Phase 3a: live comparison against the class best (reference line, ghost, corner verdicts)
         let mut compare = crate::compare::Compare::new();
         let (mut ref_rev_sent, mut ref_sent_at) = (u16::MAX, Instant::now() - Duration::from_secs(60));
@@ -71,6 +73,7 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
             let Some(o) = snap else { continue };
             report_t.lock().unwrap().observe(&o);
             recorder.observe(&o);
+            pens.observe(&o);
             let verdicts = compare.observe(&o);
             // car tab alerts (migration 59): one short message per event; errors are ignored (older database)
             if let Some((level, word)) = alerts.observe(&o) {
@@ -133,6 +136,13 @@ pub async fn run(door: Arc<dyn Door>, mut source: Box<dyn Source>, status: Arc<M
                 if let Some(mut j) = protocol::slow_json_with(&o, &live.snapshot()) {
                     // v0.1.16: this app's version and a newer one if there is one, so coaches see «update available»
                     j["app"] = serde_json::json!({ "v": config::VERSION, "new": crate::update::available().map(|r| r.version) });
+                    // v0.1.26: per car, the penalties still to serve in LMU's words (oldest first); «Penalty» = type unknown
+                    if let Some(g) = j["grid"].as_array_mut() {
+                        for c in g.iter_mut() {
+                            let name = c["name"].as_str().unwrap_or("").to_string();
+                            c["pens"] = serde_json::json!(pens.of(&name));
+                        }
+                    }
                     let t = j.to_string();
                     local.send(crate::local::Msg::Slow(t.clone()));
                     hub_t.send_slow(&t).await;

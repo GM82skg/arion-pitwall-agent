@@ -79,7 +79,9 @@ corner's end), `brake_m` (− = braked earlier than the reference), `vmin` and `
 tyre temperatures °C, carcass, pressure kPa, wear, brake temperature, flat, compound),
 `grid` (per car: id, driver name as in the game, car, class, place, laps, best, last, sectors, gaps, pits, stops,
 virtual energy, front and rear tyre compound names `tyreF`/`tyreR`; since v0.1.24 also per wheel, FL FR RL RR,
-`tyreWear` (tyre life 0–1) and `tyreCI` (the compound's index in that car's tyre list)).
+`tyreWear` (tyre life 0–1) and `tyreCI` (the compound's index in that car's tyre list); since v0.1.26 `pens`, the
+penalties still to serve, oldest first, in LMU's words from its results stream ("Drive Thru", "Stop/Go", …; "Penalty" when
+the type is unknown), always as many as LMU's count `penalties`).
 SteamIDs are never sent.
 
 Data source: LMU's own shared memory `LMU_Data`; layout generated from pyLMUSharedMemory (see THIRD-PARTY.md)

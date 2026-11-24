@@ -2,6 +2,7 @@
 //! ARION Pit Wall driver app. Started with no options: the window. With --key: command line (tests, demos).
 //!   arion-pitwall-agent --key arion_tk_…            stream from Le Mans Ultimate (Windows)
 //!   arion-pitwall-agent --key … --fake               stream a fake car (tests, demos)
+//!   … --fake --fake-penalties                         … whose cars get penalties (with their type) now and then
 //! Test options: --url, --apikey (another database), --seconds N (stop after N seconds).
 //!   arion-pitwall-agent --update                     the window's «Update now» from the command line
 
@@ -47,7 +48,11 @@ fn main() {
     let seconds: Option<u64> = arg("--seconds").and_then(|s| s.parse().ok());
 
     let speed: f64 = arg("--fake-speed").and_then(|s| s.parse().ok()).unwrap_or(1.0);
-    let src: Box<dyn source::Source> = if fake { Box::new(source::FakeSource::with_speed(speed)) } else { source::game() };
+    let src: Box<dyn source::Source> = if fake {
+        let mut f = source::FakeSource::with_speed(speed);
+        f.pens = std::env::args().any(|a| a == "--fake-penalties");
+        Box::new(f)
+    } else { source::game() };
     let door: Arc<dyn signal::Door> = Arc::new(signal::Supabase::new(&url, &apikey, &key));
     let status = Arc::new(Mutex::new(session::Status::default()));
     let stop = Arc::new(AtomicBool::new(false));

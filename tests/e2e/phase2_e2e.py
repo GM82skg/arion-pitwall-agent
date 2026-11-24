@@ -57,7 +57,7 @@ async def main():
         await pg.evaluate(f"({FL})([11,11,11],1)"); await asyncio.sleep(0.6)
         chk('flags: full course yellow / safety car', 'FCY / SC' in await pg.evaluate('document.querySelector("#flags").innerText'))
         await pg.evaluate(f"({FL})([11,11,11],0)")
-        chk('flags: green flag after the yellow ends', 'GREEN' in await pg.evaluate('document.querySelector("#flags").innerText'))
+        await asyncio.sleep(0.6); chk('flags: no green flag after the yellow ends (George: unnecessary, v0.1.22)', await pg.evaluate('document.querySelector("#flags").innerText.trim()') == '')
         await pg.evaluate("if(window.__os)onSlow=window.__os;0")   # real flags again for the rest of the test
         m = await T('#moments'); chk('key moments carry race time', ':' in m.split('·')[0] if m else False, m[:80])
         top = await T('#inpft'); chk('inputs: gear, speed and rpm on top', 'km/h' in top and 'rpm' in top and await pg.evaluate('getComputedStyle(document.querySelector("#inpft .gear")).fontWeight')=='700', top)

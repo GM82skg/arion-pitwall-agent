@@ -25,6 +25,8 @@ pub struct FakeSource {
     speed: std::sync::Arc<std::sync::atomic::AtomicU32>,
     /// demo mode: now and then a penalty, a knock, a pit stop — so alerts and key moments can be seen
     events: bool,
+    /// v0.1.26: penalties with their type in the results stream (tests: --fake-penalties; on in demo mode)
+    pub pens: bool,
     cars: Vec<FakeCar>,
 }
 
@@ -84,7 +86,7 @@ impl FakeSource {
             let d = (8 - i) as f64 * 140.0;
             FakeCar { d, v: vmax * fake_profile(d / FAKE_LAP, w), ..Default::default() }
         }).collect();
-        FakeSource { last: std::time::Instant::now(), clock: 0.0, speed, events, cars }
+        FakeSource { last: std::time::Instant::now(), clock: 0.0, speed, events, pens: events, cars }
     }
     /// Moves every car forward by dt seconds of race time (small steps, so 10× stays smooth).
     fn advance(&mut self, et0: f64, dt: f64) {
@@ -219,11 +221,30 @@ impl FakeSource {
             // every ~6 minutes of game time: a penalty at 2 min, a knock at 3 min, a pit stop at 5 min
             let cyc = et % 360.0;
             let sv = &mut o.scoring.vehScoringInfo[3];
-            sv.mNumPenalties = ((et / 360.0) as i16) + (cyc > 120.0) as i16;
             sv.mNumPitstops = ((et / 360.0) as i16) + (cyc > 300.0) as i16;
             sv.mInPits = (300.0..318.0).contains(&cyc) as u8;
             if cyc > 180.0 { o.telemetry.telemInfo[3].mDentSeverity[1] = 1 }
             o.scoring.scoringInfo.mYellowFlagState = (240.0..255.0).contains(&cyc) as u8;
+        }
+        if self.pens {
+            // every 6 minutes of game time (in step with the demo events): car 6 a Stop/Go at 1:00, served at 3:20; you
+            // (car 4) a drive-through at 2:00, served at the pit stop (5:18); car 1 a drive-through at 2:30, served at 5:30.
+            // The stream holds the lines of the last 3 s, in the format TinyPedal reads (LMU's real format: to be checked)
+            let cyc = et % 360.0;
+            let c0 = et - cyc;
+            const P: [(usize, &str, f64, f64); 3] = [(5, "Stop/Go", 60.0, 200.0), (3, "Drive Thru", 120.0, 318.0), (0, "Drive Thru", 150.0, 330.0)];
+            let mut lines = String::new();
+            for &(i, kind, on, off) in &P {
+                let name = format!("Driver {}", i + 1);
+                o.scoring.vehScoringInfo[i].mNumPenalties = (on..off).contains(&cyc) as i16;
+                if (on..on + 3.0).contains(&cyc) {
+                    lines += &format!("<Penalty Driver=\"{name}\" ID=\"{}\" Penalty=\"{kind}\" Reason=\"Test\" et=\"{:.1}\">{name} received a {kind} penalty</Penalty>\n", i + 1, c0 + on);
+                }
+                if (off..off + 3.0).contains(&cyc) {
+                    lines += &format!("<Penalty et=\"{:.1}\">{name} served a {kind} penalty</Penalty>\n", c0 + off);
+                }
+            }
+            put(&mut o.scoring.scoringStream, &lines);
         }
         // the player: car 4, with full telemetry
         let c = self.cars[3].clone();

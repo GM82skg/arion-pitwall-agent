@@ -215,6 +215,8 @@ body.phone .strat{left:8px;right:8px;width:auto}
 .st .gp{text-align:right;white-space:nowrap}.st .pb{color:var(--p);font-weight:600}.st .chip{padding:0 5px;font-size:10px}
 .pnav button.dot b{position:relative}.pnav button.dot b::after{content:'';position:absolute;top:0;right:-7px;width:8px;height:8px;border-radius:50%;background:var(--y)}
 
+.pchp{display:none}body.phone .pchp{display:inline}body.phone #laps td.nm .pch{display:none}
+.pch{display:inline-block;margin-left:6px;padding:0 4px;border-radius:3px;background:#3A1416;color:#FF6B6B;font:700 10px/15px var(--mono);vertical-align:1px;white-space:nowrap}
 .tci,.tcq{display:inline-block;width:11px;height:11px;vertical-align:-1px;margin-right:6px}.tci i{display:block;width:11px;height:11px;border-radius:50%;font:normal 700 8px/11px var(--mono);text-align:center;letter-spacing:0;user-select:none}.tcq{position:relative}.tcq i{position:absolute;width:5px;height:5px;border-radius:50%}.tcq i:nth-child(1){left:0;top:0}.tcq i:nth-child(2){right:0;top:0}.tcq i:nth-child(3){left:0;bottom:0}.tcq i:nth-child(4){right:0;bottom:0}
 </style>
 </head>
@@ -238,7 +240,7 @@ body.phone .strat{left:8px;right:8px;width:auto}
 <script>
 'use strict';
 // ARION Pit Wall dashboard. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1; comparison frames since v0.1.15).
-const VERSION='0.1.21';
+const VERSION='0.1.22';
 {const e=document.getElementById('bver');if(e)e.textContent='v'+VERSION}
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
@@ -294,7 +296,7 @@ let noteT;function note(t){const n=$('#note');n.textContent=t;n.style.display='b
 let USER=null,TOKEN=null,SESS=[],SEL=null,LINK=null;
 const S={fast:null,slow:null,cars:new Map(),hist:[],trail:[],last:[],lap:null,segs:[],cells:new Set(),segBounds:null,trackLen:0,mode:'full',zoom:1,lastPos:new Map(),heading:0,
   laps:[],per:new Map(),clsBest:new Map(),moments:[],prev:null,temps:[],gridTab:'all',gridCls:null,rest:{},cmp:null,ref:null,verdicts:[],st:null,stHist:[],stOpen:false};
-function resetData(){S.hs=null;S.hv=0;S.me0=S.me1=null;S.cmp=null;S.ref=null;S.verdicts=[];S.st=null;S.stHist=[];S.stOpen=false;S.lane=null;S.pitWatch=null;refPaths=null;S.secB=[[],[]];S.flagGreenUntil=0;S.prevFlag=null;S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
+function resetData(){S.hs=null;S.hv=0;S.me0=S.me1=null;S.cmp=null;S.ref=null;S.verdicts=[];S.st=null;S.stHist=[];S.stOpen=false;S.lane=null;S.pitWatch=null;refPaths=null;S.secB=[[],[]];S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
 
 // ---------- login and access ----------
 async function boot(){
@@ -714,7 +716,7 @@ function pinchZoom(cv){let d0=null,z0=1;const dist=t=>Math.hypot(t[0].clientX-t[
   cv.addEventListener('touchend',()=>{d0=null},{passive:true})}
 function paintPhone(){
   const j=S.slow;
-  if(j){const se=j.session;$('#sess').innerHTML=(S.rest&&S.rest.demo?'<span class="a">DEMO</span> · ':'')+`${esc(se.track)} · ${fmtLeft(se.left)}`+(se.yellow>0?' · <span class="a">yellow</span>':' · <span class="g">green</span>')}
+  if(j){const se=j.session;$('#sess').innerHTML=(S.rest&&S.rest.demo?'<span class="a">DEMO</span> · ':'')+`${esc(se.track)} · ${fmtLeft(se.left)}`+(se.yellow>0?' · <span class="a">yellow</span>':'')}
   if(PTAB==='car')return paintPhoneCar();
   if(!j)return;const me=j.grid.find(g=>g.player)||{};
   if(PTAB==='timing')paintLaps();
@@ -730,7 +732,7 @@ function paintPhoneCar(){
   const nb=(g,label)=>{if(!g)return `<div><div class="mu">${label}</div>–</div>`;const r=rate(g),gp=gap(g);return `<div><div class="mu">${label} ${esc((g.name||'').split(' ').pop())}</div>${gp!=null?gp.toFixed(1):'lap'}${r!=null?` <span class="${(label==='Ahead')===(r>0)?'g':'r'}">${r>0?'−':'+'}${Math.abs(r).toFixed(1)}</span>`:''}</div>`};
   const ve=c.energy,su=(wear.susp||[]).map(x=>x>=0?x:0),sw=Math.max(0,...su),dz=(c.damage||[]).filter(x=>x>0).length;
   const dmg=[];if(wear.aero>0.005)dmg.push(`Aero ${Math.round(wear.aero*100)}%`);if(sw>0.005)dmg.push(`${['FL','FR','RL','RR'][su.indexOf(sw)]} ${Math.round(sw*100)}%`);if(dz)dmg.push(`${dz} zone${dz>1?'s':''}`);if(c.detached)dmg.push('wing off');
-  el.innerHTML=`<div class="pn"><div class="ph" style="margin-bottom:6px"><b>${esc(sel?sel.driver:me.name)}</b>${pill(me.class)}<span class="mu">P${i+1} in class</span>${me.pits?'<span class="a">in pits</span>':''}<span class="grow"></span>${dsw()}</div>
+  el.innerHTML=`<div class="pn"><div class="ph" style="margin-bottom:6px"><b>${esc(sel?sel.driver:me.name)}</b>${pill(me.class)}<span class="mu">P${i+1} in class</span>${me.pits?'<span class="a">in pits</span>':''}<span class="grow"></span>${dsw()}</div>${(me.pens||[]).length?`<div style="margin:0 0 8px;padding:6px 10px;border-radius:6px;background:#3A1416;color:#FF6B6B;font-weight:600">${me.pens.map(p=>esc(PLONG(p))).join(' + ')} to serve</div>`:''}
     <div id="pdl" class="dlt"></div>
     <div class="pk m"><div><div class="mu">Last</div><span style="font-size:17px">${fmtLap(me.last)}</span></div><div><div class="mu">Best</div><span class="g" style="font-size:17px">${fmtLap(me.best)}</span></div><div><div class="mu">Laps</div><span style="font-size:17px">${me.laps??'–'}</span></div></div></div>
     <div class="pn pk m">${nb(ah,'Ahead')}${nb(bh,'Behind')}<div><div class="mu">Stint</div>${stint} laps</div></div>
@@ -766,7 +768,10 @@ function learn(j){
       c.laps=g.laps}
     if(g.stops!==c.stops){c.stops=g.stops;c.stintStart=g.laps;c.pitLap=g.laps;c.stopAt=now;
       if(g.player){moment('⛽',`Pit stop ${g.stops}`,'');const P=(S.rest||{}).pit;S.pitWatch={lap:g.laps,pace:pace(g.id),stop:P&&P.total>0?P.total:null}}}
-    if(g.penalties>c.pen){if(g.player||clsOf(g)===clsOf(j.grid.find(x=>x.player)||{}))moment('⚖',`${g.player?'You':g.name}: penalty`,'r');}
+    if(Array.isArray(g.pens)){const was=c.pens||[],now=g.pens,left=[...was],show=g.player||clsOf(g)===clsOf(j.grid.find(x=>x.player)||{});
+      for(const p of now){const i=left.indexOf(p);if(i>=0)left.splice(i,1);else if(c.pens&&show)moment('⚖',`${g.player?'You':g.name}: ${PLONG(p)}`,'r')}
+      for(const p of left)if(show)moment('⚖',`${g.player?'You':g.name}: served ${PLONG(p)}`,'');c.pens=[...now]}
+    else if(g.penalties>c.pen){if(g.player||clsOf(g)===clsOf(j.grid.find(x=>x.player)||{}))moment('⚖',`${g.player?'You':g.name}: penalty`,'r');}
     c.pen=g.penalties;
     if(prev){const pg=prev.grid.find(x=>x.id===g.id);if(pg&&g.player&&pg.name!==g.name)moment('⟳',`Driver swap to ${g.name}`,'')}
   }
@@ -780,7 +785,6 @@ function learn(j){
   const se=j.session,ps=prev?.session;
   if(ps){
     if(se.yellow>0&&!(ps.yellow>0))moment('⚑','Full course yellow / safety car','a');
-    if(!(se.yellow>0)&&ps.yellow>0)moment('⚑','Green flag','g');
     (se.sectorFlags||[]).forEach((f,i)=>{if(secY(f)&&!secY((ps.sectorFlags||[])[i]))moment('⚑',`Local yellow, sector ${i+1}`,'a')});
     if(se.rain>0.05&&!(ps.rain>0.05))moment('☂','Rain started','a');
     if(se.rain<=0.05&&ps.rain>0.05)moment('☀','Rain stopped','');
@@ -820,7 +824,7 @@ function paintPanels(){
   const maxVE=R.wear&&R.wear.maxVE;const ve=c.energy;const energy=(ve>=0&&ve<=1)?`${Math.round(ve*100)}%`:'–';
   const st=S.per.get(me.id),stintLap=st?me.laps-st.stintStart:0;
   const wear=R.wear||{};
-  if(car)car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:me.name)}</b><span class="chip" style="background:#1F2024">P${pic||'–'} in ${esc(CLSN(cls))}</span><span class="mu">${esc(me.car||'')}</span>${me.pits?'<span class="chip a" style="background:#2A1F08">in pits</span>':''}${chain('car')}</div>
+  if(car)car.innerHTML=`<div class="ph"><b>${esc(sel?sel.driver:me.name)}</b><span class="chip" style="background:#1F2024">P${pic||'–'} in ${esc(CLSN(cls))}</span><span class="mu">${esc(me.car||'')}</span>${me.pits?'<span class="chip a" style="background:#2A1F08">in pits</span>':''}${(me.pens||[]).map(p=>`<span class="chip" style="background:#3A1416;color:#FF6B6B">${esc(PLONG(p))} to serve</span>`).join('')}${chain('car')}</div>
     <div class="k3"><div><div class="mu">Last lap</div><div class="big">${fmtLap(me.last)}</div></div><div><div class="mu">Best lap</div><div class="big g">${fmtLap(me.best)}</div></div><div><div class="mu">Laps<span class="stl"> · stint</span></div><div class="big" style="white-space:nowrap">${me.laps??'–'}<span class="mu stl" style="font-size:14px"> · ${stintLap}</span></div></div></div>
     <div style="display:flex;margin-top:10px"><span class="mu">Virtual energy</span><span class="grow"></span><span class="m">${energy}${maxVE?` <span class="mu">of ${Math.round(maxVE)}</span>`:''}</span></div><div class="bar"><i style="width:${ve>=0&&ve<=1?ve*100:0}%"></i></div>
     <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} / ${(c.fuelCap||0).toFixed(0)} L</span></div>
@@ -953,7 +957,7 @@ function paintLaps(){
     return head+cars.map((g,i)=>{let gap='–';
       if(i){const pl=prog(ld),pg=prog(g),down=pl!=null&&pg!=null?Math.floor(pl-pg):Math.max(0,ld.laps-g.laps-1);
         if(down>=1)gap=down+'L';else{const t=g.behindLeader-ld.behindLeader;gap=isFinite(t)&&t>=0?t.toFixed(1):'–'}}
-      return `<tr${g.player?' class="me"':''}><td class="mu" style="box-shadow:inset 3px 0 0 ${col};padding-left:8px">${i+1}</td><td class="nm"><span class="mu">${carNo(g)}</span> <span${g.player?' class="y"':''}>${esc(g.name)}</span>${g.pits?' <span class="chip a">PIT</span>':''}</td><td class="gp">${gap}</td><td class="gp"><span class="${g.best>0&&g.best<=fb?'pb':''}">${fmtLap(g.best)}</span></td><td class="gp">${fmtLap(g.last)}</td><td class="gp">${tyreCell(j,g)}</td><td class="gp">${g.energy>=0&&g.energy<=1?Math.round(g.energy*100)+'%':'–'}</td></tr>`}).join('')}).join('');
+      return `<tr${g.player?' class="me"':''}><td class="mu" style="box-shadow:inset 3px 0 0 ${col};padding-left:8px">${i+1}${(g.pens||[]).length?`<span class="pchp">${penChips(g)}</span>`:''}</td><td class="nm"><span class="mu">${carNo(g)}</span> <span${g.player?' class="y"':''}>${esc(g.name)}</span>${penChips(g)}${g.pits?' <span class="chip a">PIT</span>':''}</td><td class="gp">${gap}</td><td class="gp"><span class="${g.best>0&&g.best<=fb?'pb':''}">${fmtLap(g.best)}</span></td><td class="gp">${fmtLap(g.last)}</td><td class="gp">${tyreCell(j,g)}</td><td class="gp">${g.energy>=0&&g.energy<=1?Math.round(g.energy*100)+'%':'–'}</td></tr>`}).join('')}).join('');
   el.innerHTML=`<table class="t st"><tr><th>P</th><th>Driver</th><th class="gp">Gap</th><th class="gp">Fastest</th><th class="gp">Last</th><th class="gp">Tyres</th><th class="gp">VE</th></tr>${body}</table>`;
   $('#theo').innerHTML='';
 }
@@ -969,7 +973,7 @@ function paintTraffic(){
   // v0.1.13: columns (class · P · driver · car · VE · gap to you), so every row lines up
   el.innerHTML=`<table class="t tt"><tr class="th"><th></th><th>P</th><th>Driver</th><th>Car</th><th class="gp">VE</th><th class="gp">Gap</th></tr>${view.map(({g,d})=>{const s=Math.abs(d)/v,e=energyLeft(g);
     const ve=g.energy>=0&&g.energy<=1?`${Math.round(g.energy*100)}%${e&&e.per!=null?` <span class="mu">· ${e.laps.toFixed(1)}</span>`:''}`:'–';
-    return `<tr class="tr${g.player?' me':''}"><td>${pill(g.class)}</td><td class="mu">P${g.place}</td><td class="nm"${g.player?' style="color:var(--y)"':''}>${esc(g.name)}</td><td class="nm mu">${esc(g.car||'')}</td><td class="gp">${ve}</td>${g.player?'<td class="gp y">you</td>':`<td class="gp">${d>=0?'+':'−'}${s.toFixed(1)}</td>`}</tr>`}).join('')}</table>`;
+    return `<tr class="tr${g.player?' me':''}"><td>${pill(g.class)}</td><td class="mu">P${g.place}</td><td class="nm"${g.player?' style="color:var(--y)"':''}>${esc(g.name)}${penChips(g)}</td><td class="nm mu">${esc(g.car||'')}</td><td class="gp">${ve}</td>${g.player?'<td class="gp y">you</td>':`<td class="gp">${d>=0?'+':'−'}${s.toFixed(1)}</td>`}</tr>`}).join('')}</table>`;
 }
 
 // ---------- B: live delta, projected and potential lap, corner verdicts (v0.1.10) ----------
@@ -1010,7 +1014,7 @@ function degSlope(me){const c=S.per.get(me.id);if(!c)return 0.05;
   const n=ok.length,ma=ok.reduce((a,p)=>a+p[0],0)/n,mb=ok.reduce((a,p)=>a+p[1],0)/n;let sxy=0,sxx=0;for(const p of ok){sxy+=(p[0]-ma)*(p[1]-mb);sxx+=(p[0]-ma)**2}
   return sxx>0?Math.max(0,Math.min(0.3,sxy/sxx)):0.05}
 // distance covered (in laps) after T seconds, stopping once at the end of lap `stopAt`
-function runCar(c,T){let t=T,laps=c.laps,frac=c.frac,age=c.age,stopped=c.stopAt==null;
+function runCar(c,T){let t=T-(c.pen||0),laps=c.laps,frac=c.frac,age=c.age,stopped=c.stopAt==null;
   for(let n=0;n<300&&t>0;n++){const lt=c.base+c.slope*age,rem=(1-frac)*lt;
     if(rem>=t)return laps+frac+t/lt;
     t-=rem;laps++;frac=0;age++;
@@ -1031,7 +1035,7 @@ function stratModel(j){
   const loss=P.total+laneTime(),L=S.trackLen>100?S.trackLen:null,slope=degSlope(me);
   const frac=g=>{const c=S.cars.get(g.id);return L&&c?Math.max(0,Math.min(0.999,c.dist/L)):0.5};
   const mk=(g,stopAt)=>{const p=pace(g.id),c=S.per.get(g.id),age=c?Math.max(0,g.laps-c.stintStart):0;
-    return {id:g.id,g,laps:g.laps,frac:frac(g),age,slope,base:Math.max(p*0.9,p-slope*age),stopAt,loss,p}};
+    return {id:g.id,g,laps:g.laps,frac:frac(g),age,slope,base:Math.max(p*0.9,p-slope*age),stopAt,loss,p,pen:penLoss(g)}};
   const myP=pace(me.id),myE=energyLeft(me);if(!myP||!myE||myE.per==null)return null;
   const forced=me.laps+Math.max(1,Math.floor(myE.laps+frac(me)));   // the lap you must come in at the end of
   if(forced<=me.laps+1)return null;   // no choice left: the stop is this lap anyway
@@ -1064,7 +1068,8 @@ function stratModel(j){
   const plan=stopPlan(j,me,best.k),ve=plan.ve??1,ty=plan.ty;
   return {k:best.k,gain,cover:cov?{id:cov.id,no:carNo(cov)}:null,flipped:flipped.map(r=>({no:carNo(r.g),stop:r.stopAt})),
     rows:[...opts.map(o=>({k:o.k,pos:o.pos,d:stay.pos-o.pos,best:o===best})),{k:null,pos:stay.pos,d:null,best:false}],
-    ve,ty,repair:P.repair>0?P.repair:0,loss,est:!S.lane,forced}}
+    ve,ty,repair:P.repair>0?P.repair:0,loss,est:!S.lane,forced,
+    pens:[me,...inCls].filter(g=>(g.pens||[]).length).map(g=>({no:g.id===me.id?'you':carNo(g),t:g.pens.map(PSHORT).join(' + '),loss:penLoss(g)}))}}
 function stratStep(j){
   const r=stratModel(j),key=r?`${r.k}:${r.cover?r.cover.id:''}`:'',now=Date.now(),me=j.grid.find(g=>g.player);
   S.stHist.push(key);if(S.stHist.length>3)S.stHist.shift();
@@ -1081,12 +1086,24 @@ function paintStrat(){
   const stops=[...new Set(r.flipped.map(f=>f.stop))];
   const note=r.flipped.length?(stops.length===1?`${r.flipped.map(f=>f.no).join(' ')} out of VE lap ${stops[0]}`:r.flipped.map(f=>`${f.no} L${f.stop}`).join(' · ')+' out of VE'):'';
   const h=`<button id="sbtn" class="sb ${kind}" aria-expanded="${S.stOpen}"><span class="sb1"><span class="sbl">${stLabel(r)}</span><span class="grow"></span><span class="sbg">+${r.gain}</span><span class="mu sbp">pos</span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="#9A9DA6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="sb2">${why}</span>
+    <span class="sb2">${why}</span>${(r.pens||[]).length?`<span class="sb2 sbpen">${r.pens.map(x=>`<b>${esc(x.no)}</b> <span class="pch" style="margin-left:2px">${esc(x.t)}</span> −${x.loss.toFixed(0)} s`).join(' · ')}</span>`:''}
     <span class="sb3"><span>VE ${Math.round(r.ve*100)}%</span><span>tyres ${r.ty}</span><span class="${r.repair?'a':'mu'}">repair ${r.repair?r.repair.toFixed(0)+' s':'–'}</span></span>
     ${S.stOpen?`<span class="sbt">${r.rows.map(o=>`<span class="sbo${o.best?' best':''}"><span class="ow">${when(o.k)}</span><span>P${o.pos} <span class="${o.d==null?'mu':o.d>0?'g':o.d<0?'r':'mu'}">${o.d==null?'–':(o.d>0?'+':o.d<0?'−':'')+Math.abs(o.d)}</span></span></span>`).join('')}</span>
       <span class="sbx">${note?`<span class="sbn">${note}</span>`:''}<span class="sbn">loss ${r.loss.toFixed(0)} s ${r.est?'<span class="est">est.</span>':''}</span></span>`:''}</button>`;
   if(el._h!==h){el.innerHTML=h;el._h=h}}
 
+// ---------- penalties (v0.1.22) ----------
+// g.pens (driver app v0.1.26+): each car's penalties still to serve, oldest first, in LMU's words from its results stream
+// ("Drive Thru", "Stop/Go", …; "Penalty" = type unknown). Shown by the name (Grid, Traffic), on the phone by the
+// position, in the car panel, in Events (your class) and in the strategy banner, whose model takes the time they cost.
+const PSHORT=t=>{const s=String(t||''),l=s.toLowerCase(),n=(s.match(/(\d+)\s*s/)||[])[1];
+  return l.includes('drive')?'DT':l.includes('stop')?'SG'+(n?' '+n:''):!s||l==='penalty'?'PEN':s.split(/\s+/)[0].slice(0,4).toUpperCase()};
+const PLONG=t=>{const s=String(t||''),l=s.toLowerCase(),n=(s.match(/(\d+)\s*s/)||[])[1];
+  return l.includes('drive')?'drive-through':l.includes('stop')?'stop/go'+(n?' '+n+' s':''):l||'penalty'};
+// the time a car still has to lose for them: one pit lane trip each (a separate trip; to check: can LMU serve one at a
+// normal stop?), plus the standing time of a stop/go when LMU's words give it
+const penLoss=g=>(g.pens||[]).reduce((a,p)=>{const l=String(p).toLowerCase(),n=+((String(p).match(/(\d+)\s*s/)||[])[1]||0);return a+laneTime()+(l.includes('stop')?n:0)},0);
+const penChips=g=>(g.pens||[]).map(p=>`<span class="pch" title="${esc(PLONG(p))} to serve">${esc(PSHORT(p))}</span>`).join('');
 // ---------- flags ----------
 // v0.1.21: LMU's mSectorFlag is 1 for a local yellow and 11 for a clear sector (seen 24 Nov), so only 1 counts as yellow;
 // v0.1.20 and older counted anything above 0 and showed S1 S2 S3 all the time
@@ -1098,12 +1115,9 @@ function flagsNow(se){const f=[];if(!se)return f;
   if(se.phase===8)f.push(['#fff',1,'FINISH']);
   else if(se.phase===7)f.push(['#FF3B30',0,'STOP']);
   else if(se.phase===6||se.yellow>0)f.push(['#FFD60A',0,'FCY / SC']);
-  else{(se.sectorFlags||[]).forEach((x,i)=>{if(secY(x))f.push(['#FFD60A',0,'S'+(i+1)])});
-    if(!f.length&&S.flagGreenUntil>Date.now())f.push(['#30D158',0,'GREEN'])}
+  else{(se.sectorFlags||[]).forEach((x,i)=>{if(secY(x))f.push(['#FFD60A',0,'S'+(i+1)])});}
   return f}
 function paintFlags(){const el=$('#flags');if(!el)return;const se=S.slow&&S.slow.session;
-  const anyY=se&&(se.phase===6||se.yellow>0||(se.sectorFlags||[]).some(secY));
-  if(S.prevFlag&&!anyY)S.flagGreenUntil=Date.now()+8000;S.prevFlag=!!anyY;
   el.innerHTML=flagsNow(se).map(([c,ck,t])=>`<div class="flag" style="color:${ck?'#fff':c}">${flagSvg(c,ck)}<span>${t}</span></div>`).join('')}
 
 // ---------- drawing (every frame; the track is one world-space path, rebuilt only when it grows) ----------

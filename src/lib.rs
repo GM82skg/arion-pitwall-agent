@@ -5,6 +5,7 @@ pub mod hub;
 pub mod keystore;
 pub mod lmu;
 pub mod local;
+pub mod penalties;
 pub mod protocol;
 pub mod recorder;
 pub mod report;
