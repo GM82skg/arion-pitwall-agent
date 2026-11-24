@@ -1,5 +1,5 @@
 """Driver app v0.1.21 / dashboard v0.1.16: one settings icon (⚙) at the top right holds size, panels and Reset layout;
-your class position on the track map (class colour, extra bold; no overall); Live inputs title and colour key under the graph."""
+your class position on the track map (class colour, extra bold; no overall); Live inputs title and colour key under the graph (v0.1.19: only the colour key; the title bar is back on top)."""
 import asyncio, subprocess, time, sys
 from playwright.async_api import async_playwright
 BIN = sys.argv[1]; HERE = __file__.rsplit('/', 1)[0]; ok = fail = 0
@@ -27,7 +27,7 @@ async def main():
         await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(14)
         E = pg.evaluate
-        chk('dashboard 0.1.16 or later', await E('VERSION') in ('0.1.16', '0.1.17'))
+        chk('dashboard 0.1.16 or later', await E('VERSION') in ('0.1.16', '0.1.17', '0.1.18', '0.1.19'))
         # ---------- 3: settings icon ----------
         top = await E("""(()=>{const vis=id=>{const e=document.getElementById(id);return !!e&&!!e.getClientRects().length};const g=document.querySelector('#gear').getBoundingClientRect(),t=document.querySelector('.top').getBoundingClientRect();
             return {gear:vis('gear'),pnl:vis('pnl'),lreset:vis('lreset'),zm:!!document.querySelector('.top .zm'),gr:Math.round(t.right-g.right),label:document.querySelector('#gear').getAttribute('aria-label')}})()""")
@@ -71,15 +71,15 @@ async def main():
             S.slow=keep;paintMapPos();return {a,b,c,over:b.includes('overall')}})()""")
         chk('map: one class only → still just «P…»', r['b'].startswith('P') and not r['over'], r)
         chk('map: no player car → nothing shown', r['c'] == '', r)
-        # ---------- Live inputs: title and colour key under the graph ----------
-        li = await E("""(()=>{const d=document.querySelector('.dock[data-id=inputs]'),ph=d.querySelector(':scope>.ph'),cv=d.querySelector(':scope>.cv').getBoundingClientRect(),top=d.querySelector(':scope>.inptop').getBoundingClientRect(),r=ph.getBoundingClientRect(),dr=d.getBoundingClientRect();
-            return {below:r.top>=cv.bottom-0.5,inside:r.bottom<=dr.bottom+0.5,numsTop:top.bottom<=cv.top+0.5,txt:ph.innerText.replace(/\\s+/g,' ').trim()}})()""")
-        chk('Live inputs: title and colour key under the graph, inside the panel; speed line stays on top', li['below'] and li['inside'] and li['numsTop'] and li['txt'].startswith('Live inputs throttle brake steering ABS lock'), li)
+        # ---------- Live inputs (v0.1.19): title bar on top (drag handle), only the colour key under the graph ----------
+        li = await E("""(()=>{const d=document.querySelector('.dock[data-id=inputs]'),ph=d.querySelector(':scope>.ph'),cv=d.querySelector(':scope>.cv').getBoundingClientRect(),top=d.querySelector(':scope>.inptop').getBoundingClientRect(),k=d.querySelector(':scope>.ikey'),r=ph.getBoundingClientRect(),kr=k?k.getBoundingClientRect():null,dr=d.getBoundingClientRect();
+            return {titleTop:r.bottom<=top.top+0.5&&r.top>=dr.top-0.5,title:ph.innerText.replace(/\\s+/g,' ').trim(),keyBelow:!!kr&&kr.top>=cv.bottom-0.5&&kr.bottom<=dr.bottom+0.5,key:k?k.innerText.replace(/\\s+/g,' ').trim():'',numsTop:top.bottom<=cv.top+0.5}})()""")
+        chk('Live inputs: title bar on top (above the speed line), colour key alone under the graph, inside the panel', li['titleTop'] and li['title'] == 'Live inputs' and li['keyBelow'] and li['key'] == 'throttle brake steering ABS lock' and li['numsTop'], li)
         await E("document.querySelector('.dock[data-id=inputs]>.ph').scrollIntoView({block:'center'})"); await asyncio.sleep(0.3)   # the left column scrolls at 1440×900
         hb = await (await pg.query_selector('.dock[data-id=inputs]>.ph')).bounding_box()
         await pg.mouse.move(hb['x'] + 30, hb['y'] + 8); await pg.mouse.down(); await pg.mouse.move(hb['x'] + 60, hb['y'] - 200, steps=6)
         drag = await E("document.querySelector('.dock[data-id=inputs]').classList.contains('dragging')"); await pg.keyboard.press('Escape'); await pg.mouse.up(); await asyncio.sleep(0.5)
-        chk('Live inputs: still dragged by its (now bottom) title bar', drag)
+        chk('Live inputs: dragged by its title bar (top again)', drag)
         await pg.click('#gear'); await asyncio.sleep(0.2); await pg.click('#lreset'); await asyncio.sleep(0.6)
         chk('no page errors (desktop)', not errs, errs)
         # ---------- phone ----------
