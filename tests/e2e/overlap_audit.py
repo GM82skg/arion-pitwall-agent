@@ -1,6 +1,7 @@
 """Overlap audit (v0.1.16): no control covers another, and a selected or grouped button shows its whole outline.
 Desktop 1440 and 1920 wide (settings menu open and closed), phone 390 on every tab."""
 import asyncio, subprocess, time, sys, json
+LAY = {"v": 2, "root": {"d": "row", "k": [{"d": "col", "k": [{"p": ["car"], "a": 0}, {"p": ["damage", "wx"], "a": 1}], "s": [50, 50]}, {"d": "col", "k": [{"p": ["map"], "a": 0}, {"d": "row", "k": [{"p": ["inputs"], "a": 0}, {"p": ["battle"], "a": 0}], "s": [50, 50]}], "s": [65, 35]}, {"d": "col", "k": [{"p": ["traffic"], "a": 0}, {"p": ["laps", "pit"], "a": 0}, {"p": ["moments"], "a": 0}], "s": [28, 52, 20]}], "s": [25, 47, 28]}}
 from playwright.async_api import async_playwright
 BIN = sys.argv[1]; HERE = __file__.rsplit('/', 1)[0]; ok = fail = 0
 def chk(n, c, info=''):
@@ -57,6 +58,17 @@ async def main():
             chk(f'{w}: the outline check catches the old switch (planted)', any('«Δ own»' in x[0] for x in r['hidden']), r['hidden'])
             await pg.evaluate("document.getElementById('plant').remove()")
             await pg.context.close()
+        # v0.1.17: a mixed layout — splits under the map and tab groups
+        pg = await (await br.new_context(viewport={'width': 1920, 'height': 1080})).new_page()
+        await pg.add_init_script("localStorage.setItem('pw-layout-v5',"+json.dumps(json.dumps(LAY))+")")
+        await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
+        await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(5)
+        chk('mixed layout loaded (2 tab groups, a split)', await pg.evaluate("document.querySelectorAll('.tgrp').length===2&&!!document.querySelector('.lrow')"))
+        await run(pg, 'mixed layout')
+        for t in ['damage', 'pit']:
+            await pg.click(f'.ttab[data-tab={t}]'); await asyncio.sleep(0.4)
+        await run(pg, 'mixed layout, other tabs')
+        await pg.context.close()
         ctx = await br.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True, device_scale_factor=2)
         ph = await ctx.new_page(); await ph.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await ph.goto('http://127.0.0.1:6420/'); await asyncio.sleep(5)
