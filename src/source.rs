@@ -151,6 +151,8 @@ impl FakeSource {
         si.mEndET = 6.0 * 3600.0;
         si.mSessionTimeRemaining = (6.0 * 3600.0 - et) as f32;
         si.mGamePhase = 5;
+        // LMU sends 11 for a sector with no local yellow and 1 for a local yellow (seen in LMU on 24 Nov)
+        si.mSectorFlag = [11, 11, 11];
         si.mAmbientTemp = 22.8;
         si.mTrackTemp = 31.4;
         si.mLapDist = FAKE_LAP;

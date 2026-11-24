@@ -73,7 +73,8 @@ corner's end), `brake_m` (− = braked earlier than the reference), `vmin` and `
 
 ## Slow message (JSON, `"t": "slow"`)
 
-`session` (track, type, time, phase, flags, air/track temperature, rain, wetness min/avg/max, grip, clouds),
+`session` (track, type, time, phase, flags, air/track temperature, rain, wetness min/avg/max, grip, clouds; `sectorFlags` is LMU's `mSectorFlag` as sent: 1 = local yellow in that sector,
+11 = clear (seen in LMU), so readers must test `== 1`, not `> 0`),
 `car` (fuel, capacity, virtual energy, battery, TC, ABS, map, brake bias front, delta, damage, four wheels with
 tyre temperatures °C, carcass, pressure kPa, wear, brake temperature, flat, compound),
 `grid` (per car: id, driver name as in the game, car, class, place, laps, best, last, sectors, gaps, pits, stops,

@@ -46,17 +46,17 @@ async def main():
         chk('battle in class: you plus the cars just ahead and behind you in class', brow == want and 'you' in bt, (brow, want, bt[:300]))
         chk('battle: pace and energy filled', bt.count(':') >= 2 and '%' in bt, bt[:300])
         pw = await T('#pitw'); chk('pit window: LMU estimate and rejoin', 'Rejoin P' in pw and '34.6 s' in pw and '12.4 s' in pw, pw)
-        # flags: a local yellow in sector 2 shows a flag icon «S2» and colours that sector on the map; FCY shows «FCY / SC»
+        # flags (v0.1.25: LMU's real values, 11 = clear, 1 = local yellow): a local yellow in sector 2 shows a flag icon «S2» and colours that sector on the map; FCY shows «FCY / SC»
         # v0.1.24: the test's flags are put on every incoming slow message instead of a 100 ms timer. With the timer, a real
         # message landing between ticks repainted the real flags (the fake race has its own yellows), and these checks
         # failed in about half the runs, on v0.1.23 as well (measured 24 Nov)
         FL = "(sf,y)=>{window.__os=window.__os||onSlow;window.__fs=[sf,y];onSlow=j=>{if(j&&j.t==='slow'&&j.session){j.session.sectorFlags=__fs[0];j.session.yellow=__fs[1]}__os(j)};if(S.slow){S.slow.session.sectorFlags=sf;S.slow.session.yellow=y;paintFlags()}}"
-        await pg.evaluate("S.secB=[[S.trackLen/3],[S.trackLen*2/3]];secPaths=null;0"); await pg.evaluate(f"({FL})([0,1,0],0)"); await asyncio.sleep(0.6)
+        await pg.evaluate("S.secB=[[S.trackLen/3],[S.trackLen*2/3]];secPaths=null;0"); await pg.evaluate(f"({FL})([11,1,11],0)"); await asyncio.sleep(0.6)
         chk('flags: yellow flag icon with its sector', await pg.evaluate('document.querySelectorAll("#flags .flag svg").length===1&&document.querySelector("#flags").innerText.trim()==="S2"'))
         chk('flags: the flagged sector is drawn on the track', await pg.evaluate('!!secPaths&&secBounds()!==null'))
-        await pg.evaluate(f"({FL})([0,0,0],1)"); await asyncio.sleep(0.6)
+        await pg.evaluate(f"({FL})([11,11,11],1)"); await asyncio.sleep(0.6)
         chk('flags: full course yellow / safety car', 'FCY / SC' in await pg.evaluate('document.querySelector("#flags").innerText'))
-        await pg.evaluate(f"({FL})([0,0,0],0)")
+        await pg.evaluate(f"({FL})([11,11,11],0)")
         chk('flags: green flag after the yellow ends', 'GREEN' in await pg.evaluate('document.querySelector("#flags").innerText'))
         await pg.evaluate("if(window.__os)onSlow=window.__os;0")   # real flags again for the rest of the test
         m = await T('#moments'); chk('key moments carry race time', ':' in m.split('·')[0] if m else False, m[:80])

@@ -215,7 +215,7 @@ body.phone .strat{left:8px;right:8px;width:auto}
 .st .gp{text-align:right;white-space:nowrap}.st .pb{color:var(--p);font-weight:600}.st .chip{padding:0 5px;font-size:10px}
 .pnav button.dot b{position:relative}.pnav button.dot b::after{content:'';position:absolute;top:0;right:-7px;width:8px;height:8px;border-radius:50%;background:var(--y)}
 
-.tci,.tcq{display:inline-block;width:11px;height:11px;vertical-align:-1px;margin-right:6px}.tci i{display:block;width:11px;height:11px;border-radius:50%}.tcq{position:relative}.tcq i{position:absolute;width:5px;height:5px;border-radius:50%}.tcq i:nth-child(1){left:0;top:0}.tcq i:nth-child(2){right:0;top:0}.tcq i:nth-child(3){left:0;bottom:0}.tcq i:nth-child(4){right:0;bottom:0}
+.tci,.tcq{display:inline-block;width:11px;height:11px;vertical-align:-1px;margin-right:6px}.tci i{display:block;width:11px;height:11px;border-radius:50%;font:normal 700 8px/11px var(--mono);text-align:center;letter-spacing:0;user-select:none}.tcq{position:relative}.tcq i{position:absolute;width:5px;height:5px;border-radius:50%}.tcq i:nth-child(1){left:0;top:0}.tcq i:nth-child(2){right:0;top:0}.tcq i:nth-child(3){left:0;bottom:0}.tcq i:nth-child(4){right:0;bottom:0}
 </style>
 </head>
 <body>
@@ -238,7 +238,7 @@ body.phone .strat{left:8px;right:8px;width:auto}
 <script>
 'use strict';
 // ARION Pit Wall dashboard. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1; comparison frames since v0.1.15).
-const VERSION='0.1.20';
+const VERSION='0.1.21';
 {const e=document.getElementById('bver');if(e)e.textContent='v'+VERSION}
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
@@ -781,7 +781,7 @@ function learn(j){
   if(ps){
     if(se.yellow>0&&!(ps.yellow>0))moment('⚑','Full course yellow / safety car','a');
     if(!(se.yellow>0)&&ps.yellow>0)moment('⚑','Green flag','g');
-    (se.sectorFlags||[]).forEach((f,i)=>{if(f>0&&!((ps.sectorFlags||[])[i]>0))moment('⚑',`Local yellow, sector ${i+1}`,'a')});
+    (se.sectorFlags||[]).forEach((f,i)=>{if(secY(f)&&!secY((ps.sectorFlags||[])[i]))moment('⚑',`Local yellow, sector ${i+1}`,'a')});
     if(se.rain>0.05&&!(ps.rain>0.05))moment('☂','Rain started','a');
     if(se.rain<=0.05&&ps.rain>0.05)moment('☀','Rain stopped','');
     if(j.car.impactET>(prev.car.impactET||0)&&j.car.impact>1000)moment('✱','Contact','r');
@@ -908,8 +908,8 @@ function paintWx(j,me){
 }
 // laps and sectors: this car's laps, or the whole grid's last laps
 function scCls(x,pb,cb){if(!(x>0))return '';if(cb&&x<=cb+1e-4)return 'pu';if(pb&&x<=pb+1e-4)return 'gn';if(pb&&x>pb+0.3)return 'yl';return ''}
-// v0.1.20: tyre compound as LMU colours it (hard white, medium yellow, soft red, wet blue, unknown grey): one dot when
-// all four wheels match, else four small dots seen from above, front on top (FL FR / RL RR); then the lowest wheel's life.
+// v0.1.20: tyre compound as LMU colours it (v0.1.21, George: soft white, medium yellow, hard red, wet blue; unknown grey):
+// one dot with the compound's letter (S M H W) when all four wheels match, else four small dots seen from above, front on top (FL FR / RL RR); then the lowest wheel's life.
 // Per wheel from driver app v0.1.24 (tyreCI = each wheel's index in the car's tyre list): an index gets its name when a
 // whole axle runs on it (LMU names compounds only per axle), learned per car model; an index not learned yet takes its
 // axle's name, unless that name already belongs to another index (then it is unknown, grey). Older apps: axle names.
@@ -921,13 +921,15 @@ function learnTyres(j){for(const g of j.grid||[]){const ci=g.tyreCI;if(!Array.is
 function tyreNames(g){const F=g.tyreF,R=g.tyreR,ci=g.tyreCI;if(!Array.isArray(ci)||ci.length!==4)return [F,F,R,R];
   const m=TMAP.get(tModel(g))||new Map();
   return ci.map((x,i)=>{if(m.has(x))return m.get(x);const a=i<2?F:R;for(const [y,n] of m)if(n===a&&y!==x)return '';return a})}
-const TCOL=n=>{const s=(n||'').toLowerCase();return s.includes('soft')?'#E8413C':s.includes('med')?'#F2C200':s.includes('hard')?'#ECEDEF':s.includes('wet')||s.includes('rain')?'#3B8BFF':'#6B6E76'};
+const TKIND=n=>{const s=(n||'').toLowerCase();return s.includes('soft')?'S':s.includes('med')?'M':s.includes('hard')?'H':s.includes('wet')||s.includes('rain')?'W':''};
+const TCOL=n=>({S:'#ECEDEF',M:'#F2C200',H:'#E8413C',W:'#3B8BFF'})[TKIND(n)]||'#6B6E76';
+const TINK=n=>({S:'#16171A',M:'#16171A',H:'#FFFFFF',W:'#FFFFFF'})[TKIND(n)]||'#16171A';
 function tyreCell(j,g){const c=tyreNames(g);
   const same=c.every(x=>x===c[0]),tip=same?`All ${c[0]||'?'}`:['FL','FR','RL','RR'].map((w,i)=>`${w} ${c[i]||'?'}`).join(' · ');
-  const ico=same?`<span class="tci" title="${esc(tip)}"><i style="background:${TCOL(c[0])}"></i></span>`:`<span class="tcq" title="${esc(tip)}">${c.map(x=>`<i style="background:${TCOL(x)}"></i>`).join('')}</span>`;
+  const ico=same?`<span class="tci" title="${esc(tip)}"><i style="background:${TCOL(c[0])};color:${TINK(c[0])}">${TKIND(c[0])}</i></span>`:`<span class="tcq" title="${esc(tip)}">${c.map(x=>`<i style="background:${TCOL(x)}"></i>`).join('')}</span>`;
   const w=(g.player?((j.car||{}).wheels||[]).map(x=>x&&x.wear):(g.tyreWear||[])).filter(x=>typeof x==='number'&&x>=0&&x<=1);
   // all four exactly 0 = LMU sent nothing for this car (a worn-out set never reads 0 on all four at once)
-  return ico+(w.length===4&&w.some(x=>x>0)?`<span class="mu">${Math.round(Math.min(...w)*100)}%</span>`:'')}
+  return ico+(w.length===4&&w.some(x=>x>0)?`<span class="mu tlf">${Math.round(Math.min(...w)*100)}%</span>`:'')}
 function paintLaps(){
   const el=$('#laps'),j=S.slow;if(!el||!j)return;const me=j.grid.find(g=>g.player)||{},meC=S.per.get(me.id);
   const cb=i=>S.clsBest.get(CLSN(me.class)+i);
@@ -1086,6 +1088,9 @@ function paintStrat(){
   if(el._h!==h){el.innerHTML=h;el._h=h}}
 
 // ---------- flags ----------
+// v0.1.21: LMU's mSectorFlag is 1 for a local yellow and 11 for a clear sector (seen 24 Nov), so only 1 counts as yellow;
+// v0.1.20 and older counted anything above 0 and showed S1 S2 S3 all the time
+const secY=x=>x===1;
 const med=a=>{if(!a||!a.length)return null;const b=[...a].sort((x,y)=>x-y);return b[b.length>>1]};
 function secBounds(){const L=S.trackLen,b1=med(S.secB&&S.secB[0]),b2=med(S.secB&&S.secB[1]);return L>100&&b1>0&&b2>b1?[0,b1,b2,L]:null}
 function flagSvg(col,cheq){return `<svg viewBox="0 0 44 38"><rect x="3" y="2" width="3" height="35" rx="1" fill="#C9CBD1"/>${cheq?'<defs><pattern id="ck" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#fff"/><rect width="4" height="4" fill="#111"/><rect x="4" y="4" width="4" height="4" fill="#111"/></pattern></defs>':''}<path d="M6 3 C16 0 22 8 32 5 C36 4 39 3 41 3 L41 22 C33 24 27 18 18 21 C13 23 9 22 6 22 Z" fill="${cheq?'url(#ck)':col}" stroke="rgba(0,0,0,.35)"/></svg>`}
@@ -1093,11 +1098,11 @@ function flagsNow(se){const f=[];if(!se)return f;
   if(se.phase===8)f.push(['#fff',1,'FINISH']);
   else if(se.phase===7)f.push(['#FF3B30',0,'STOP']);
   else if(se.phase===6||se.yellow>0)f.push(['#FFD60A',0,'FCY / SC']);
-  else{(se.sectorFlags||[]).forEach((x,i)=>{if(x>0)f.push(['#FFD60A',0,'S'+(i+1)])});
+  else{(se.sectorFlags||[]).forEach((x,i)=>{if(secY(x))f.push(['#FFD60A',0,'S'+(i+1)])});
     if(!f.length&&S.flagGreenUntil>Date.now())f.push(['#30D158',0,'GREEN'])}
   return f}
 function paintFlags(){const el=$('#flags');if(!el)return;const se=S.slow&&S.slow.session;
-  const anyY=se&&(se.phase===6||se.yellow>0||(se.sectorFlags||[]).some(x=>x>0));
+  const anyY=se&&(se.phase===6||se.yellow>0||(se.sectorFlags||[]).some(secY));
   if(S.prevFlag&&!anyY)S.flagGreenUntil=Date.now()+8000;S.prevFlag=!!anyY;
   el.innerHTML=flagsNow(se).map(([c,ck,t])=>`<div class="flag" style="color:${ck?'#fff':c}">${flagSvg(c,ck)}<span>${t}</span></div>`).join('')}
 
@@ -1140,7 +1145,7 @@ function drawMap(){
   g.strokeStyle='#26282E';g.lineWidth=Math.max(6*dpr/T.s,13);g.stroke(trackPath);
   // a flagged sector (or the whole track under FCY / safety car) glows yellow on the track
   const se=S.slow&&S.slow.session,sb=secBounds();
-  if(se){const full=se.phase===6||se.yellow>0,fl=(se.sectorFlags||[]).map(x=>x>0);
+  if(se){const full=se.phase===6||se.yellow>0,fl=(se.sectorFlags||[]).map(secY);
     if(full||fl.some(Boolean)){
       if(!secPaths&&sb){secPaths=[new Path2D(),new Path2D(),new Path2D()];for(const sg of S.segs){const d=sg[4];if(d==null)continue;const k=d<sb[1]?0:d<sb[2]?1:2;secPaths[k].moveTo(sg[0],sg[1]);secPaths[k].lineTo(sg[2],sg[3])}}
       g.strokeStyle='rgba(255,214,10,.45)';g.lineWidth=Math.max(6*dpr/T.s,13)+4/T.s;
