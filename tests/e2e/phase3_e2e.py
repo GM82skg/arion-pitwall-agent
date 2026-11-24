@@ -32,7 +32,7 @@ async def main():
         pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)[:200]))
         await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(1)
-        chk('dashboard version 0.1.15', await pg.evaluate('VERSION') == '0.1.15')
+        chk('dashboard version 0.1.16', await pg.evaluate('VERSION') == '0.1.16')
         # ---------- B ----------
         st = None
         for _ in range(60):
