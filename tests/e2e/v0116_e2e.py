@@ -22,7 +22,7 @@ async def main():
         pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)[:200]))
         await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(14)
-        chk('version 0.1.14', await pg.evaluate('VERSION') == '0.1.14')
+        chk('version 0.1.15', await pg.evaluate('VERSION') == '0.1.15')
         # ---------- G ----------
         lay = await pg.evaluate('[...document.querySelectorAll(".dcol")].map(c=>[...c.querySelectorAll("section.dock")].map(s=>s.dataset.id).join(","))')
         chk('G: new default layout: Live inputs under the left column, the map gets the middle, Pit window on the right', lay == ['car,damage,wx,inputs', 'map,battle', 'traffic,laps,pit,moments'], lay)
