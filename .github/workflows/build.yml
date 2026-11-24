@@ -45,3 +45,21 @@ jobs:
           # The app's «Update now» checks the download against this file before using it (since v0.1.16)
           Set-Content -Path "ARION-Pit-Wall.exe.sha256" -Value "$h  ARION-Pit-Wall.exe" -Encoding ascii
           gh release create "${{ github.ref_name }}" $f "ARION-Pit-Wall.exe" "ARION-Pit-Wall.exe.sha256" --title "ARION Pit Wall ${{ github.ref_name }}" --notes $notes
+      # v0.9.71 (crew app): each release goes to VirusTotal, so the crew app's «Check it for viruses» opens a ready result.
+      # Needs the repo secret VT_API_KEY (George's free VirusTotal key). Without it, or if VirusTotal fails, the release is
+      # unaffected: a warning only. The exe is ~15 MB, under VirusTotal's 32 MB limit for this simple upload.
+      - name: Send to VirusTotal (tags)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          VT_API_KEY: ${{ secrets.VT_API_KEY }}
+        shell: pwsh
+        run: |
+          if (-not $env:VT_API_KEY) { Write-Host "::warning::No VT_API_KEY secret: not sent to VirusTotal"; exit 0 }
+          $f = "ARION-Pit-Wall-${{ github.ref_name }}.exe"
+          try {
+            $r = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/files" -Method Post -Headers @{ "x-apikey" = $env:VT_API_KEY } -Form @{ file = Get-Item $f }
+            Write-Host "Sent to VirusTotal: $($r.data.id)"
+          } catch {
+            Write-Host "::warning::VirusTotal upload failed: $($_.Exception.Message)"
+          }
+          exit 0
