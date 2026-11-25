@@ -21,7 +21,7 @@ async def main():
         pg = await (await br.new_context(viewport={'width': 1920, 'height': 1080})).new_page(); pg.on('pageerror', lambda e: errs.append(str(e)[:200]))
         await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(14)
-        chk('dashboard version 0.1.23', await pg.evaluate('VERSION') == '0.1.23')
+        chk('dashboard version 0.1.24', await pg.evaluate('VERSION') == '0.1.24')
         # ---------- 2 ----------
         chk('Laps and sectors opens on Full grid', await pg.evaluate('S.gridTab') == 'all' and await pg.evaluate('document.querySelector("#gAll").className') == 'on' and await pg.evaluate('document.querySelectorAll("#laps tr.ch").length') >= 1)
         # ---------- 1 ----------

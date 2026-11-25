@@ -268,6 +268,18 @@ impl FakeSource {
         v.mTCSlip = 4;
         v.mABS = 4;
         v.mMotorMap = 2;
+        // v0.1.28: acceleration in the car's axes, as LMU sends it (TinyPedal's reading): z > 0 braking, x > 0 to the
+        // car's left. Along the track: the same −14 / +7 m/s² the fake car drives with. Across: v² × the oval's
+        // curvature; the car laps the oval anticlockwise on the map, so every corner is a left-hander (x > 0).
+        {
+            let acc = if braking { -14.0 } else if c.throttle >= 1.0 { 7.0 } else { 0.0 };
+            let (ra, rb) = (400.0f64, 150.0f64);
+            let a = c.d / FAKE_LAP * std::f64::consts::TAU - std::f64::consts::FRAC_PI_2;
+            let k = ra * rb / (ra * ra * a.sin().powi(2) + rb * rb * a.cos().powi(2)).powf(1.5);
+            v.mLocalAccel.x = c.v * c.v * k;
+            v.mLocalAccel.y = 0.0;
+            v.mLocalAccel.z = -acc;
+        }
         if self.sets {
             // every 6 minutes of game time: TC1 3 → 4 at 0:30 and → 5 at 0:32 (two quick clicks), TC2 2 → 3 at 1:00,
             // bias 54.2 → 54.6 at 1:15, TC3 4 → 3 at 1:30, ABS 4 → 5 at 2:00, all back at 3:00; map 2 → 1 from 3:30 to 5:00.
@@ -353,6 +365,13 @@ mod demo_tests {
         }
         let mut g = FakeSource::with_speed(1.0);
         let o = g.step(100.0);
+        // the fake car's acceleration: left-handers only (x > 0), more across at the oval's ends than on its sides
+        let mut h = FakeSource::with_speed(1.0);
+        let (mut xs, mut zs) = (vec![], vec![]);
+        for _ in 0..600 { let o = h.step(0.1); let a = { o.telemetry.telemInfo[3].mLocalAccel }; xs.push(a.x); zs.push(a.z) }
+        assert!(xs.iter().all(|&x| x > 0.0), "always turning left");
+        assert!(xs.iter().cloned().fold(0.0, f64::max) > 15.0, "over 1.5 g across at the corners");
+        assert!(zs.iter().any(|&z| z > 10.0) && zs.iter().any(|&z| z < -5.0), "braking (z > 0) and accelerating (z < 0)");
         assert_eq!(crate::protocol::slow_json(&o).unwrap()["car"]["tc"], 3, "without --fake-settings nothing changes");
     }
 }

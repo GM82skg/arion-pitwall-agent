@@ -39,7 +39,7 @@ async def main():
             chk(f"coach {r['viewer'][-1]}: slow messages arrive", r['slow'] >= 15, r['slow'])
             chk(f"coach {r['viewer'][-1]}: round trip measured", len(r['rtt']) >= 10, len(r['rtt']))
         f = live[0]['first']
-        chk('fast frame is 76 bytes', f['len'] == 76, f)
+        chk('fast frame is 88 bytes (v0.1.28: + acceleration)', f['len'] == 88, f)
         chk('fast frame values are the fake car', 21 < f['speed'] < 51 and 4000 < f['rpm'] < 8000 and f['gear'] in (3, 5) and abs(f['y']) < 1e-6, f)
         chk('brake pressure front/rear split when braking (or zero)', (f['bp'][0] == 0) or abs(f['bp'][0] / max(f['bp'][2], 1e-9) - 0.542 / 0.458) < 1e-3, f['bp'])
         c = live[0]['lastCars']; chk('cars frame: 8 cars, 4+16 bytes each', c['n'] == 8 and c['len'] == 4 + 16 * 8 and sorted(c['ids']) == list(range(1, 9)), c)

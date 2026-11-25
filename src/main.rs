@@ -6,6 +6,7 @@
 //!   … --fake --fake-settings                          … whose driver changes TC1/TC2/TC3, ABS, bias and map now and then
 //! Test options: --url, --apikey (another database), --seconds N (stop after N seconds).
 //!   arion-pitwall-agent --update                     the window's «Update now» from the command line
+//!   arion-pitwall-agent --check-updates              the tray's «Check for updates» from the command line
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -19,6 +20,16 @@ fn arg(name: &str) -> Option<String> {
 
 fn main() {
     arion_pitwall_agent::update::at_start();
+    // v0.1.28: the tray's «Check for updates» from the command line (tests): prints the window's line
+    if std::env::args().any(|a| a == "--check-updates") {
+        use arion_pitwall_agent::update;
+        let m = update::manual(config::VERSION);
+        match update::manual_text(&m, false) {
+            Some((_, t)) => println!("{t}"),
+            None => if let update::Manual::Newer(v) = &m { println!("Update available: v{v}") },
+        }
+        std::process::exit(if matches!(m, update::Manual::Failed(_)) { 1 } else { 0 });
+    }
     if std::env::args().any(|a| a == "--update") {
         use arion_pitwall_agent::update;
         match update::check(config::VERSION) {

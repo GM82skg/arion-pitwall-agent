@@ -46,6 +46,14 @@ chk('a good newer release: «Updated to v0.1.99», the file is replaced under th
 chk('the old version is kept as .old until the next start', open(exe[:-4] + '.old', 'rb').read() == orig)
 out = subprocess.run([exe, '--x'], capture_output=True, text=True).stdout
 chk('the new file is the one that runs', out.strip() == 'new version --x', out)
+# v0.1.28: the tray's «Check for updates» (command-line twin --check-updates prints the window's line)
+fresh(); STATE['tag'] = 'v' + CUR; r = run('--check-updates')
+chk('check for updates, same version: «You have the latest version (v…)», nothing changed', r.stdout.strip() == f'You have the latest version (v{CUR})' and r.returncode == 0 and open(exe, 'rb').read() == orig, (r.stdout, r.stderr))
+STATE['tag'] = 'v0.1.99'; r = run('--check-updates')
+chk('check for updates, newer release: «Update available: v0.1.99», and it only tells (nothing downloaded)', r.stdout.strip() == 'Update available: v0.1.99' and open(exe, 'rb').read() == orig and not os.path.exists(exe[:-4] + '.new'), (r.stdout, r.stderr))
+r = subprocess.run([exe, '--check-updates'], env={**os.environ, 'ARION_UPDATE_API': 'http://127.0.0.1:9/latest'}, capture_output=True, text=True, timeout=60)
+chk('check for updates, no connection: «Couldn\'t check for updates (…). Try again later.», exit 1', r.returncode == 1 and r.stdout.startswith("Couldn't check for updates (") and r.stdout.strip().endswith('Try again later.'), (r.returncode, r.stdout, r.stderr))
+STATE['tag'] = 'v' + CUR
 # next start removes the .old file
 fresh(); open(exe[:-4] + '.old', 'wb').write(b'leftover'); STATE['tag'] = 'v' + CUR; run('--update')
 chk('the next start removes the leftover .old', not os.path.exists(exe[:-4] + '.old'))

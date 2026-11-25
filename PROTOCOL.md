@@ -9,7 +9,7 @@ All numbers are little-endian. Two WebRTC data channels, both opened by the coac
 
 Every binary frame starts with `version (u8) = 1`, `kind (u8)`.
 
-## Fast frame (kind 1), 76 bytes — the driver's car
+## Fast frame (kind 1), 88 bytes — the driver's car (76 before v0.1.28; readers take ≥ 76 and read 76–87 only when present)
 
 | Offset | Type | Field |
 |---|---|---|
@@ -30,6 +30,7 @@ Every binary frame starts with `version (u8) = 1`, `kind (u8)`.
 | 52 | f32 | steering −1…1 |
 | 56 | f32 | clutch 0–1 |
 | 60 | f32 ×4 | brake pressure FL, FR, RL, RR, 0–1 (LMU's value; not bar) |
+| 76 | f32 ×3 | since v0.1.28: acceleration x, y, z in the car's own axes (LMU's `mLocalAccel`, m/s²): z > 0 under braking, x > 0 towards the car's left (as TinyPedal reads it) |
 
 Wheel lock: speed > 5 m/s, brake pedal > 5 %, and the wheel turning under 30 % of road speed.
 

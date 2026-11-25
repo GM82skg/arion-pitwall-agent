@@ -122,6 +122,34 @@ pub fn restart(exe: &Path) -> Result<(), String> {
 
 /// At start: remove the file left by the last update, and after an update wait (up to 15 s) for the old app to free
 /// its dashboard port, so «My dashboard» and the OBS links stay on 127.0.0.1:6420.
+/// v0.1.28: «Check for updates» from the tray (George, 25 Nov). The result the window shows; a newer version also
+/// shows the usual «Update available» line with «Update now» (the same check fills `available()`).
+#[derive(Clone, Debug, PartialEq)]
+pub enum Manual { Checking, Newer(String), Latest(String), Failed(String) }
+
+pub fn manual(current: &str) -> Manual {
+    match check(current) {
+        Ok(Some(r)) => Manual::Newer(r.version),
+        Ok(None) => Manual::Latest(current.to_string()),
+        Err(e) => Manual::Failed(e),
+    }
+}
+
+/// The window's line for a manual check: (kind, text); kind 0 grey (checking), 1 green, 2 red. None for a newer
+/// version (the «Update available» line already says it).
+pub fn manual_text(m: &Manual, el: bool) -> Option<(u8, String)> {
+    match m {
+        Manual::Checking => Some((0, if el { "Έλεγχος για ενημερώσεις…".into() } else { "Checking for updates…".into() })),
+        Manual::Newer(_) => None,
+        Manual::Latest(v) => Some((1, if el { format!("Έχετε την πιο πρόσφατη έκδοση (v{v})") } else { format!("You have the latest version (v{v})") })),
+        Manual::Failed(e) => {
+            let e: String = e.chars().take(80).collect();
+            Some((2, if el { format!("Δεν ήταν δυνατός ο έλεγχος για ενημερώσεις ({e}). Δοκιμάστε ξανά αργότερα.") }
+                     else { format!("Couldn't check for updates ({e}). Try again later.") }))
+        }
+    }
+}
+
 pub fn at_start() {
     if let Ok(exe) = std::env::current_exe() {
         let old = exe.with_extension("old");
@@ -137,6 +165,17 @@ pub fn at_start() {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn manual_check_lines() {
+        use super::{manual_text, Manual};
+        assert_eq!(manual_text(&Manual::Latest("0.1.28".into()), false), Some((1, "You have the latest version (v0.1.28)".into())));
+        assert_eq!(manual_text(&Manual::Latest("0.1.28".into()), true), Some((1, "Έχετε την πιο πρόσφατη έκδοση (v0.1.28)".into())));
+        assert_eq!(manual_text(&Manual::Newer("0.1.29".into()), false), None, "the «Update available» line says it");
+        assert_eq!(manual_text(&Manual::Checking, false).unwrap().0, 0);
+        let f = manual_text(&Manual::Failed("x".repeat(300)), false).unwrap();
+        assert_eq!(f.0, 2);
+        assert!(f.1.starts_with("Couldn't check for updates (") && f.1.ends_with("). Try again later.") && f.1.len() < 140, "{}", f.1);
+    }
     use super::*;
     #[test]
     fn versions_compare_as_numbers() {

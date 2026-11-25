@@ -27,7 +27,7 @@ async def main():
         await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(14)
         E = pg.evaluate
-        chk('dashboard 0.1.16 or later', await E('VERSION') in ('0.1.16', '0.1.17', '0.1.18', '0.1.19', '0.1.20', '0.1.21', '0.1.22', '0.1.23'))
+        chk('dashboard 0.1.16 or later', await E('VERSION') in ('0.1.16', '0.1.17', '0.1.18', '0.1.19', '0.1.20', '0.1.21', '0.1.22', '0.1.23', '0.1.24'))
         # ---------- 3: settings icon ----------
         top = await E("""(()=>{const vis=id=>{const e=document.getElementById(id);return !!e&&!!e.getClientRects().length};const g=document.querySelector('#gear').getBoundingClientRect(),t=document.querySelector('.top').getBoundingClientRect();
             return {gear:vis('gear'),pnl:vis('pnl'),lreset:vis('lreset'),zm:!!document.querySelector('.top .zm'),gr:Math.round(t.right-g.right),label:document.querySelector('#gear').getAttribute('aria-label')}})()""")

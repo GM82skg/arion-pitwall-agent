@@ -6,7 +6,7 @@ use crate::lmu::layout::{LMUObjectOut, LMUVehicleScoring, LMUVehicleTelemetry};
 use serde_json::{json, Value};
 
 pub const PROTOCOL_VERSION: u8 = 1;
-pub const FAST_LEN: usize = 76;
+pub const FAST_LEN: usize = 88;
 
 /// Text from a fixed-size, zero-terminated C string.
 pub fn cstr(b: &[u8]) -> String {
@@ -78,6 +78,12 @@ pub fn fast_frame(o: &LMUObjectOut, seq: u32) -> Option<[u8; FAST_LEN]> {
     }
     for wh in v.mWheels.iter() {
         put(&(wh.mBrakePressure as f32).to_le_bytes());
+    }
+    // v0.1.28: LMU's mLocalAccel (m/s², the car's own axes) for the dashboard's g-circle. As TinyPedal reads it:
+    // z > 0 under braking, x > 0 towards the car's left.
+    let a = v.mLocalAccel;
+    for x in [a.x, a.y, a.z] {
+        put(&(x as f32).to_le_bytes());
     }
     debug_assert_eq!(w, FAST_LEN);
     Some(b)
@@ -186,6 +192,10 @@ mod tests {
         assert_eq!(u32::from_le_bytes(b[4..8].try_into().unwrap()), 7);
         let speed = f32::from_le_bytes(b[36..40].try_into().unwrap());
         assert!(speed > 10.0, "speed {speed}");
+        // v0.1.28: acceleration x, y, z at 76, 80, 84 (the frame was 76 bytes before)
+        let (ax, az) = (f32::from_le_bytes(b[76..80].try_into().unwrap()), f32::from_le_bytes(b[84..88].try_into().unwrap()));
+        let (_, v) = player(&o).unwrap();
+        assert_eq!((ax, az), ({ v.mLocalAccel }.x as f32, { v.mLocalAccel }.z as f32));
         let c = cars_frame(&o);
         assert_eq!(c[1], 2);
         let n = u16::from_le_bytes([c[2], c[3]]) as usize;

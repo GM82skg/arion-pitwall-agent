@@ -35,7 +35,7 @@ async def main():
         await pg.add_init_script(f"if(!sessionStorage.getItem('seeded')){{localStorage.setItem('pw-layout-v4',{json.dumps(json.dumps(old))});sessionStorage.setItem('seeded','1')}}")
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(12)
         E = pg.evaluate
-        chk('dashboard 0.1.23', await E('VERSION') == '0.1.23')
+        chk('dashboard 0.1.24', await E('VERSION') == '0.1.24')
         conv = await E(IDS); saved = await E('JSON.parse(localStorage.getItem("pw-layout-v5")||"null")')
         chk('an old saved layout is converted (same panels, same order) and saved in the new form', conv == 'map,inputs | car,laps | moments' and saved and saved['v'] == 2, [conv, saved])
         await pg.click('#gear'); await asyncio.sleep(0.2); await pg.click('#lreset'); await asyncio.sleep(0.8)

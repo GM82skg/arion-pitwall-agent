@@ -32,7 +32,7 @@ async def main():
         pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)[:200]))
         await pg.route(lambda u: not u.startswith('http://127.0.0.1'), lambda r: r.abort())
         await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(1)
-        chk('dashboard version 0.1.23', await pg.evaluate('VERSION') == '0.1.23')
+        chk('dashboard version 0.1.24', await pg.evaluate('VERSION') == '0.1.24')
         # ---------- B ----------
         st = None
         for _ in range(60):
@@ -61,7 +61,7 @@ async def main():
         # from canvas pixels, which varied 28–61 with the view and the cars on top once the ghost ring was gone
         tx = await pg.evaluate('''(()=>{const g=document.querySelector("#map").getContext("2d"),o=CanvasRenderingContext2D.prototype.fillText,t=[];
             g.fillText=function(s,...a){t.push(String(s));return o.call(this,s,...a)};try{drawMap()}finally{delete g.fillText}return t})()''')
-        chk('B: braking markers drawn on the map («T1», «T2»)', 'T1' in tx and 'T2' in tx, tx)
+        chk('B: braking markers no longer drawn on the map (v0.1.24, George)', 'T1' not in tx and 'T2' not in tx, tx)
         await asyncio.sleep(1)   # switching the delta clears the trail's old colours on purpose
         cols = await pg.evaluate('(()=>{const t=S.trail.slice(-25);return [t.length,t.filter(p=>p[2]!=null).length]})()')
         chk('B: the trail carries the delta (for green/red)', cols[0] >= 20 and cols[1] >= cols[0] - 2, cols)

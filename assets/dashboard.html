@@ -84,7 +84,9 @@ body.phone .mpos b{font-size:28px}
 @container (max-width:280px){#car .k3.sets{grid-template-columns:repeat(2,1fr)}}
 @container (max-width:250px){.big{font-size:14px}#car .k3:first-of-type{grid-template-columns:1fr 1fr}#car .k3 > div:nth-child(3){display:none}}
 @container (max-width:300px){#dmg .carsvg{display:none}}
-@container (max-width:480px){#zv{display:none}}   /* narrow map: the zoom readout goes first, so the header stays one line */
+@container (max-width:480px){#zv{display:none}}
+#mTrk .ts{display:none}@container (max-width:640px){#mTrk .tl{display:none}#mTrk .ts{display:inline}}
+.ph .tms{display:none}@container (max-width:480px){.ph .tml{display:none}.ph .tms{display:inline}}   /* v0.1.24: room for the track button */   /* narrow map: the zoom readout goes first, so the header stays one line */
 .dock>.body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:auto;scrollbar-width:thin;scrollbar-color:#3A3D45 transparent}
 .dock>.body::-webkit-scrollbar{width:6px}.dock>.body::-webkit-scrollbar-thumb{background:#3A3D45;border-radius:3px}
 .dock .ph{cursor:grab;user-select:none;touch-action:none}.dock .ph button,.dock .ph input{cursor:pointer}
@@ -126,6 +128,9 @@ table.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12
 .ph b{font-weight:500;color:#D5D7DC;font-size:14px}
 .fill{flex:1;display:flex;flex-direction:column}
 .cv{flex:1;position:relative;min-height:0}.cv canvas{position:absolute;inset:0;width:100%;height:100%}
+/* v0.1.24 g-circle, bottom left; flags that drop to the bottom (strategy banner up) sit to its right */
+.cv #gc{inset:auto auto 8px 8px;width:132px;height:132px;pointer-events:none;z-index:1}body.phone .cv #gc{width:112px;height:112px}
+.cv.hasg:has(.strat:not(:empty)) .flags{left:150px}body.phone .cv.hasg:has(.strat:not(:empty)) .flags{left:130px}
 .big{font-family:var(--mono);font-size:20px}
 .flags{position:absolute;top:8px;left:8px;display:flex;gap:10px;pointer-events:none}.flag{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--mono);font-size:12px;font-weight:700;text-shadow:0 1px 2px #000}
 .flag svg{width:44px;height:38px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6))}
@@ -248,7 +253,12 @@ body.phone .strat{left:8px;right:8px;width:auto}
 <script>
 'use strict';
 // ARION Pit Wall dashboard. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1; comparison frames since v0.1.15).
-const VERSION='0.1.23';
+const VERSION='0.1.24';
+// v0.1.24: the map's track colour (light by default; «Dark» remembered per browser). Here, before any panel is drawn.
+let TRK='light';try{if(localStorage.getItem('pw.track')==='dark')TRK='dark'}catch{}
+// the button reads «Light» / «Dark»; in a narrow map panel just ◐ / ◑ (the title bar stays one line), named in its tooltip
+const trkLabel=()=>`<span class="tl">${TRK==='dark'?'Dark':'Light'}</span><span class="ts" aria-hidden="true">${TRK==='dark'?'◑':'◐'}</span>`;
+const trkTip=()=>`Track colour: ${TRK==='dark'?'dark':'light'} (click to change)`;
 {const e=document.getElementById('bver');if(e)e.textContent='v'+VERSION}
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
@@ -304,7 +314,7 @@ let noteT;function note(t){const n=$('#note');n.textContent=t;n.style.display='b
 let USER=null,TOKEN=null,SESS=[],SEL=null,LINK=null;
 const S={fast:null,slow:null,cars:new Map(),hist:[],trail:[],last:[],lap:null,segs:[],cells:new Set(),segBounds:null,trackLen:0,mode:'full',zoom:1,lastPos:new Map(),heading:0,
   laps:[],per:new Map(),clsBest:new Map(),moments:[],prev:null,temps:[],gridTab:'all',gridCls:null,rest:{},cmp:null,ref:null,verdicts:[],st:null,stHist:[],stOpen:false};
-function resetData(){S.hs=null;S.hv=0;S.me0=S.me1=null;S.cmp=null;S.ref=null;S.verdicts=[];S.st=null;S.stHist=[];S.stOpen=false;S.lane=null;S.pitWatch=null;refPaths=null;S.secB=[[],[]];S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.setChg={};S.setMom={};S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
+function resetData(){S.gPk=null;S.hs=null;S.hv=0;S.me0=S.me1=null;S.cmp=null;S.ref=null;S.verdicts=[];S.st=null;S.stHist=[];S.stOpen=false;S.lane=null;S.pitWatch=null;refPaths=null;S.secB=[[],[]];S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.setChg={};S.setMom={};S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
 
 // ---------- login and access ----------
 async function boot(){
@@ -456,12 +466,13 @@ function onFast(buf){
   if(k===1&&d.byteLength>=76){
     const f={t:performance.now(),flags:d.getUint16(2,true),seq:d.getUint32(4,true),et:d.getFloat64(8,true),dist:d.getFloat32(16,true),lap:d.getInt16(20,true),gear:d.getInt8(22),
       x:d.getFloat32(24,true),y:d.getFloat32(28,true),z:d.getFloat32(32,true),speed:d.getFloat32(36,true),rpm:d.getFloat32(40,true),thr:d.getFloat32(44,true),brk:d.getFloat32(48,true),
-      steer:d.getFloat32(52,true),clutch:d.getFloat32(56,true),bp:[60,64,68,72].map(o=>d.getFloat32(o,true))};
+      steer:d.getFloat32(52,true),clutch:d.getFloat32(56,true),bp:[60,64,68,72].map(o=>d.getFloat32(o,true)),
+      ...(d.byteLength>=88?{ax:d.getFloat32(76,true),ay:d.getFloat32(80,true),az:d.getFloat32(84,true)}:{})};
     if(S.lap!==null&&f.lap!==S.lap){S.last=S.trail;S.trail=[]}
     S.lap=f.lap;
     const p=S.hist.length>10?S.hist[S.hist.length-10]:S.fast;if(p){const dx=f.x-p.x,dz=f.z-p.z;if(dx*dx+dz*dz>1)S.heading=Math.atan2(-dz,dx)}
     S.fast=f;S.trail.push([f.x,-f.z,curDelta(),f.thr,f.brk]);S.me0=S.me1;S.me1={x:f.x,z:-f.z,t:performance.now()};if(S.trail.length>20000)S.trail.shift();
-    S.hist.push(f);while(S.hist.length&&f.et-S.hist[0].et>15)S.hist.shift();
+    S.hist.push(f);gTake(f);while(S.hist.length&&f.et-S.hist[0].et>15)S.hist.shift();
     if(f.dist>S.trackLen)S.trackLen=f.dist;
   }
   if(k===2){
@@ -554,7 +565,7 @@ const BODY={
   traffic:`<div class="ph"><b>Traffic</b><span class="grow"></span>${chain('traffic')}</div><div id="traffic" class="body"></div>`,
   pit:`<div id="pitw" class="body"></div>`,
   moments:`<div class="ph"><b>Events</b>${chain('moments')}</div><div id="moments" class="mom body vlist"></div>`,
-  map:`<div class="ph"><b>Track map</b>${dsw()}<span class="grow"></span><button id="mFull" class="on">Full</button><button id="mFollow">Follow</button><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button>${chain('map')}</div>
+  map:`<div class="ph"><b><span class="tml">Track map</span><span class="tms">Map</span></b>${dsw()}<span class="grow"></span><button id="mFull" class="on">Full</button><button id="mFollow">Follow</button><button id="mTrk" title="${trkTip()}">${trkLabel()}</button><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button>${chain('map')}</div>
     <div id="dlt" class="dlt"></div>
     <div class="cv"><canvas id="map"></canvas><div id="flags" class="flags"></div><div id="strat" class="strat vlist"></div><div id="mpos" class="mpos" aria-live="off"></div></div>
     <div class="lg"><span class="y">▲ you</span><span style="color:#FF453A">Hypercar</span><span style="color:#0A84FF">LMP2</span><span style="color:#BF5AF2">LMP3</span><span style="color:#30D158">GT3</span><span style="color:#FF9F0A">GTE</span></div>`,
@@ -702,7 +713,7 @@ function phoneView(){
   const v=$('#view');const k='phone-'+PTAB;if(v.dataset.k===k)return;v.dataset.k=k;v.className='main';v.style.flexDirection='column';
   const body={
     car:`<div id="pcar" style="display:contents"></div>`,
-    map:`<div class="pmapw"><div class="pn pmap"><div class="ph"><button id="mFollow" class="on">Follow</button><button id="mFull">Full</button><span class="grow"></span><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div><div class="cv"><canvas id="map"></canvas><div id="flags" class="flags"></div><div id="strat" class="strat vlist"></div><div id="mpos" class="mpos" aria-live="off"></div></div></div>
+    map:`<div class="pmapw"><div class="pn pmap"><div class="ph"><button id="mFollow" class="on">Follow</button><button id="mFull">Full</button><button id="mTrk" title="${trkTip()}">${trkLabel()}</button><span class="grow"></span><button id="zOut">−</button><span id="zv" class="m">1.0x</span><button id="zIn">+</button></div><div class="cv"><canvas id="map"></canvas><div id="flags" class="flags"></div><div id="strat" class="strat vlist"></div><div id="mpos" class="mpos" aria-live="off"></div></div></div>
       <div class="pn pinp"><div class="ph"><span class="g">throttle</span><span class="r">brake</span><span>steer</span><span class="a">ABS</span><span class="c">lock</span></div><div class="cv"><canvas id="inp"></canvas></div><div class="m" id="inpft"></div></div></div><div class="lhint">↻ turn sideways for full screen</div>`,
     timing:`<div class="pn" style="flex:1"><div class="ph"><button id="gMine" class="${S.gridTab==='mine'?'on':''}">This car</button><button id="gAll" class="${S.gridTab==='all'?'on':''}">Grid</button><span class="grow"></span><span id="theo" class="mu m" style="font-size:12px"></span></div><div id="gcls" class="tb"></div><div id="laps"></div></div>`,
     strat:`<div class="pn" id="battle"></div><div class="pn" id="pitw"></div><div class="pn" id="wx"></div>`,
@@ -1145,6 +1156,42 @@ function paintFlags(){const el=$('#flags');if(!el)return;const se=S.slow&&S.slow
 
 // ---------- drawing (every frame; the track is one world-space path, rebuilt only when it grows) ----------
 let trackPath=null,secPaths=null,refPaths=null;
+// v0.1.24 (George, 25 Nov): a track like TinyPedal's. Light ribbon by default, dark as the option (remembered per browser);
+// cars as circles with their class position (yours green, your class white, other classes in their class colour,
+// in the pits dimmed); sector lines (start/finish blue, sector ends red); braking diamonds removed.
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('#mTrk');if(!b)return;TRK=TRK==='dark'?'light':'dark';
+  try{localStorage.setItem('pw.track',TRK)}catch{}document.querySelectorAll('#mTrk').forEach(x=>{x.innerHTML=trkLabel();x.title=trkTip()})});
+const TRKC={light:{edge:'#6B6E76',road:'#E4E6EA',last:'#B4B7BE',brk:'#E0303A',thr:'#1FA34F',none:'#6B6E76',yel:'rgba(255,200,0,.8)'},
+  dark:{edge:'#8C8F98',road:'#26282E',last:'#4A4D56',brk:'#FF5A5A',thr:'#3BD16F',none:'#9A9DA6',yel:'rgba(255,214,10,.45)'}};
+let CPOS_SRC=null,CPOS=new Map();
+function classPos(){const j=S.slow;if(!j||!j.grid)return CPOS;if(j===CPOS_SRC)return CPOS;CPOS_SRC=j;CPOS=new Map();const by={};
+  for(const c of j.grid)(by[c.class]=by[c.class]||[]).push(c);for(const k in by)by[k].sort((a,b)=>a.place-b.place).forEach((c,i)=>CPOS.set(c.id,i+1));return CPOS}
+// v0.1.24 g-circle (George, 25 Nov): your car's acceleration, LMU's mLocalAccel (driver app 0.1.28+). Braking up,
+// accelerating down; left/right in the car's direction (a right-hander moves the dot right). LMU, as TinyPedal reads it:
+// z > 0 under braking, x > 0 towards the car's left → screen right = G_SIDE·x/g, up = z/g. Peaks for the session; a knock
+// (over 5 g) is not a peak. To be confirmed in LMU: a right-hander moves the dot right (else flip G_SIDE).
+const G0=9.80665,G_SIDE=-1,G_FULL=2.5,G_SECS=3;
+function gOf(f){return f&&typeof f.ax==='number'&&isFinite(f.ax)&&isFinite(f.az)?{x:G_SIDE*f.ax/G0,y:f.az/G0}:null}
+function gTake(f){const v=gOf(f);if(!v||Math.hypot(v.x,v.y)>5)return;const P=S.gPk||(S.gPk={up:0,down:0,left:0,right:0});
+  P.up=Math.max(P.up,v.y);P.down=Math.max(P.down,-v.y);P.right=Math.max(P.right,v.x);P.left=Math.max(P.left,-v.x)}
+function drawG(host){if(!host||host.clientWidth<60)return;   // a hidden panel has no size: draw nothing
+  let cv=host.querySelector('#gc');const f=S.fast,live=gOf(f)&&performance.now()-f.t<2000;
+  host.classList.toggle('hasg',!!live);if(!live){if(cv)cv.style.display='none';return}
+  if(!cv){cv=document.createElement('canvas');cv.id='gc';host.append(cv)}cv.style.display='';fitCanvas(cv);
+  const g=cv.getContext('2d'),W=cv.width,dpr=devicePixelRatio||1,c=W/2,R=W/2-14*dpr,K=R/G_FULL,cl=v=>{const m=Math.hypot(v.x,v.y);return m>G_FULL?{x:v.x*G_FULL/m,y:v.y*G_FULL/m}:v};
+  g.clearRect(0,0,W,W);g.fillStyle='rgba(18,19,22,.82)';g.beginPath();g.arc(c,c,R+10*dpr,0,7);g.fill();
+  g.strokeStyle='#3A3D45';g.lineWidth=1*dpr;for(const k of [1,2]){g.beginPath();g.arc(c,c,k*K,0,7);g.stroke()}
+  g.strokeStyle='#26282E';g.beginPath();g.moveTo(c-R,c);g.lineTo(c+R,c);g.moveTo(c,c-R);g.lineTo(c,c+R);g.stroke();
+  const h=S.hist,t1=f.et,pts=[];for(let i=h.length-1;i>=0&&t1-h[i].et<=G_SECS;i--){const v=gOf(h[i]);if(v)pts.unshift([cl(v),t1-h[i].et])}
+  g.lineWidth=2*dpr;g.lineCap='round';for(let i=1;i<pts.length;i++){const a=pts[i-1][0],b=pts[i][0];g.strokeStyle=`rgba(255,122,48,${(0.15+0.85*(1-pts[i][1]/G_SECS)).toFixed(2)})`;
+    g.beginPath();g.moveTo(c+a.x*K,c-a.y*K);g.lineTo(c+b.x*K,c-b.y*K);g.stroke()}
+  const L=cl(gOf(f));g.fillStyle='#FFFFFF';g.beginPath();g.arc(c+L.x*K,c-L.y*K,3.5*dpr,0,7);g.fill();
+  const P=S.gPk||{up:0,down:0,left:0,right:0};g.font=`${10*dpr}px JetBrains Mono, monospace`;g.fillStyle='#8C8F98';
+  g.textAlign='center';g.fillText(P.up.toFixed(2),c,9*dpr);g.fillText(P.down.toFixed(2),c,W-2*dpr);
+  g.textAlign='left';g.fillText(P.left.toFixed(2),1*dpr,c-3*dpr);g.textAlign='right';g.fillText(P.right.toFixed(2),W-1*dpr,c-3*dpr);g.textAlign='left'}
+// v0.1.24 tab (George, 25 Nov): while live data arrives, «ARION Pit Wall 🟠» and «ARION Pit Wall» take turns once a second
+const TITLE0=document.title;let titleOn=false;
+setInterval(()=>{const live=!!(S.fast&&performance.now()-S.fast.t<2000);titleOn=live&&!titleOn;const t=titleOn?TITLE0+' 🟠':TITLE0;if(document.title!==t)document.title=t},1000);
 function fitCanvas(cv){const r=cv.getBoundingClientRect(),dpr=devicePixelRatio||1,w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}}
 // world (x, −z) → screen, as a matrix [a,b,c,d,e,f] for setTransform, and as a point function
 // v0.1.20: trail colour per point from the pedals (George's choice A): brake red (wins when both are pressed),
@@ -1179,39 +1226,39 @@ function drawMap(){
   smoothHeading();const mpF=mePos(),T=viewTransform(cv,mpF);
   if(!trackPath){trackPath=new Path2D();for(const sg of S.segs){trackPath.moveTo(sg[0],sg[1]);trackPath.lineTo(sg[2],sg[3])}}
   g.setTransform(...T.m);g.lineCap='round';g.lineJoin='round';
-  g.strokeStyle='#26282E';g.lineWidth=Math.max(6*dpr/T.s,13);g.stroke(trackPath);
+  const TC=TRKC[TRK]||TRKC.light,tw=Math.max(9*dpr/T.s,13);
+  g.strokeStyle=TC.edge;g.lineWidth=tw+3*dpr/T.s;g.stroke(trackPath);g.strokeStyle=TC.road;g.lineWidth=tw;g.stroke(trackPath);
   // a flagged sector (or the whole track under FCY / safety car) glows yellow on the track
   const se=S.slow&&S.slow.session,sb=secBounds();
   if(se){const full=se.phase===6||se.yellow>0,fl=(se.sectorFlags||[]).map(secY);
     if(full||fl.some(Boolean)){
       if(!secPaths&&sb){secPaths=[new Path2D(),new Path2D(),new Path2D()];for(const sg of S.segs){const d=sg[4];if(d==null)continue;const k=d<sb[1]?0:d<sb[2]?1:2;secPaths[k].moveTo(sg[0],sg[1]);secPaths[k].lineTo(sg[2],sg[3])}}
-      g.strokeStyle='rgba(255,214,10,.45)';g.lineWidth=Math.max(6*dpr/T.s,13)+4/T.s;
+      g.strokeStyle=TC.yel;g.lineWidth=tw+4/T.s;
       if(full)g.stroke(trackPath);else if(secPaths)fl.forEach((on,k)=>{if(on)g.stroke(secPaths[k])})}}
   const line=(pts,col,w)=>{if(pts.length<2)return;g.strokeStyle=col;g.lineWidth=w/T.s;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.stroke()};
-  line(S.last,'#4A4D56',2*dpr);
+  // sector lines: a short tick across the track at start/finish (blue) and at the two sector ends (red)
+  if(sb&&S.segs.length){for(const [k,dd] of [[0,0],[1,sb[1]],[2,sb[2]]]){let best=null,e0=1e9;for(const sg of S.segs){if(sg[4]==null)continue;const e0d=Math.abs(sg[4]-dd),e=k===0?Math.min(e0d,Math.abs(sb[3]-sg[4])):e0d;if(e<e0){e0=e;best=sg}}
+    if(!best||e0>30)continue;const dx=best[2]-best[0],dz=best[3]-best[1],L=Math.hypot(dx,dz)||1,nx=-dz/L,nz=dx/L,hh=tw*0.95;
+    g.strokeStyle=k===0?'#39C5F0':'#FF5A5A';g.lineWidth=3*dpr/T.s;g.lineCap='butt';g.beginPath();g.moveTo(best[0]-nx*hh,best[1]-nz*hh);g.lineTo(best[0]+nx*hh,best[1]+nz*hh);g.stroke();g.lineCap='round'}}
+  line(S.last,TC.last,2*dpr);
   // this lap's trail: green on throttle, red on the brakes, grey with no pedal (v0.1.20)
   (pts=>{if(pts.length<2)return;g.lineWidth=2.5*dpr/T.s;
-    const cols=pedalColours(pts);let col=cols[1];g.beginPath();g.moveTo(pts[0][0],pts[0][1]);
+    const cols=TRK==='dark'?pedalColours(pts):pts.map(p=>p[4]>0.05?TC.brk:p[3]>0.05?TC.thr:TC.none);let col=cols[1];g.beginPath();g.moveTo(pts[0][0],pts[0][1]);
     for(let i=1;i<pts.length;i++){const c=cols[i];if(c!==col){g.lineTo(pts[i][0],pts[i][1]);g.strokeStyle=col;g.stroke();g.beginPath();g.moveTo(pts[i][0],pts[i][1]);col=c}else g.lineTo(pts[i][0],pts[i][1])}
     g.strokeStyle=col;g.stroke()})(S.trail);
   g.setTransform(1,0,0,1,0,0);
   // cars glide from their previous position to the newest one over one frame interval (~100 ms behind live)
   const now=performance.now(),cls=new Map((S.slow?.grid||[]).map(c=>[c.id,c]));
   const list=[...S.cars.values()].sort((a,b)=>a.me-b.me);
-  // B: braking points of the class-best lap (purple diamonds, numbered); the ghost ring was removed in v0.1.20
-  const R0=S.ref;if(R0&&Array.isArray(R0.corners)){g.font=`${10*dpr}px JetBrains Mono, monospace`;
-    for(const c of R0.corners){const a=c.at_brake;if(!a)continue;const p=T.f(a[0],-a[1]);g.fillStyle='#C9A8FF';g.strokeStyle='#121316';g.lineWidth=1.5*dpr;
-      g.beginPath();g.moveTo(p[0],p[1]-6*dpr);g.lineTo(p[0]+5*dpr,p[1]);g.lineTo(p[0],p[1]+6*dpr);g.lineTo(p[0]-5*dpr,p[1]);g.closePath();g.fill();g.stroke();g.fillText('T'+c.n,p[0]+7*dpr,p[1]+4*dpr)}}
-  const mp=mpF,hs=S.hs;
+  const mp=mpF,cp=classPos(),meCls=(S.slow&&S.slow.grid||[]).find(x=>x.player)?.class;
   for(const c of list){const k=Math.max(0,Math.min(1,(now-c.t)/Math.max(30,c.t-c.pt)));const p=c.me&&mp?T.f(mp.x,mp.z):T.f(c.px+(c.x-c.px)*k,c.pz+(c.z-c.pz)*k);
-    const info=cls.get(c.id),r=(c.me?9:7)*dpr;
-    g.globalAlpha=c.pits?0.4:1;g.fillStyle=c.me?'#F2C200':CLS(info&&info.class);g.strokeStyle='#121316';g.lineWidth=1.5*dpr;
-    if(c.me&&S.hist.length>3&&hs!=null&&mp){const a=S.hist[Math.max(0,S.hist.length-8)],b=S.hist[S.hist.length-1],pb=T.f(mp.x+Math.cos(hs),mp.z+Math.sin(hs));
-      const ang=Math.atan2(pb[1]-p[1],pb[0]-p[0]),R=13*dpr;
-      if(Math.hypot(b.x-a.x,b.z-a.z)>1){g.save();g.translate(p[0],p[1]);g.rotate(ang);g.beginPath();g.moveTo(R,0);g.lineTo(-R*0.75,R*0.7);g.lineTo(-R*0.35,0);g.lineTo(-R*0.75,-R*0.7);g.closePath();g.fill();g.lineWidth=2*dpr;g.stroke();g.restore()}
-      else{g.beginPath();g.arc(p[0],p[1],r,0,7);g.fill();g.stroke()}}
-    else{g.beginPath();g.arc(p[0],p[1],r,0,7);g.fill();g.stroke()}
-    g.font=`${11*dpr}px JetBrains Mono, monospace`;g.fillStyle=c.me?'#F2C200':'#8C8F98';g.fillText(String(c.place),p[0]+r+(c.me?8:2)*dpr,p[1]-r);g.globalAlpha=1}
+    const info=cls.get(c.id),same=info&&info.class===meCls,r=(c.me?10:9)*dpr;
+    g.globalAlpha=c.pits?0.4:1;g.fillStyle=c.me?'#8EE53F':same?'#ECEDEF':CLS(info&&info.class);g.strokeStyle='#121316';g.lineWidth=1.5*dpr;
+    g.beginPath();g.arc(p[0],p[1],r,0,7);g.fill();g.stroke();
+    const n=cp.get(c.id);if(n){g.fillStyle=c.me||same?'#16171A':'#FFFFFF';g.font=`700 ${(n>9?9.5:11)*dpr}px JetBrains Mono, monospace`;g.textAlign='center';g.textBaseline='middle';
+      g.fillText(String(n),p[0],p[1]+0.5*dpr);g.textAlign='left';g.textBaseline='alphabetic'}
+    g.globalAlpha=1}
+  drawG(cv.parentElement);
   if(!S.segs.length&&!S.fast){g.fillStyle='#8C8F98';g.font=`${13*dpr}px Inter, sans-serif`;g.fillText('The map appears once cars are moving.',20*dpr,30*dpr)}
   const zv=$('#zv');if(zv)zv.textContent=S.zoom.toFixed(1)+'x';
 }

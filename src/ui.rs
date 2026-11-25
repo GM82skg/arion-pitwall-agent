@@ -70,6 +70,8 @@ pub struct AgentApp {
     quitting: bool,
     /// v0.1.16: «Update now» in progress / its error / done (restart and close)
     up: Arc<Mutex<UpState>>,
+    /// v0.1.28: the tray's «Check for updates»: its result and when it was asked (the line shows for 2 minutes)
+    chk: Arc<Mutex<Option<(crate::update::Manual, std::time::Instant)>>>,
     #[cfg(windows)]
     tip_set: bool,
     wordmark: Option<egui::TextureHandle>,
@@ -107,6 +109,7 @@ impl AgentApp {
             demo: demo.then(|| Arc::new(std::sync::atomic::AtomicU32::new(100))),
             quitting: false,
             up: Arc::new(Mutex::new(UpState::default())),
+            chk: Arc::new(Mutex::new(None)),
             #[cfg(windows)]
             tip_set: false,
             wordmark: None,
@@ -218,6 +221,21 @@ impl eframe::App for AgentApp {
                         ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
                         ctx.send_viewport_cmd(egui::ViewportCommand::Minimized(false));
                         ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+                    }
+                    win::Ev::Check => {
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Minimized(false));
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+                        let busy = matches!(self.chk.lock().unwrap().as_ref(), Some((crate::update::Manual::Checking, _)));
+                        if !busy {
+                            *self.chk.lock().unwrap() = Some((crate::update::Manual::Checking, std::time::Instant::now()));
+                            let (chk, c2) = (self.chk.clone(), ctx.clone());
+                            std::thread::spawn(move || {
+                                let m = crate::update::manual(config::VERSION);
+                                *chk.lock().unwrap() = Some((m, std::time::Instant::now()));
+                                c2.request_repaint();
+                            });
+                        }
                     }
                     win::Ev::Quit => {
                         self.quitting = true;
@@ -335,6 +353,11 @@ impl eframe::App for AgentApp {
                     line(ui, GREY, self.t.s("No coach watching", "Κανένας προπονητής δεν βλέπει"));
                 }
             }
+            // v0.1.28: the tray's «Check for updates»: checking… / latest / couldn't check (a newer version: the line below)
+            let shown = self.chk.lock().unwrap().as_ref().and_then(|(m, at)| (matches!(m, crate::update::Manual::Checking) || at.elapsed().as_secs() < 120).then(|| m.clone()));
+            if let Some((k, t)) = shown.as_ref().and_then(|m| crate::update::manual_text(m, self.t.el)) {
+                line(ui, [GREY, GREEN, RED][k as usize], &t);
+            }
             // v0.1.16: a newer version: «Update now» only between sessions (LMU not running, no coach watching)
             if let Some(rel) = crate::update::available() {
                 let live = (st.lmu && self.demo.is_none()) || st.viewers > 0;
@@ -425,16 +448,16 @@ pub fn icon_rgba() -> (Vec<u8>, u32, u32) {
 const WORDMARK: &[u8] = include_bytes!("../assets/wordmark.rgba");
 const WORDMARK_SIZE: [usize; 2] = [261, 50];
 
-/// Windows only: tray icon (Show / Quit) and "Start with Windows" (HKCU Run, no admin rights needed).
+/// Windows only: tray icon (Show / Check for updates / Quit) and "Start with Windows" (HKCU Run, no admin rights needed).
 #[cfg(windows)]
 pub mod win {
     use std::sync::mpsc::{channel, Receiver};
-    use tray_icon::menu::{Menu, MenuEvent, MenuItem};
+    use tray_icon::menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem};
     use tray_icon::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
     use windows::core::{w, HSTRING, PCWSTR};
     use windows::Win32::System::Registry::{RegDeleteKeyValueW, RegGetValueW, RegSetKeyValueW, HKEY_CURRENT_USER, REG_SZ, RRF_RT_REG_SZ};
 
-    pub enum Ev { Show, Quit }
+    pub enum Ev { Show, Check, Quit }
     pub struct Tray {
         pub icon: TrayIcon,
         pub rx: Receiver<Ev>,
@@ -442,18 +465,22 @@ pub mod win {
 
     pub fn tray(ctx: eframe::egui::Context, el: bool) -> Option<Tray> {
         let show = MenuItem::new(if el { "Εμφάνιση" } else { "Show" }, true, None);
+        let check = MenuItem::new(if el { "Έλεγχος για ενημερώσεις" } else { "Check for updates" }, true, None);
         let quit = MenuItem::new(if el { "Έξοδος (σταματά η αποστολή)" } else { "Quit (stops sending)" }, true, None);
         let menu = Menu::new();
         menu.append(&show).ok()?;
+        menu.append(&check).ok()?;
+        menu.append(&PredefinedMenuItem::separator()).ok()?;
         menu.append(&quit).ok()?;
         let (rgba, w, h) = super::icon_rgba();
         let icon = tray_icon::Icon::from_rgba(rgba, w, h).ok()?;
         let tray = TrayIconBuilder::new().with_menu(Box::new(menu)).with_icon(icon).with_tooltip("ARION Pit Wall").build().ok()?;
         let (tx, rx) = channel();
-        let (show_id, quit_id) = (show.id().clone(), quit.id().clone());
+        let (show_id, check_id, quit_id) = (show.id().clone(), check.id().clone(), quit.id().clone());
         let (tx2, ctx2) = (tx.clone(), ctx.clone());
         MenuEvent::set_event_handler(Some(move |e: MenuEvent| {
             if e.id == show_id { let _ = tx.send(Ev::Show); }
+            if e.id == check_id { let _ = tx.send(Ev::Check); }
             if e.id == quit_id { let _ = tx.send(Ev::Quit); }
             ctx.request_repaint();
         }));
