@@ -79,7 +79,9 @@ body.phone .mpos b{font-size:28px}
 @container (max-width:330px){#laps table.t:not(.st) td:nth-child(7),#laps table.t:not(.st) th:nth-child(7){display:none}}
 @container (max-width:290px){#laps table.t{font-size:10.5px}#laps table.t td,#laps table.t th{padding:2px 2px}#laps .sc{padding:0 2px}}
 @container (max-width:380px){#car .stl{display:none}}
-@container (max-width:300px){.tyre .mu{display:none}#car .k3.m{grid-template-columns:repeat(2,1fr)!important}}
+@container (max-width:300px){.tyre .mu{display:none}#car .k3.m:not(.sets){grid-template-columns:repeat(2,1fr)!important}}
+@container (max-width:400px){#car .k3.sets{grid-template-columns:repeat(3,1fr)}}
+@container (max-width:280px){#car .k3.sets{grid-template-columns:repeat(2,1fr)}}
 @container (max-width:250px){.big{font-size:14px}#car .k3:first-of-type{grid-template-columns:1fr 1fr}#car .k3 > div:nth-child(3){display:none}}
 @container (max-width:300px){#dmg .carsvg{display:none}}
 @container (max-width:480px){#zv{display:none}}   /* narrow map: the zoom readout goes first, so the header stays one line */
@@ -132,6 +134,12 @@ table.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12
 .ikey{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;margin:8px 0 0;color:var(--mu)}.pinp>.ph{order:3;margin:6px 0 0}.pinp>#inpft{order:2}.inptop .gear{font-size:26px;font-weight:700;color:#F5F5F7}
 .inptop .spd{font-size:22px;font-weight:700}.inptop .rpm{font-size:16px;font-weight:600;color:#C9CBD1}.inptop .sm{font-size:12px;color:var(--mu)}
 .k3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+/* v0.1.23: TC1 TC2 TC3 ABS Bias Map; a value the driver just changed sits on a cyan box for 5 s (the last second fades) */
+#car .sets{grid-template-columns:repeat(4,1fr) 1.6fr 1fr;margin-top:10px;row-gap:8px}
+.psets{grid-template-columns:repeat(3,1fr);row-gap:8px}
+.sv{display:inline-block;padding:0 5px;margin-left:-5px;border-radius:4px}
+.sv.chg{animation:chg 5s linear forwards}
+@keyframes chg{0%,80%{background:var(--c);color:#0E1A1F}100%{background:transparent;color:inherit}}
 .tyres{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
 .tyre{border-radius:6px;padding:7px 9px;background:#1E2A1F;font-family:var(--mono);font-size:13px}
 .bar{height:9px;background:#25272C;border-radius:5px;margin-top:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--y)}
@@ -217,7 +225,7 @@ body.phone .strat{left:8px;right:8px;width:auto}
 
 .pchp{display:none}body.phone .pchp{display:inline}body.phone #laps td.nm .pch{display:none}
 .pch{display:inline-block;margin-left:6px;padding:0 4px;border-radius:3px;background:#3A1416;color:#FF6B6B;font:700 10px/15px var(--mono);vertical-align:1px;white-space:nowrap}
-.tci,.tcq{display:inline-block;width:11px;height:11px;vertical-align:-1px;margin-right:6px}.tci i{display:block;width:11px;height:11px;border-radius:50%;font:normal 700 8px/11px var(--mono);text-align:center;letter-spacing:0;user-select:none}.tcq{position:relative}.tcq i{position:absolute;width:5px;height:5px;border-radius:50%}.tcq i:nth-child(1){left:0;top:0}.tcq i:nth-child(2){right:0;top:0}.tcq i:nth-child(3){left:0;bottom:0}.tcq i:nth-child(4){right:0;bottom:0}
+.tci,.tcq{display:inline-block;width:11px;height:11px;vertical-align:-1px;margin-right:6px}.tci i{display:block;width:11px;height:11px;border-radius:50%}.tcq{position:relative}.tcq i{position:absolute;width:5px;height:5px;border-radius:50%}.tcq i:nth-child(1){left:0;top:0}.tcq i:nth-child(2){right:0;top:0}.tcq i:nth-child(3){left:0;bottom:0}.tcq i:nth-child(4){right:0;bottom:0}
 </style>
 </head>
 <body>
@@ -240,7 +248,7 @@ body.phone .strat{left:8px;right:8px;width:auto}
 <script>
 'use strict';
 // ARION Pit Wall dashboard. Protocol: PROTOCOL.md in arion-pitwall-agent (version 1; comparison frames since v0.1.15).
-const VERSION='0.1.22';
+const VERSION='0.1.23';
 {const e=document.getElementById('bver');if(e)e.textContent='v'+VERSION}
 // Local mode: the driver app serves this same page on the racing PC ("My dashboard") and sets PW_LOCAL.
 const LOCAL=!!window.PW_LOCAL;
@@ -296,7 +304,7 @@ let noteT;function note(t){const n=$('#note');n.textContent=t;n.style.display='b
 let USER=null,TOKEN=null,SESS=[],SEL=null,LINK=null;
 const S={fast:null,slow:null,cars:new Map(),hist:[],trail:[],last:[],lap:null,segs:[],cells:new Set(),segBounds:null,trackLen:0,mode:'full',zoom:1,lastPos:new Map(),heading:0,
   laps:[],per:new Map(),clsBest:new Map(),moments:[],prev:null,temps:[],gridTab:'all',gridCls:null,rest:{},cmp:null,ref:null,verdicts:[],st:null,stHist:[],stOpen:false};
-function resetData(){S.hs=null;S.hv=0;S.me0=S.me1=null;S.cmp=null;S.ref=null;S.verdicts=[];S.st=null;S.stHist=[];S.stOpen=false;S.lane=null;S.pitWatch=null;refPaths=null;S.secB=[[],[]];S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
+function resetData(){S.hs=null;S.hv=0;S.me0=S.me1=null;S.cmp=null;S.ref=null;S.verdicts=[];S.st=null;S.stHist=[];S.stOpen=false;S.lane=null;S.pitWatch=null;refPaths=null;S.secB=[[],[]];S.laps=[];S.per=new Map();S.clsBest=new Map();S.moments=[];S.setChg={};S.setMom={};S.prev=null;S.temps=[];S.rest={};S.fast=null;S.slow=null;S.cars.clear();S.hist=[];S.trail=[];S.last=[];S.lap=null;S.segs=[];S.cells.clear();S.segBounds=null;S.trackLen=0;S.lastPos.clear();trackPath=null}
 
 // ---------- login and access ----------
 async function boot(){
@@ -738,6 +746,7 @@ function paintPhoneCar(){
     <div class="pn pk m">${nb(ah,'Ahead')}${nb(bh,'Behind')}<div><div class="mu">Stint</div>${stint} laps</div></div>
     <div class="pn"><div style="display:flex"><span class="mu">Energy</span><span class="grow"></span><span class="m">${ve>=0&&ve<=1?Math.round(ve*100)+'%':'–'}${energyLeft(me)&&energyLeft(me).laps!=null?` · ${energyLeft(me).laps.toFixed(1)} laps`:''}</span></div><div class="bar"><i style="width:${ve>=0&&ve<=1?ve*100:0}%"></i></div>
       <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} L</span></div></div>
+    <div class="pn k3 m sets psets">${setCells(c)}</div>
     <div class="pn pty">${['FL','FR','RL','RR'].map((n,k)=>{const t=w[k]||{t:[0,0,0]};const mid=KC((t.t||[])[1]+273.15);return `<div style="background:${mid==null?'#1F2024':tyreBg(mid)}">${n} <b>${mid==null?'–':Math.round(mid)+'°'}</b> <span class="mu">${pc(t.wear)}</span><div class="mu" style="font-size:11px">${mid==null?'':(t.t||[]).map(x=>Math.round(x)).join('·')+' · '}${t.p>0?Math.round(t.p)+' kPa':''}</div></div>`}).join('')}</div>
     <div class="pn" style="display:flex;gap:6px 12px;flex-wrap:wrap"><span class="mu">Damage</span><span class="grow"></span><span class="m ${dmg.length?'a':'g'}" style="text-align:right">${dmg.length?dmg.join(' · '):'none'}${R.pit&&R.pit.repair>0?` · repair ${R.pit.repair.toFixed(0)} s`:''}</span></div>
     <div class="pn mom">${S.moments.length?momRows(S.moments.slice(0,3)):'<div class="mu">Nothing yet.</div>'}</div>`;
@@ -753,6 +762,20 @@ addEventListener('resize',()=>{checkPhone();if(PHONE){$('#view').dataset.k='';ph
 const secs=(s1,s2,lap)=>s1>0&&s2>s1&&lap>s2?[s1,s2-s1,lap-s2]:null;
 function clsOf(g){return CLSN(g.class)}
 const raceT=x=>{x=Math.max(0,Math.floor(x));return `${Math.floor(x/3600)}:${String(Math.floor(x%3600/60)).padStart(2,'0')}:${String(x%60).padStart(2,'0')}`};
+// v0.1.23: the driver's settings. TC1 traction control, TC2 power cut, TC3 slip angle (George's names, 25 Nov);
+// older driver apps send no tcCut/tcSlip: «–». Bias as the front % shown (0.1), so float noise never counts as a change.
+const SETS=[['TC1','tc'],['TC2','tcCut'],['TC3','tcSlip'],['ABS','abs'],['Bias','bias'],['Map','map']];
+const SET_MS=5000;
+function setVal(c,k){if(!c)return null;if(k==='bias')return c.rearBias>0&&c.rearBias<1?((1-c.rearBias)*100).toFixed(1):null;return typeof c[k]==='number'?String(c[k]):null}
+function setCells(c){return SETS.map(([l,k])=>{const v=setVal(c,k),a=setAge(k);return `<div><div class="mu">${l==='Bias'?'Bias F:R':l}</div><span class="sv${a!=null?' chg':''}"${a!=null?` style="animation-delay:-${a}ms"`:''}>${v==null?'–':k==='bias'?v+':'+(100-v).toFixed(1):v}</span></div>`}).join('')}
+function setAge(k){const t=(S.setChg||{})[k];if(t==null)return null;const a=Date.now()-t;return a<SET_MS?a:null}
+// a change → the value's box and one cyan Events line «TC1 3 → 4»; the same setting changed again within 5 s of its
+// last change updates that line («TC1 3 → 5»); back to where it started removes it. Nothing on the first message.
+function watchSets(c,pc){if(!S.setChg)S.setChg={};if(!S.setMom)S.setMom={};const now=Date.now();
+  for(const [l,k] of SETS){const a=setVal(pc,k),b=setVal(c,k);if(a==null||b==null||a===b)continue;
+    S.setChg[k]=now;const m=S.setMom[k];
+    if(m&&now-m.last<SET_MS&&S.moments.includes(m)){m.last=now;if(b===m.from){S.moments.splice(S.moments.indexOf(m),1);delete S.setMom[k]}else m.text=`${l} ${m.from} → ${b}`}
+    else{moment('⚙',`${l} ${a} → ${b}`,'c');const n=S.moments[0];n.set=1;n.from=a;n.last=now;S.setMom[k]=n}}}
 function moment(icon,text,cls){const lap=(S.slow?.grid||[]).find(g=>g.player)?.laps,se=S.slow?.session,rt=se?se.now-se.start:null;S.moments.unshift({lap,rt,icon,text,cls,t:Date.now()});if(S.moments.length>80)S.moments.pop()}
 function learn(j){
   const prev=S.prev,now=Date.now();
@@ -789,6 +812,7 @@ function learn(j){
     if(se.rain>0.05&&!(ps.rain>0.05))moment('☂','Rain started','a');
     if(se.rain<=0.05&&ps.rain>0.05)moment('☀','Rain stopped','');
     if(j.car.impactET>(prev.car.impactET||0)&&j.car.impact>1000)moment('✱','Contact','r');
+    watchSets(j.car,prev.car);
   }
   if(!S.temps.length||now-S.temps[S.temps.length-1].t>30000){S.temps.push({t:now,v:se.track_temp});while(S.temps.length&&now-S.temps[0].t>3600000)S.temps.shift()}
   S.prev=j;
@@ -830,7 +854,7 @@ function paintPanels(){
     <div style="display:flex;margin-top:6px"><span class="mu">Fuel</span><span class="grow"></span><span class="m">${(c.fuel||0).toFixed(1)} / ${(c.fuelCap||0).toFixed(0)} L</span></div>
     <div class="tyres">${['FL','FR','RL','RR'].map((n,i)=>{const t=w[i]||{t:[0,0,0]};const tt=(t.t||[]).map(x=>x+273.15).map(KC);const mid=tt[1];const bm=(wear.brakeMm||[])[i];
       return `<div class="tyre" style="background:${mid==null?'#1F2024':tyreBg(mid)}" title="${n}: inner · middle · outer °C, pressure, tread left, brake temperature, brake disc"><div class="tl1">${n} <b>${mid==null?'–':Math.round(mid)+'°'}</b> <span class="mu">${mid==null?'':tt.map(x=>Math.round(x)).join('·')}</span></div><div class="mu tl2">${t.p>0?Math.round(t.p)+' kPa':'–'} · ${pc(t.wear)}</div><div class="mu tl2">${t.brake>-270?Math.round(t.brake)+'°':'–'}${bm>0?` · ${bm.toFixed(1)} mm`:''}</div></div>`}).join('')}</div>
-    <div class="k3 m" style="grid-template-columns:repeat(4,1fr);margin-top:10px"><div><div class="mu">TC</div>${c.tc}</div><div><div class="mu">ABS</div>${c.abs}</div><div><div class="mu">Bias F:R</div>${c.rearBias>0?((1-c.rearBias)*100).toFixed(1)+':'+(c.rearBias*100).toFixed(1):'–'}</div><div><div class="mu">Map</div>${c.map}</div></div>`;
+    <div class="k3 m sets">${setCells(c)}</div>`;
   paintDamage(c,R);
   paintTraffic();paintPit(j,me);paintMoments();paintBattle(j,me);paintWx(j,me);paintLaps();paintStrat();
 }
@@ -887,7 +911,7 @@ function paintPit(j,me){
     ${(sp=>sp?`<div class="m" style="margin-top:8px"><span class="mu">Must stop</span> lap ${sp.forced}${sp.ve!=null?` <span class="mu">· fill</span> VE ${Math.round(sp.ve*100)}%`:''} <span class="mu">· tyres</span> ${sp.ty}</div>`:`<div class="m mu" style="margin-top:8px">Stop plan after 2 laps of energy use</div>`)(stopPlan(j,me,0))}`;
 }
 // v0.1.13: moments as columns (race time · lap · icon · what happened)
-const momRows=list=>`<table class="t mt">${list.map(m=>`<tr><td class="mu">${m.rt!=null?raceT(m.rt):''}</td><td class="mu">${m.lap!=null?'L'+m.lap:''}</td><td class="${m.cls||''}">${m.icon}</td><td class="tx">${esc(m.text)}</td></tr>`).join('')}</table>`;
+const momRows=list=>`<table class="t mt">${list.map(m=>`<tr><td class="mu">${m.rt!=null?raceT(m.rt):''}</td><td class="mu">${m.lap!=null?'L'+m.lap:''}</td><td class="${m.cls||''}">${m.icon}</td><td class="tx${m.set?' c':''}">${esc(m.text)}</td></tr>`).join('')}</table>`;
 function paintMoments(){const el=$('#moments');if(!el)return;
   el.innerHTML=S.moments.length?momRows(S.moments.slice(0,30)):'<div class="mu">Nothing yet.</div>'}
 const SKY=['clear','light clouds','partly cloudy','mostly cloudy','overcast','cloudy, drizzle','cloudy, light rain','overcast, light rain','overcast, rain','overcast, heavy rain','overcast, storm'];
@@ -927,10 +951,9 @@ function tyreNames(g){const F=g.tyreF,R=g.tyreR,ci=g.tyreCI;if(!Array.isArray(ci
   return ci.map((x,i)=>{if(m.has(x))return m.get(x);const a=i<2?F:R;for(const [y,n] of m)if(n===a&&y!==x)return '';return a})}
 const TKIND=n=>{const s=(n||'').toLowerCase();return s.includes('soft')?'S':s.includes('med')?'M':s.includes('hard')?'H':s.includes('wet')||s.includes('rain')?'W':''};
 const TCOL=n=>({S:'#ECEDEF',M:'#F2C200',H:'#E8413C',W:'#3B8BFF'})[TKIND(n)]||'#6B6E76';
-const TINK=n=>({S:'#16171A',M:'#16171A',H:'#FFFFFF',W:'#FFFFFF'})[TKIND(n)]||'#16171A';
 function tyreCell(j,g){const c=tyreNames(g);
   const same=c.every(x=>x===c[0]),tip=same?`All ${c[0]||'?'}`:['FL','FR','RL','RR'].map((w,i)=>`${w} ${c[i]||'?'}`).join(' · ');
-  const ico=same?`<span class="tci" title="${esc(tip)}"><i style="background:${TCOL(c[0])};color:${TINK(c[0])}">${TKIND(c[0])}</i></span>`:`<span class="tcq" title="${esc(tip)}">${c.map(x=>`<i style="background:${TCOL(x)}"></i>`).join('')}</span>`;
+  const ico=same?`<span class="tci" title="${esc(tip)}"><i style="background:${TCOL(c[0])}"></i></span>`:`<span class="tcq" title="${esc(tip)}">${c.map(x=>`<i style="background:${TCOL(x)}"></i>`).join('')}</span>`;
   const w=(g.player?((j.car||{}).wheels||[]).map(x=>x&&x.wear):(g.tyreWear||[])).filter(x=>typeof x==='number'&&x>=0&&x<=1);
   // all four exactly 0 = LMU sent nothing for this car (a worn-out set never reads 0 on all four at once)
   return ico+(w.length===4&&w.some(x=>x>0)?`<span class="mu tlf">${Math.round(Math.min(...w)*100)}%</span>`:'')}

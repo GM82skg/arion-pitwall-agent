@@ -3,6 +3,7 @@
 //!   arion-pitwall-agent --key arion_tk_…            stream from Le Mans Ultimate (Windows)
 //!   arion-pitwall-agent --key … --fake               stream a fake car (tests, demos)
 //!   … --fake --fake-penalties                         … whose cars get penalties (with their type) now and then
+//!   … --fake --fake-settings                          … whose driver changes TC1/TC2/TC3, ABS, bias and map now and then
 //! Test options: --url, --apikey (another database), --seconds N (stop after N seconds).
 //!   arion-pitwall-agent --update                     the window's «Update now» from the command line
 
@@ -51,6 +52,7 @@ fn main() {
     let src: Box<dyn source::Source> = if fake {
         let mut f = source::FakeSource::with_speed(speed);
         f.pens = std::env::args().any(|a| a == "--fake-penalties");
+        f.sets = std::env::args().any(|a| a == "--fake-settings");
         Box::new(f)
     } else { source::game() };
     let door: Arc<dyn signal::Door> = Arc::new(signal::Supabase::new(&url, &apikey, &key));

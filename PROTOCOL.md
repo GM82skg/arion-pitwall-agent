@@ -75,7 +75,8 @@ corner's end), `brake_m` (− = braked earlier than the reference), `vmin` and `
 
 `session` (track, type, time, phase, flags, air/track temperature, rain, wetness min/avg/max, grip, clouds; `sectorFlags` is LMU's `mSectorFlag` as sent: 1 = local yellow in that sector,
 11 = clear (seen in LMU), so readers must test `== 1`, not `> 0`),
-`car` (fuel, capacity, virtual energy, battery, TC, ABS, map, brake bias front, delta, damage, four wheels with
+`car` (fuel, capacity, virtual energy, battery, TC (`tc`, LMU's `mTC`, «TC1» traction control; since v0.1.27 also
+`tcCut`, `mTCCut`, «TC2» power cut, and `tcSlip`, `mTCSlip`, «TC3» slip angle), ABS, map, brake bias front, delta, damage, four wheels with
 tyre temperatures °C, carcass, pressure kPa, wear, brake temperature, flat, compound),
 `grid` (per car: id, driver name as in the game, car, class, place, laps, best, last, sectors, gaps, pits, stops,
 virtual energy, front and rear tyre compound names `tyreF`/`tyreR`; since v0.1.24 also per wheel, FL FR RL RR,

@@ -27,6 +27,8 @@ pub struct FakeSource {
     events: bool,
     /// v0.1.26: penalties with their type in the results stream (tests: --fake-penalties; on in demo mode)
     pub pens: bool,
+    /// v0.1.27: the driver changes TC1/TC2/TC3/ABS/bias/map now and then (tests: --fake-settings; on in demo mode)
+    pub sets: bool,
     cars: Vec<FakeCar>,
 }
 
@@ -86,7 +88,7 @@ impl FakeSource {
             let d = (8 - i) as f64 * 140.0;
             FakeCar { d, v: vmax * fake_profile(d / FAKE_LAP, w), ..Default::default() }
         }).collect();
-        FakeSource { last: std::time::Instant::now(), clock: 0.0, speed, events, pens: events, cars }
+        FakeSource { last: std::time::Instant::now(), clock: 0.0, speed, events, pens: events, sets: events, cars }
     }
     /// Moves every car forward by dt seconds of race time (small steps, so 10× stays smooth).
     fn advance(&mut self, et0: f64, dt: f64) {
@@ -262,8 +264,25 @@ impl FakeSource {
         v.mFuelCapacity = 100.0;
         v.mRearBrakeBias = 0.458;
         v.mTC = 3;
+        v.mTCCut = 2;
+        v.mTCSlip = 4;
         v.mABS = 4;
         v.mMotorMap = 2;
+        if self.sets {
+            // every 6 minutes of game time: TC1 3 → 4 at 0:30 and → 5 at 0:32 (two quick clicks), TC2 2 → 3 at 1:00,
+            // bias 54.2 → 54.6 at 1:15, TC3 4 → 3 at 1:30, ABS 4 → 5 at 2:00, all back at 3:00; map 2 → 1 from 3:30 to 5:00.
+            // Each change is at least 60 s of game time before its way back (6 s at 10×), so the dashboard's 5 s merge
+            // keeps them as separate Events lines.
+            let cyc = et % 360.0;
+            let on = |a: f64| (a..180.0).contains(&cyc);
+            if on(30.0) { v.mTC = 4 }
+            if on(32.0) { v.mTC = 5 }
+            if on(60.0) { v.mTCCut = 3 }
+            if on(90.0) { v.mTCSlip = 3 }
+            if on(120.0) { v.mABS = 5 }
+            if on(75.0) { v.mRearBrakeBias = 0.454 }
+            if (210.0..300.0).contains(&cyc) { v.mMotorMap = 1 }
+        }
         for (k, w) in v.mWheels.iter_mut().enumerate() {
             w.mStaticUndeflectedRadius = 34;
             w.mRotation = -c.v / 0.34;
@@ -313,5 +332,27 @@ mod demo_tests {
         std::thread::sleep(std::time::Duration::from_millis(30));
         let b = f.read().unwrap().scoring.scoringInfo.mCurrentET;
         assert_eq!(b, a, "speed changes while running");
+    }
+    #[test]
+    fn fake_settings_change_on_schedule_and_reach_the_slow_json() {
+        let mut f = FakeSource::with_speed(1.0);
+        assert!(!f.sets, "off unless asked for");
+        f.sets = true;
+        // (game time, TC1, TC2, TC3, ABS, rear bias, map)
+        let want = [(10.0, 3, 2, 4, 4, 0.458, 2), (31.0, 4, 2, 4, 4, 0.458, 2), (33.0, 5, 2, 4, 4, 0.458, 2),
+            (61.0, 5, 3, 4, 4, 0.458, 2), (76.0, 5, 3, 4, 4, 0.454, 2), (91.0, 5, 3, 3, 4, 0.454, 2),
+            (121.0, 5, 3, 3, 5, 0.454, 2), (181.0, 3, 2, 4, 4, 0.458, 2), (211.0, 3, 2, 4, 4, 0.458, 1),
+            (301.0, 3, 2, 4, 4, 0.458, 2), (391.0, 4, 2, 4, 4, 0.458, 2)];
+        for (t, tc, cut, slip, abs, rb, map) in want {
+            let o = f.step(t - f.clock);
+            let j = crate::protocol::slow_json(&o).unwrap();
+            let c = &j["car"];
+            assert_eq!((c["tc"].as_u64(), c["tcCut"].as_u64(), c["tcSlip"].as_u64(), c["abs"].as_u64(), c["map"].as_u64()),
+                (Some(tc), Some(cut), Some(slip), Some(abs), Some(map)), "at {t} s");
+            assert!((c["rearBias"].as_f64().unwrap() - rb).abs() < 1e-9, "bias at {t} s");
+        }
+        let mut g = FakeSource::with_speed(1.0);
+        let o = g.step(100.0);
+        assert_eq!(crate::protocol::slow_json(&o).unwrap()["car"]["tc"], 3, "without --fake-settings nothing changes");
     }
 }

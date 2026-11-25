@@ -28,7 +28,7 @@ async def main():
             await pg.route(lambda u: not u.startswith('http://127.0.0.1') and not u.startswith('data:'), lambda r: r.abort())
             await pg.goto('http://127.0.0.1:6420/'); await asyncio.sleep(6)
             E = pg.evaluate
-            chk(f'{name}: dashboard 0.1.22', await E('VERSION') == '0.1.22')
+            chk(f'{name}: dashboard 0.1.23', await E('VERSION') == '0.1.23')
             if name == 'desktop':
                 href = await E('(document.querySelector("link[rel=icon]")||{}).href||""')
                 ok_png = False; info = href[:60]
@@ -43,7 +43,7 @@ async def main():
                     info = (im.size, len(px), white, clear)
                 chk('tab icon: built-in 64 px PNG, white on transparent', ok_png, info)
             r = await E(BOX)
-            chk(f'{name}: title reads «Pit Wall», version «v0.1.22» under it', r['pw'] == 'Pit Wall' and r['txt'] == 'v0.1.22' and r['vt'] >= r['bb'] - 0.5 and abs(r['bl'] - r['vl']) < 1, r)
+            chk(f'{name}: title reads «Pit Wall», version «v0.1.23» under it', r['pw'] == 'Pit Wall' and r['txt'] == 'v0.1.23' and r['vt'] >= r['bb'] - 0.5 and abs(r['bl'] - r['vl']) < 1, r)
             chk(f'{name}: «Pit Wall» + version no taller than the ARION logo, inside its top and bottom', fits(r), r)
             chk(f'{name}: version in the grey of secondary text', r['vcol'] == 'rgb(140, 143, 152)', r['vcol'])
             print(f'    {name}: logo {r["wh"]:.1f} px, title block {r["th"]:.1f} px')
