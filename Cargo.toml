@@ -4,6 +4,7 @@ version = "0.1.28"
 edition = "2021"
 description = "ARION Pit Wall driver app: reads Le Mans Ultimate telemetry and streams it to the team's pit wall."
 publish = false
+license = "GPL-3.0-or-later"
 
 [dependencies]
 serde = { version = "=1.0.229", features = ["derive"] }

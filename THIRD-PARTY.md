@@ -22,4 +22,6 @@ that ships with Le Mans Ultimate.
     CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 
-Other libraries are used through Cargo under their own licences (MIT and/or Apache-2.0); see `Cargo.lock`.
+Other libraries are used through Cargo under their own licences, all compatible with the GNU GPL v3 (checked 25 Nov 2026:
+mostly MIT and/or Apache-2.0; also BSL-1.0, ISC, MPL-2.0, Unicode-3.0, Zlib, and the built-in fonts under the SIL Open
+Font License 1.1 and the Ubuntu Font Licence); see `Cargo.lock`.

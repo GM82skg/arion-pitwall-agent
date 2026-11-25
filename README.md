@@ -12,6 +12,8 @@ Windows only. Needs Le Mans Ultimate 1.2 or newer.
 **Streaming with OBS:** open **My dashboard**, click the chain icon at the top right of a panel, choose the background (0 % = see-through) and **Copy link**, then add it in OBS as a **Browser Source**. It shows that one panel.
 
 **Updates:** the app checks for a newer version every 6 hours and shows **Update available**. **Update now** is only offered between sessions (Le Mans Ultimate closed, no coach watching): it downloads the new version, checks it against its SHA-256 and restarts. It never updates on its own.
+To check right away: right-click the tray icon → **Check for updates**. The window opens and says whether you have the
+latest version (or shows **Update available**).
 
 ### If Chrome or Windows warns
 The app is new and not yet signed with a paid certificate, so Chrome and Windows don't know it yet and warn about
@@ -23,7 +25,8 @@ The app is new and not yet signed with a paid certificate, so Chrome and Windows
 Download it only from this repository's **Releases** page.
 
 The window shows: connected to ARION (and your car), Le Mans Ultimate on track, how many coaches watch.
-Closing the window keeps it running in the tray; to stop it: tray icon → **Quit**.
+Closing the window keeps it running in the tray. Left-click the tray icon to open the window again; right-click it for
+**Show**, **Check for updates** and **Quit** (Quit stops sending).
 Tick **Start with Windows** if you want it ready every time.
 
 **Open my dashboard** shows your own car on this PC (map, inputs, tyres, traffic) in your browser — for example on a
@@ -56,6 +59,8 @@ second monitor. It works only on this PC, needs no login, and doesn't use one of
 **Για streaming με OBS:** άνοιξε το **My dashboard**, πάτα το εικονίδιο αλυσίδας πάνω δεξιά σε ένα πάνελ, διάλεξε το φόντο (0 % = διάφανο) και **Copy link**, και πρόσθεσέ το στο OBS ως **Browser Source**. Δείχνει μόνο εκείνο το πάνελ.
 
 **Ενημερώσεις:** η εφαρμογή ελέγχει για νέα έκδοση κάθε 6 ώρες και δείχνει **Διαθέσιμη ενημέρωση**. Το **Ενημέρωση τώρα** εμφανίζεται μόνο ανάμεσα σε συνεδρίες (κλειστό Le Mans Ultimate, κανένας προπονητής): κατεβάζει τη νέα έκδοση, την ελέγχει με το SHA-256 της και επανεκκινεί. Δεν ενημερώνεται ποτέ μόνη της.
+Για έλεγχο αμέσως: δεξί κλικ στο εικονίδιο του tray → **Έλεγχος για ενημερώσεις**. Ανοίγει το παράθυρο και λέει αν έχεις
+την πιο πρόσφατη έκδοση (ή δείχνει **Διαθέσιμη ενημέρωση**).
 
 ### Αν το Chrome ή τα Windows δείξουν προειδοποίηση
 Η εφαρμογή είναι καινούργια και δεν έχει ακόμα πληρωμένη ψηφιακή υπογραφή, οπότε το Chrome και τα Windows δεν την
@@ -68,8 +73,9 @@ second monitor. It works only on this PC, needs no login, and doesn't use one of
 Κατέβαζέ την μόνο από τη σελίδα **Releases** αυτού του repository.
 
 Το παράθυρο δείχνει: σύνδεση με την ARION (και το αυτοκίνητό σου), αν το Le Mans Ultimate είναι στην πίστα,
-πόσοι προπονητές βλέπουν. Το κλείσιμο του παραθύρου την αφήνει να τρέχει στο tray· για διακοπή: εικονίδιο
-tray → **Έξοδος**. Τσέκαρε **Εκκίνηση με τα Windows** αν τη θέλεις έτοιμη κάθε φορά.
+πόσοι προπονητές βλέπουν. Το κλείσιμο του παραθύρου την αφήνει να τρέχει στο tray. Αριστερό κλικ στο εικονίδιο
+του tray ξανανοίγει το παράθυρο· δεξί κλικ δίνει **Εμφάνιση**, **Έλεγχος για ενημερώσεις** και **Έξοδος** (η Έξοδος
+σταματά την αποστολή). Τσέκαρε **Εκκίνηση με τα Windows** αν τη θέλεις έτοιμη κάθε φορά.
 
 Το κλειδί μένει στον υπολογιστή σου, κρυπτογραφημένο με τον λογαριασμό σου στα Windows· η βάση της ARION κρατά μόνο
 μια ανακατεμένη (hash) μορφή του. Η τηλεμετρία πηγαίνει απευθείας από τον υπολογιστή σου στους προπονητές με
@@ -86,5 +92,31 @@ tray → **Έξοδος**. Τσέκαρε **Εκκίνηση με τα Windows**
 
 ---
 
-For developers: `cargo test` (layout, protocol, report), `tests/e2e/run_e2e.py` (agent ⇄ mock database ⇄ six
-headless Chrome coaches), `PROTOCOL.md` (what is sent), `THIRD-PARTY.md`.
+## For developers
+- `cargo test`: LMU's memory layout checked field by field, the protocol, the fake source, penalties, updates, report.
+- `tests/e2e/*.py`: the app ⇄ a stand-in database (`mock_db.py`) ⇄ headless Chrome coaches and the dashboard, plus
+  `update_e2e.py` against a stand-in for GitHub, and layout audits (`overlap_audit.py`, `fit_audit.py`).
+- Command line (tests and demos): `--key arion_tk_… --fake` streams a fake car (`--fake-speed 10`, `--fake-penalties`,
+  `--fake-settings`); `--update` and `--check-updates` do what the window's «Update now» and the tray's «Check for
+  updates» do.
+- `PROTOCOL.md`: exactly what is sent (car frame with acceleration since v0.1.28; TC1/TC2/TC3 since v0.1.27).
+  `THIRD-PARTY.md`: third-party notices. `assets/dashboard.html` is the pit wall dashboard built in for «My dashboard».
+- Releases: push a tag `vX.Y.Z`; GitHub builds, tests and publishes the exe with its SHA-256.
+
+## License
+Copyright (C) 2026 George Makridis (GM82)
+
+ARION Pit Wall is free software and licensed under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your option) any later version. ARION Pit Wall is
+distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY. See [LICENSE](./LICENSE) for more info.
+Releases up to v0.1.28 were published under the MIT License, which still applies to those copies.
+
+The ARION name, logo and wordmark (`assets/arion.ico`, `assets/icon64.rgba`, `assets/wordmark.rgba` and the wordmark in
+`assets/dashboard.html`) are not covered by the GNU General Public License; they belong to the ARION team and may not
+be used without its permission.
+
+Licences and notices for third-party software are in [THIRD-PARTY.md](./THIRD-PARTY.md).
+
+**Άδεια χρήσης:** Η ARION Pit Wall είναι ελεύθερο λογισμικό με άδεια GNU General Public License, έκδοση 3 ή (κατ'
+επιλογή) νεότερη. Διανέμεται με την ελπίδα ότι θα είναι χρήσιμη, αλλά ΧΩΡΙΣ ΚΑΜΙΑ ΕΓΓΥΗΣΗ. Δες το [LICENSE](./LICENSE).
+Το όνομα, το λογότυπο και το wordmark της ARION δεν καλύπτονται από την άδεια GPL· ανήκουν στην ομάδα ARION.
